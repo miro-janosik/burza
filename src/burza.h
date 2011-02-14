@@ -7,7 +7,8 @@
 int main2( int argc, char **argv );
 
 #include <gtkmm.h>
-#include "libglademm.h"
+#include <gtkmm/main.h>
+#include <libglademm.h>
 
 class CConvFile;
 

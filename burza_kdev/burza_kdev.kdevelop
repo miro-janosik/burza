@@ -15,8 +15,9 @@
     <projectname>burza_kdev</projectname>
     <projectdirectory>.</projectdirectory>
     <absoluteprojectpath>false</absoluteprojectpath>
-    <description/>
-    <defaultencoding/>
+    <description></description>
+    <defaultencoding></defaultencoding>
+    <versioncontrol/>
   </general>
   <kdevautoproject>
     <general>
@@ -24,10 +25,10 @@
       <useconfiguration>debug</useconfiguration>
     </general>
     <run>
-      <mainprogram>/home/mirex/work/burza/burza_kdev/debug/src/burza_kdev</mainprogram>
-      <programargs/>
-      <globaldebugarguments/>
-      <globalcwd>/media/data/work/burza/burza_kdev/debug</globalcwd>
+      <mainprogram>/media/data/work/burza/temp/kdev_debug/src/burza_kdev</mainprogram>
+      <programargs></programargs>
+      <globaldebugarguments></globaldebugarguments>
+      <globalcwd>/media/data/work/burza/run/</globalcwd>
       <useglobalprogram>true</useglobalprogram>
       <terminal>false</terminal>
       <autocompile>false</autocompile>
@@ -37,36 +38,54 @@
     </run>
     <configurations>
       <optimized>
-        <builddir>optimized</builddir>
+        <builddir>../temp/kdev_optimized</builddir>
         <ccompiler>kdevgccoptions</ccompiler>
         <cxxcompiler>kdevgppoptions</cxxcompiler>
         <f77compiler>kdevg77options</f77compiler>
         <cflags>-O2 -g0</cflags>
         <cxxflags>-O2 -g0</cxxflags>
+        <envvars/>
+        <configargs/>
+        <topsourcedir/>
+        <cppflags/>
+        <ldflags/>
+        <ccompilerbinary/>
+        <cxxcompilerbinary/>
+        <f77compilerbinary/>
+        <f77flags/>
       </optimized>
       <debug>
         <configargs>--enable-debug=full</configargs>
-        <builddir>debug</builddir>
+        <builddir>../temp/kdev_debug</builddir>
         <ccompiler>kdevgccoptions</ccompiler>
         <cxxcompiler>kdevgppoptions</cxxcompiler>
         <f77compiler>kdevg77options</f77compiler>
         <cflags>-O0 -g3</cflags>
         <cxxflags>-O0 -g3 -D_UNIX</cxxflags>
-        <envvars/>
-        <topsourcedir/>
-        <cppflags>`pkg-config --cflags libglademm-2.4`-I../../libLASi-1.1.0/include</cppflags>
-        <ldflags>`pkg-config --libs libglademm-2.4` -L/usr/local/lib/ -lLASi</ldflags>
-        <ccompilerbinary/>
-        <cxxcompilerbinary/>
-        <f77compilerbinary/>
-        <f77flags/>
+        <envvars>
+          <envvar value="../" name="SOLUTION_DIR" />
+        </envvars>
+        <topsourcedir></topsourcedir>
+        <cppflags>`pkg-config --cflags libglademm-2.4`-I../libLASi-1.1.0/include -I../../lib/libXL/include</cppflags>
+        <ldflags>`pkg-config --libs libglademm-2.4` -L/usr/local/lib/ -lxl</ldflags>
+        <ccompilerbinary></ccompilerbinary>
+        <cxxcompilerbinary></cxxcompilerbinary>
+        <f77compilerbinary></f77compilerbinary>
+        <f77flags></f77flags>
       </debug>
     </configurations>
     <make>
       <envvars>
+        <envvar value="../" name="SOLUTION_DIR" />
         <envvar value="1" name="WANT_AUTOCONF_2_5" />
         <envvar value="1" name="WANT_AUTOMAKE_1_6" />
       </envvars>
+      <abortonerror>true</abortonerror>
+      <runmultiplejobs>false</runmultiplejobs>
+      <numberofjobs>1</numberofjobs>
+      <dontact>false</dontact>
+      <makebin></makebin>
+      <prio>0</prio>
     </make>
   </kdevautoproject>
   <kdevfileview>
@@ -131,10 +150,10 @@
   <kdevdebugger>
     <general>
       <dbgshell>libtool</dbgshell>
-      <gdbpath/>
-      <configGdbScript/>
-      <runShellScript/>
-      <runGdbScript/>
+      <gdbpath></gdbpath>
+      <configGdbScript></configGdbScript>
+      <runShellScript></runShellScript>
+      <runGdbScript></runGdbScript>
       <breakonloadinglibs>true</breakonloadinglibs>
       <separatetty>false</separatetty>
       <floatingtoolbar>false</floatingtoolbar>
@@ -147,6 +166,7 @@
     </display>
   </kdevdebugger>
   <kdevfilecreate>
+    <filetypes/>
     <useglobaltypes>
       <type ext="cpp" />
       <type ext="h" />
@@ -156,6 +176,7 @@
     <projectdoc>
       <docsystem>Doxygen Documentation Collection</docsystem>
       <docurl>burza_kdev.tag</docurl>
+      <usermanualurl/>
     </projectdoc>
   </kdevdocumentation>
   <substmap>
@@ -206,7 +227,7 @@
       <includePaths>.;</includePaths>
     </codecompletion>
     <creategettersetter>
-      <prefixGet/>
+      <prefixGet></prefixGet>
       <prefixSet>set</prefixSet>
       <prefixVariable>m_,_</prefixVariable>
       <parameterName>theValue</parameterName>
@@ -218,12 +239,7 @@
       <synchronize>true</synchronize>
       <orientation>Vertical</orientation>
     </splitheadersource>
-    <references>
-      <pcs>automatic_%2Fhome%2Fmirex%2Fwork%2Fbiturn_svn%2FBiturnGtkmmKdev</pcs>
-      <pcs>BiturnDB</pcs>
-      <pcs>automatic_%2Fhome%2Fmirex%2Fwork%2FBiturnGtkmmKdev</pcs>
-      <pcs>automatic_%2Fhome%2Fmirex%2Fwork%2Fbiturn_svn%2FBiturnGtkmmKdev.a</pcs>
-    </references>
+    <references/>
   </kdevcppsupport>
   <cppsupportpart>
     <filetemplates>
@@ -231,4 +247,9 @@
       <implementationsuffix>.cpp</implementationsuffix>
     </filetemplates>
   </cppsupportpart>
+  <ctagspart>
+    <customArguments/>
+    <customTagfilePath>/media/data/work/burza/burza_kdev/tags</customTagfilePath>
+    <activeTagsFiles/>
+  </ctagspart>
 </kdevelop>

@@ -1,0 +1,22 @@
+tery.install.txt
+
+so you want to use .so library from internet.
+first - library is probably not stored in system path.
+use 'locate thatlib.so'. If nothing is printed - it is not in the system.
+Add it:
+
+sudo ln -s $PWD/libmylib.so.666 /usr/lib/libmylib.so
+
+then fix up the locator:
+
+sudo updatedb
+
+and test locator
+
+locate libmylib.so
+
+you can also try to see if its dependencies are met:
+
+ldd libmylib.so
+
+That's it.
