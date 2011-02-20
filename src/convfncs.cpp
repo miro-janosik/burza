@@ -65,6 +65,9 @@ char ConvFuncs::DateTimeString[ ConvFuncs::DateTimeString_len ];
 ConvFuncs *ConvFuncs::pSingleton = NULL;
 int ConvFuncs::m_singleton_init_counter = 0;
 const double ConvFuncs::RAD = (180 / 3.14159276);
+	
+char ConvFuncs::formater_cstr_buffer[ ConvFuncs::formater_string_buffer_len ];
+std::string	ConvFuncs::formater_stdstring;
 
 //ConvFuncs::DirChangeNotificationHandler	*ConvFuncs::m_DirChangeNotificationHandler = NULL;
 //int	ConvFuncs::m_DirChangeNotificationFileDescriptor = -1;

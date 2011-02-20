@@ -65,9 +65,30 @@ int main2( int argc, char **argv )
 // ==============================================
 // ==============================================
 
-void predajca::PridajTovar( int cislo, const char* nazov, double cena, char kategoria, stav_tovaru stav )
+Product::Product()
 {
-	tovar	t;
+	Reset();
+}
+
+void Product::Reset( void )
+{
+	m_cislo = -1;
+	m_nazov = "?";
+	m_cena = 0.0;
+	m_kategoria = ' ';
+	m_stav = caka_na_prijatie;
+}
+
+Seller::Seller()
+{
+	m_kod = "";
+	m_meno = "?";
+	m_poznamka = "";
+}
+
+void Seller::PridajTovar( int cislo, const char* nazov, double cena, char kategoria, e_product_status stav )
+{
+	Product	t;
 
 	t.m_cena = cena;
 	t.m_cislo = cislo;
@@ -75,10 +96,10 @@ void predajca::PridajTovar( int cislo, const char* nazov, double cena, char kate
 	t.m_nazov = nazov;
 	t.m_stav = stav;
 
-	m_tovar.push_back( t );
+	m_products.push_back( t );
 }
 
-void predajca::UlozDoTxtSuboru( CConvFile& file )
+void Seller::UlozDoTxtSuboru( CConvFile& file )
 {
 	file.Write( m_kod.c_str() );
 	file.Write( ";" );
@@ -87,29 +108,29 @@ void predajca::UlozDoTxtSuboru( CConvFile& file )
 	file.Write( m_poznamka.c_str() );
 	file.Write( "\n" );
 	
-	for( unsigned int i=0; i<m_tovar.size(); i++ ) {
+	for( unsigned int i=0; i<m_products.size(); i++ ) {
 		file.Print( "%i;%s;%0.1f;%c;%c\n",
-			m_tovar[ i ].m_cislo, m_tovar[ i ].m_nazov.c_str(),
-			m_tovar[ i ].m_cena, m_tovar[ i ].m_kategoria,
-			Centrala::Instancia()->Register()->Stav2Char( m_tovar[ i ].m_stav ) );
+			m_products[ i ].m_cislo, m_products[ i ].m_nazov.c_str(),
+			m_products[ i ].m_cena, m_products[ i ].m_kategoria,
+			Centrala::Instancia()->Register()->Stav2Char( m_products[ i ].m_stav ) );
 	}
 }
 
-void predajca::NacitajZTxtSuboru( CConvFile& file )
+void Seller::NacitajZTxtSuboru( CConvFile& file )
 {
 	static const int linebuffer_len = 512;
 	char linebuffer[ linebuffer_len ];
 	char delimiters[] = ";\r\n";
 	
 	const char* cp;
-	tovar		t;
+	Product		t;
 	
 	file.gets( linebuffer, linebuffer_len );
 	m_kod = ConvFuncsInstance->StrItem( linebuffer, 0, delimiters );
 	m_meno = ConvFuncsInstance->StrItem( linebuffer, 1, delimiters );
 	m_poznamka = ConvFuncsInstance->StrItem( linebuffer, 2, delimiters );
 	
-	m_tovar.clear();
+	m_products.clear();
 	
 	while( 1 ) {
 		if ( file.Eof() )
@@ -127,7 +148,7 @@ void predajca::NacitajZTxtSuboru( CConvFile& file )
 		t.m_kategoria = * ConvFuncsInstance->StrItem( linebuffer, 3, delimiters );
 		t.m_stav = Centrala::Instancia()->Register()->Char2Stav( ( * ConvFuncsInstance->StrItem( linebuffer, 4, delimiters ) ) );
 		
-		m_tovar.push_back( t );
+		m_products.push_back( t );
 	} ;
 }
 
@@ -157,7 +178,7 @@ void BurzaRegister::NacitajVsetkychPredajcov( void )
 			f.OpenFile( predajca_fname.c_str(), CConvFile::fm_text, CConvFile::fm_read );
 			
 			if ( f.IsOpened() == 1 ) {
-				predajca	novy;
+				Seller	novy;
 				novy.NacitajZTxtSuboru( f );
 				m_predajcovia.push_back( novy );
 				
@@ -172,7 +193,7 @@ void BurzaRegister::NacitajVsetkychPredajcov( void )
 
 void BurzaRegister::PridajNovehoPredajcu( const char* kod, const char* meno, const char* poznamka )
 {
-	predajca	p;
+	Seller	p;
 
 	p.m_kod = kod;
 	p.m_meno = meno;
@@ -183,8 +204,8 @@ void BurzaRegister::PridajNovehoPredajcu( const char* kod, const char* meno, con
 
 BurzaRegister::t_predajcovia::iterator BurzaRegister::NajdiPredajcuPodlaKodu( const char* kod )
 {
-	std::vector< predajca >::iterator	it;
-	predajca	*p;
+	std::vector< Seller >::iterator	it;
+	Seller	*p;
 	
 	for( it = m_predajcovia.begin(); it != m_predajcovia.end(); it++ ) {
 	
@@ -201,7 +222,7 @@ BurzaRegister::t_predajcovia::iterator BurzaRegister::NajdiPredajcuPodlaKodu( co
 // ==============================================
 // ==============================================
 
-char BurzaRegister::Stav2Char( stav_tovaru stav )
+char BurzaRegister::Stav2Char( e_product_status stav )
 {
 	if (( stav < 0 ) || ( stav >= pocet_stavov ))
 		return '?';
@@ -209,7 +230,7 @@ char BurzaRegister::Stav2Char( stav_tovaru stav )
 	return Centrala::Instancia()->Nastavenia()->m_znak_stavu_v_subore[ stav ];
 }
 
-const char* BurzaRegister::Stav2String( stav_tovaru stav )
+const char* BurzaRegister::Stav2String( e_product_status stav )
 {
 	if (( stav < 0 ) || ( stav >= pocet_stavov ))
 		return "?";
@@ -217,14 +238,14 @@ const char* BurzaRegister::Stav2String( stav_tovaru stav )
 	return Centrala::Instancia()->Nastavenia()->m_string_stavu[ stav ].c_str();
 }
 
-stav_tovaru BurzaRegister::Char2Stav( char c )
+e_product_status BurzaRegister::Char2Stav( char c )
 {
 	int i;
 	NastaveniaProgramu	*n = & Centrala::Instancia()->m_nastavenia;
 	
 	for( i=0; i < pocet_stavov; ++i )
 		if ( n->m_znak_stavu_v_subore[ i ] == c )
-			return (Burza::stav_tovaru) i;
+			return (Burza::e_product_status) i;
 	
 	return nedefinovane;
 }

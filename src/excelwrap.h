@@ -8,7 +8,12 @@
 #define EXCELWRAP_H
 
 #include <string>
-#include "libxl.h"
+#include <list>
+#include <vector>
+#include <stdexcept>
+#include <exception>
+
+#include "table.h"
 
 /**
 	@author mirex,,, <mirex@haluska>
@@ -16,30 +21,23 @@
 
 using namespace std;
 
-namespace BurzaTool {
-	
-class TableCell {
-private:
-	string	m_text;
-	
-	string Get( void ) { return m_text; }
-	void Set( string& s ) { m_text = s; }
-} ;
+using namespace BurzaTable;
 
-class TableSheet {
+namespace BurzaExcel {
 	
-	
-} ;
-
-
 class ExcelFileWrapper{
 public:
 	ExcelFileWrapper();
 	~ExcelFileWrapper();
 	
-	void OpenFile( string filename ) throw;
-	void ReadSheet( void ) throw;
+	TableOfCells	m_sheet;
 	
+private:
+	//! reads up xls file into m_table.
+	void ReadSheetIntoTable( string filename ) throw( runtime_error );
+	
+public:
+	Seller ReadSeller( string filename ) throw();
 	
 };
 

@@ -308,9 +308,9 @@ public:
 	//return: length of copied string
 	static int		StrCpyLen( char* dest, const char* source, int dest_size );
 	// returns pointer to local buffer holding result string.
-	const char*			FormatCstr( const char* format, ... );
+	static const char*			FormatCstr( const char* format, ... );
 	// returns reference to local buffer holding result string.
-	const std::string&	FormatStdStr( const char* format, ... );
+	static const std::string&	FormatStdStr( const char* format, ... );
 
 	static const char* strupr_convfncs( char* input );
 
@@ -396,8 +396,8 @@ public:
 		formater_string_buffer_len = 512,
 	} ;
 
-	char		formater_cstr_buffer[ formater_string_buffer_len ];
-	std::string	formater_stdstring;
+	static char		formater_cstr_buffer[ formater_string_buffer_len ];
+	static std::string	formater_stdstring;
 
 	// --- form ----
 #ifdef CONV_FNCS_FORM_INCLUDED

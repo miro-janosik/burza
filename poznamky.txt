@@ -1,0 +1,38 @@
+tel. cislo
+samostatny harok na kociky
+tlacitko uprav tovar
+vytlac doklad = poplatok, prebrany tovar
+clen-dobrovolnik checkboxy v pokladni
+tlacitko=vytlac predajcov harok na tlaciaren = zoznam
+stavy - zvyrazni farebne
+pokladna - pridaj stlpec 'kod'
+nastroj najdi veci podla nazvu
+
+vysledny harok:
+predane: cisla
+skladom: cisla
+darovane: cisla
++ podpisy - pozri vzor harku
+
+pokial predane veci boli do 3e, tak manipulacny poplatok = 0
+viazane na HW
+burza -  22-23.10.
+
+
+Casovo:
+- mesiac az tyzden pred burzou - mamy si vyzdvihuju formulare (xls harky)
+- tyzden pred burzou az tri dni pred (niektori az po piatok) - mamy posielaju do MC svoje xls formulare
+	Mamy ktore nemaju pocitac si mozu v MC nahodit svoj formular
+- piatok - mamy donasaju veci na Dlhe hony, niektore aj s formularmi v papierovej podobe
+	kontroluju sa veci s formularmi v programe, opravuju sa chyby, nahadzuju sa veci bez formularu do programu.
+	Na mamy bez formularu je nutny druhy a mozno aj treti pocitac.
+	Nasledne v piatok vecer / v sobotu rano treba skompletizovat databazu burzy
+- sobota rano 7:00 - 8:00 : preberaju sa velke veci (kociky), idu zatial mimo program (kody MCx, kde x je cislo)
+- sobota 9:00 - 15:00 - predavanie veci, cez pokladnu - program
+- sobota 15:00 - 16:00 - vytlacenie vyslednych harkov pre vsetkych predajcov, tj. 150 harkov so zoznamami co bolo predane, co nebolo predane, podpisy atd.
+- sobota 16:00 - 19:00 - vydavanie spet veci podla harkov, ak je nieco zle v harku (chyba) tak sa to vyznaci
+	(najdite mi to, pridem do MC, alebo Darujem to) a potom upravi aj v programe.
+
+
+TEST:
+- ci funguju xls verzia 95 aj 97
