@@ -55,8 +55,8 @@ public:
 	void ZmazTovar( int cislo );
 	void ZmenStavTovaru( int cislo, e_product_status stav );
 	
-	void UlozDoTxtSuboru( CConvFile& file );
-	void NacitajZTxtSuboru( CConvFile& file );
+	void SaveToTxtFile( CConvFile& file );
+	void LoadFromTxtFile( CConvFile& file );
 } ;
 
 // ==============================================

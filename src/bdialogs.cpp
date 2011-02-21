@@ -428,6 +428,9 @@ void BurzaDialogs::ButtonRegisterImportSeller( void )
 	reg->m_predajcovia.push_back(seller );
 }
 	kdevelop program translations
+geocache olomouc
+mapa milan
+2% materina duska
 
 void BurzaDialogs::ButtonRegisterAddSeller( void )
 {

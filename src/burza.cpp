@@ -99,28 +99,33 @@ void Seller::PridajTovar( int cislo, const char* nazov, double cena, char katego
 	m_products.push_back( t );
 }
 
-void Seller::UlozDoTxtSuboru( CConvFile& file )
+void Seller::SaveToTxtFile( CConvFile& file )
 {
 	file.Write( m_kod.c_str() );
-	file.Write( ";" );
+	file.Write( "|" );
 	file.Write( m_meno.c_str() );
-	file.Write( ";" );
+	file.Write( "|" );
 	file.Write( m_poznamka.c_str() );
 	file.Write( "\n" );
 	
+	string s;
+	
 	for( unsigned int i=0; i<m_products.size(); i++ ) {
-		file.Print( "%i;%s;%0.1f;%c;%c\n",
-			m_products[ i ].m_cislo, m_products[ i ].m_nazov.c_str(),
+		s = m_products[ i ].m_nazov.Mid( 0, 40 );
+		file.Print( "%i|%40s|%0.1f|%c|%c\n",
+			m_products[ i ].m_cislo, s.c_str(),
 			m_products[ i ].m_cena, m_products[ i ].m_kategoria,
 			Centrala::Instancia()->Register()->Stav2Char( m_products[ i ].m_stav ) );
 	}
 }
 
-void Seller::NacitajZTxtSuboru( CConvFile& file )
+void Seller::LoadFromTxtFile( CConvFile& file )
 {
 	static const int linebuffer_len = 512;
 	char linebuffer[ linebuffer_len ];
-	char delimiters[] = ";\r\n";
+	char namebuffer[ linebuffer_len ];
+	char delimiters[] = "|\r\n";
+	unsigned short strpos;
 	
 	const char* cp;
 	Product		t;
@@ -138,15 +143,22 @@ void Seller::NacitajZTxtSuboru( CConvFile& file )
 		if ( file.gets( linebuffer, linebuffer_len ) == 0 )
 			break;
 		
-		cp = ConvFuncsInstance->StrItem( linebuffer, 0, delimiters );
+		cp = ConvFuncsInstance->StrItem( linebuffer, 0, delimiters, &strpos );
 		// skip empty lines
 		if ( cp == NULL )
 			continue;
 		t.m_cislo = atoi( cp );
-		t.m_nazov = ConvFuncsInstance->StrItem( linebuffer, 1, delimiters );
-		t.m_cena = atof( ConvFuncsInstance->StrItem( linebuffer, 2, delimiters ) );
-		t.m_kategoria = * ConvFuncsInstance->StrItem( linebuffer, 3, delimiters );
-		t.m_stav = Centrala::Instancia()->Register()->Char2Stav( ( * ConvFuncsInstance->StrItem( linebuffer, 4, delimiters ) ) );
+		
+		if ( strpos + 40 > strlen( linebuffer ))
+			continue;
+		
+		strncpy( namebuffer, &linebuffer[ strpos ], 40 );
+		t.m_nazov = namebuffer;
+		cp = & linebuffer[ strpos + 40 ];
+		
+		t.m_cena = atof( ConvFuncsInstance->StrItem( cp, 0, delimiters ) );
+		t.m_kategoria = * ConvFuncsInstance->StrItem( cp, 1, delimiters );
+		t.m_stav = Centrala::Instancia()->Register()->Char2Stav( ( * ConvFuncsInstance->StrItem( cp, 2, delimiters ) ) );
 		
 		m_products.push_back( t );
 	} ;
