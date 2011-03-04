@@ -18,8 +18,7 @@
 #include "convfile.h"
 #include "convfncs.h"
 #include "burza.h"
-
-#include "../../libLASi-1.1.0/include/LASi.h"
+#include "bdialogs.h"
 
 using namespace Burza;
 
@@ -36,6 +35,32 @@ int main2( int argc, char **argv )
 	
 	// do not use local settings, use international. I want '.' as decimal delimiter.
 	setlocale(LC_ALL,"C");
+	
+	PdfWrapper	pdf;
+	TableOfCells	table;
+	TableColumnSpecs columns;
+	
+	table.Resize( 3, 3 );
+	table.Cell( 0, 0 ) = "1.";
+	table.Cell( 1, 0 ) = "2.";
+	table.Cell( 2, 0 ) = "3.";
+	
+	table.Cell( 0, 1 ) = "abc";
+	table.Cell( 1, 1 ) = "def";
+	table.Cell( 2, 1 ) = "ghi";
+	
+	table.Cell( 0, 2 ) = "jkl";
+	table.Cell( 1, 2 ) = "";
+	table.Cell( 2, 2 ) = "mno";
+	
+	columns.AddColumn( "First", 120 );
+	columns.AddColumn( "Second", 90 );
+	columns.AddColumn( "Third!", 100 );
+	
+	pdf.CreatePDF( "/home/mirex/tmp/a.pdf" );
+	pdf.NewPage();
+	pdf.DrawTable( 50, 50, table, columns );
+	pdf.ClosePDF();
 	
 	// ============
 	
@@ -111,7 +136,7 @@ void Seller::SaveToTxtFile( CConvFile& file )
 	string s;
 	
 	for( unsigned int i=0; i<m_products.size(); i++ ) {
-		s = m_products[ i ].m_nazov.Mid( 0, 40 );
+		s = m_products[ i ].m_nazov.substr( 0, 40 );
 		file.Print( "%i|%40s|%0.1f|%c|%c\n",
 			m_products[ i ].m_cislo, s.c_str(),
 			m_products[ i ].m_cena, m_products[ i ].m_kategoria,
@@ -286,8 +311,7 @@ NastaveniaProgramu::NastaveniaProgramu()
 
 Centrala::Centrala()
 {
-	mp_register = & m_dialogy.m_register;
-	
+	mp_dialogs = new BurzaRegister();
 }
 
 Centrala* Centrala::Instancia( void )
@@ -302,8 +326,14 @@ Centrala* Centrala::Instancia( void )
 void Centrala::Zmaz( void )
 {
 	if ( m_instance ) {
+		delete mp_dialogs;
+		
 		delete m_instance;
 		m_instance = NULL;
 	}
 }
 
+BurzaDialogs* Centrala::Dialogy( void )
+{
+	return mp_dialogs;
+}

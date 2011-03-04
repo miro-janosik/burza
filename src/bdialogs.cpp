@@ -5,6 +5,7 @@
 // -----
 
 #include <assert.h>
+#include <exception>
 #include "bdialogs.h"
 #include "convfncs.h"
 
@@ -12,6 +13,7 @@
 
 using namespace Burza;
 using namespace BurzaExcel;
+using namespace std;
 
 ComboBoxTextDer::ComboBoxTextDer( BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 	: Gtk::ComboBoxText(cobject)
@@ -24,6 +26,8 @@ ComboBoxTextDer::ComboBoxTextDer( BaseObjectType* cobject, const Glib::RefPtr<Gn
 
 BurzaDialogs::BurzaDialogs()
 {
+	mp_register = Centrala::Instancia()->Register();
+	
 	m_pCashoutVybranyPredajca = NULL;
 	m_CashoutVybranyPredajcaIdx = -1;
 	m_pCashoutVybranyTovar = NULL;
@@ -307,12 +311,12 @@ void BurzaDialogs::RegisterZobrazPredajcu( const char* kod )
 	BurzaRegister::t_predajcovia::iterator	it;
 	int	idx;
 	
-	for( idx = 0, it = m_register.m_predajcovia.begin(); it != m_register.m_predajcovia.end(); it++ ) {
+	for( idx = 0, it = mp_register->m_predajcovia.begin(); it != mp_register->m_predajcovia.end(); it++ ) {
 		if ( it->m_kod == kod )
 			break;
 	}
 	
-	if ( it == m_register.m_predajcovia.end() )
+	if ( it == mp_register->m_predajcovia.end() )
 		return;
 	
 	RegisterZobrazPredajcuCezIndex( idx );
@@ -320,13 +324,13 @@ void BurzaDialogs::RegisterZobrazPredajcu( const char* kod )
 
 void BurzaDialogs::RegisterZobrazPredajcuCezIndex( unsigned int idx )
 {
-	if ( idx >= m_register.m_predajcovia.size() ) {
+	if ( idx >= mp_register->m_predajcovia.size() ) {
 		assert( false );
 		return;
 	}
 	
 	BurzaRegister::t_predajcovia::iterator	it;
-	it = m_register.m_predajcovia.begin() + idx;
+	it = mp_register->m_predajcovia.begin() + idx;
 	
 	Seller	*pr = & (*it );
 	
@@ -350,7 +354,7 @@ void BurzaDialogs::RegisterZobrazPredajcuCezIndex( unsigned int idx )
 		row[ m_ItemsColumn.m_nazov ] = t->m_nazov;
 		row[ m_ItemsColumn.m_cena ] = ConvFuncsInstance->FormatCstr( "%0.2f", t->m_cena );
 		row[ m_ItemsColumn.m_kategoria ] = ConvFuncsInstance->FormatCstr( "%c", t->m_kategoria );
-		row[ m_ItemsColumn.m_stav ] = ConvFuncsInstance->FormatCstr( "%s", m_register.Stav2String( t->m_stav ) );
+		row[ m_ItemsColumn.m_stav ] = ConvFuncsInstance->FormatCstr( "%s", mp_register->Stav2String( t->m_stav ) );
 	}
 	
 }
@@ -363,7 +367,7 @@ void BurzaDialogs::VyplnPredajcovDoKomb( void )
 	
 	m_pComboSeller->clear();
 	
-	for( it = m_register.m_predajcovia.begin(); it != m_register.m_predajcovia.end(); it++ ) {
+	for( it = mp_register->m_predajcovia.begin(); it != mp_register->m_predajcovia.end(); it++ ) {
 		str = it->m_kod;
 		str += " - ";
 		str += it->m_meno;
@@ -373,7 +377,7 @@ void BurzaDialogs::VyplnPredajcovDoKomb( void )
 	// ---
 	m_pCashoutComboLookupSeller->clear();
 	
-	for( it = m_register.m_predajcovia.begin(); it != m_register.m_predajcovia.end(); it++ ) {
+	for( it = mp_register->m_predajcovia.begin(); it != mp_register->m_predajcovia.end(); it++ ) {
 		str = it->m_kod;
 		str += " - ";
 		str += it->m_meno;
@@ -387,7 +391,7 @@ void BurzaDialogs::ButtonRegisterImportSeller( void )
 	Seller seller;
 	Gtk::FileChooserDialog dialog("Select importer file", Gtk::FILE_CHOOSER_ACTION_OPEN );
 
-	dialog.set_transient_for( * xmlWndRegister );
+	dialog.set_transient_for( *m_pWndRegister );
 	//Add response buttons the the dialog:
 	dialog.add_button( Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL );
 	dialog.add_button( Gtk::Stock::OK, Gtk::RESPONSE_OK );
@@ -411,26 +415,23 @@ void BurzaDialogs::ButtonRegisterImportSeller( void )
 	try {
 		seller = x.ReadSeller( s );
 	}
-	catch( runtime_exception& e ) {
-		DisplayErrorMessageBox( "Error importing file." + e.what(), "Error importing file." );
+	catch( runtime_error& e ) {
+		DisplayErrorMessageBox( string( "Error importing file." ) + e.what(), "Error importing file." );
 		return;
 	}
 	
 	BurzaRegister	*reg = Centrala::Instancia()->Register();
-	t_predajcovia::iterator	it;	
-	it = reg->NajdiPredajcuPodlaKodu( seller.m_kod );
+	BurzaRegister::t_predajcovia::iterator	it;	
+	it = reg->NajdiPredajcuPodlaKodu( seller.m_kod.c_str() );
 	if ( it != reg->m_predajcovia.end() ) {
-		DisplayErrorMessageBox( "Error seller with that code already exists. Erase previous '" + 
-			seller.m_kod + "' seller." );
+		DisplayErrorMessageBox( 
+			ConvFuncs::FormatCstr( _( "Error seller with that code already exists. Erase previous '%s' seller." ),
+				seller.m_kod ) );
 		return;
 	}
 	
 	reg->m_predajcovia.push_back(seller );
 }
-	kdevelop program translations
-geocache olomouc
-mapa milan
-2% materina duska
 
 void BurzaDialogs::ButtonRegisterAddSeller( void )
 {
@@ -519,7 +520,7 @@ void BurzaDialogs::ButtonCashoutAddItem( void )
 	row[ m_ItemsColumn.m_nazov ] = t->m_nazov;
 	row[ m_ItemsColumn.m_cena ] = ConvFuncsInstance->FormatCstr( "%0.2f", t->m_cena );
 	row[ m_ItemsColumn.m_kategoria ] = ConvFuncsInstance->FormatCstr( "%c", t->m_kategoria );
-	row[ m_ItemsColumn.m_stav ] = ConvFuncsInstance->FormatCstr( "%s", m_register.Stav2String( t->m_stav ) );
+	row[ m_ItemsColumn.m_stav ] = ConvFuncsInstance->FormatCstr( "%s", mp_register->Stav2String( t->m_stav ) );
 	row[ m_ItemsColumn.m_predajca_idx ] = m_CashoutVybranyPredajcaIdx;
 	row[ m_ItemsColumn.m_Product_idx ] = m_CashoutVybranyTovarIdx;
 	
@@ -542,12 +543,12 @@ void BurzaDialogs::ButtonCashoutFinished( void )
 	for( it=itb; it!=ite; ++it ) {
 		row = *it;
 		
-		assert( row[ m_ItemsColumn.m_predajca_idx ] < m_register.m_predajcovia.size() );
+		assert( row[ m_ItemsColumn.m_predajca_idx ] < mp_register->m_predajcovia.size() );
 		
 		assert( row[ m_ItemsColumn.m_Product_idx ] < 
-			m_register.m_predajcovia[ row[ m_ItemsColumn.m_predajca_idx ] ].m_products.size() );
+			mp_register->m_predajcovia[ row[ m_ItemsColumn.m_predajca_idx ] ].m_products.size() );
 		
-		m_register.m_predajcovia[ row[ m_ItemsColumn.m_predajca_idx ] ].m_products[ 
+		mp_register->m_predajcovia[ row[ m_ItemsColumn.m_predajca_idx ] ].m_products[ 
  			row[ m_ItemsColumn.m_Product_idx ] ].m_stav = predane;
 		
 	}
@@ -573,12 +574,12 @@ void BurzaDialogs::ComboCashoutLookupSeller( void )
 	if ( i == -1 )
 		return;
 	
-	if ( i >= m_register.m_predajcovia.size() ) {
+	if ( i >= mp_register->m_predajcovia.size() ) {
 		assert( false );
 		return;
 	}
 	
-	m_pCashoutVybranyPredajca = & (*( m_register.m_predajcovia.begin() + i ));
+	m_pCashoutVybranyPredajca = & (*( mp_register->m_predajcovia.begin() + i ));
 	m_CashoutVybranyPredajcaIdx = i;
 	
 	PokladnaZmenaPredajcu();
@@ -609,7 +610,7 @@ void BurzaDialogs::ComboCashoutLookupItem( void )
 	
 	str = ConvFuncsInstance->FormatCstr( "%0.2f %s", 
 		m_pCashoutVybranyTovar->m_cena, 
-		m_register.Stav2String( m_pCashoutVybranyTovar->m_stav ) );
+		mp_register->Stav2String( m_pCashoutVybranyTovar->m_stav ) );
 	m_pCashoutLabelItemPrice->set_text( str );
 }
 
@@ -631,9 +632,9 @@ void BurzaDialogs::PokladnaZmenaPredajcu( void )
 
 void BurzaDialogs::DisplayErrorMessageBox( string msg1, string msg2 )
 {
-	Gtk::MessageDialog dialog;
+	Gtk::MessageDialog dialog( "" );
 	
-	if ( msg2 == NULL )
+	if ( msg2.empty() )
 		dialog.set_message( "error" );
 	else
 		dialog.set_message( msg2 );

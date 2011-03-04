@@ -13,6 +13,12 @@
 
 using namespace std;
 
+namespace Burza {
+class Seller;
+class Product;
+class BurzaRegister;
+};
+
 // ComboBoxText is class derived from ComboBox, I have to provide special constructor
 // so I can load it up from glade
 class ComboBoxTextDer : public Gtk::ComboBoxText {
@@ -40,7 +46,7 @@ public:
 	void PokladnaZmenaPredajcu( void );
 	
 	// Displays message box with message. Function returns only after you click OK on the box.
-	void DisplayErrorMessageBox( string msg, string msg_title = NULL );
+	void DisplayErrorMessageBox( string msg, string msg_title = "" );
 	
 public:
 	
@@ -66,7 +72,7 @@ public:
 	
 	
 public:
-	BurzaRegister			m_register;
+	Burza::BurzaRegister			*mp_register;
 	
 	Glib::RefPtr<Gnome::Glade::Xml> 	xmlWndRegister, xmlWndCashOut;
 		
@@ -124,8 +130,8 @@ public:
 	ItemsColumns	m_ItemsColumn;
 	
 	// Seller, ktory je vybrany v Pokladnicnom okne v kombo-boxe.
-	Seller		*m_pCashoutVybranyPredajca;
-	Product		*m_pCashoutVybranyTovar;
+	Burza::Seller		*m_pCashoutVybranyPredajca;
+	Burza::Product		*m_pCashoutVybranyTovar;
 	int		m_CashoutVybranyPredajcaIdx;
 	int		m_CashoutVybranyTovarIdx;
 	

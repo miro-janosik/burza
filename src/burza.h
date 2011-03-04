@@ -4,7 +4,15 @@
 // Vytvorene pre MC Srdiecko Trencin
 // -----
 
+#ifndef _burza_h_
+#define _burza_h_
+
 class CConvFile;
+class BurzaDialogs;
+
+// translate i18n macro
+#define _( text ) ( text )
+
 
 namespace Burza {
 	
@@ -27,6 +35,9 @@ public:
 	double				m_cena;
 	char					m_kategoria;
 	e_product_status	m_stav;
+	
+	Product();
+	void Reset( void );
 } ;
 
 class NastaveniaProgramu {
@@ -99,13 +110,14 @@ public:
 public:
 	
 	NastaveniaProgramu*	Nastavenia( void ) { return & m_nastavenia; }
-	BurzaDialogs*	Dialogy( void ) { return & m_dialogy; }
-	BurzaRegister* Register( void ) { return mp_register; }
+	BurzaDialogs*	Dialogy( void );
+	BurzaRegister* Register( void ) { return & m_register; }
 	
 	NastaveniaProgramu		m_nastavenia;
-	BurzaDialogs					m_dialogy;
-	
-	BurzaRegister					*mp_register;
+	BurzaDialogs					*mp_dialogs;
+	BurzaRegister					m_register;
 } ;
 
 } ; // end namespace Burza
+
+#endif

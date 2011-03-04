@@ -6,6 +6,11 @@
 #ifndef BURZATABLETABLE_H
 #define BURZATABLETABLE_H
 
+#include<string>
+#include <vector>
+
+using namespace std;
+
 namespace BurzaTable {
 	
 class TableCell {
@@ -45,6 +50,9 @@ public:
 		
 		Resize( rows, columns );
 	}
+	
+	unsigned int Rows( void ) { return m_rows; }
+	unsigned int Columns( void ) { return m_columns; }
 	
 	//! changes size of the table. Cells will keep their values
 	//! new cells will be empty
@@ -108,6 +116,41 @@ public:
 } ;
 
 typedef Table< TableCell > TableOfCells;
+
+class TableColumnSpec {
+public:
+	TableColumnSpec()
+	{
+		m_name = "";
+		m_width = 100;
+		m_items_bold = false;
+		m_items_italic = false;
+		m_items_font_size = 14;
+		m_merge_header_cell_to_right = false;		
+	}
+	
+	string		m_name;
+	unsigned int	m_width;
+	
+	bool		m_items_bold;
+	bool		m_items_italic;
+	unsigned int m_items_font_size;
+	bool		m_merge_header_cell_to_right;
+} ;
+
+class TableColumnSpecs {
+public:
+	vector< TableColumnSpec > m_columns;
+	
+	void AddColumn( string name, unsigned int width )
+	{
+		TableColumnSpec	c;
+		c.m_name = name;
+		c.m_width = width;
+		m_columns.push_back( c );
+	}
+} ;
+
 
 };
 

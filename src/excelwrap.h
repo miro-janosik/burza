@@ -14,14 +14,15 @@
 #include <exception>
 
 #include "table.h"
+#include "burza.h"
 
 /**
 	@author mirex,,, <mirex@haluska>
 */
 
 using namespace std;
-
 using namespace BurzaTable;
+using namespace Burza;
 
 namespace BurzaExcel {
 	

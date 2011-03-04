@@ -15,8 +15,8 @@
     <projectname>burza_kdev</projectname>
     <projectdirectory>.</projectdirectory>
     <absoluteprojectpath>false</absoluteprojectpath>
-    <description/>
-    <defaultencoding/>
+    <description></description>
+    <defaultencoding></defaultencoding>
     <versioncontrol/>
   </general>
   <kdevautoproject>
@@ -26,8 +26,8 @@
     </general>
     <run>
       <mainprogram>/media/data/work/burza/temp/kdev_debug/src/burza_kdev</mainprogram>
-      <programargs/>
-      <globaldebugarguments/>
+      <programargs></programargs>
+      <globaldebugarguments></globaldebugarguments>
       <globalcwd>/media/data/work/burza/run/</globalcwd>
       <useglobalprogram>true</useglobalprogram>
       <terminal>false</terminal>
@@ -65,13 +65,13 @@
         <envvars>
           <envvar value="../" name="SOLUTION_DIR" />
         </envvars>
-        <topsourcedir/>
-        <cppflags>`pkg-config --cflags libglademm-2.4`-I../libLASi-1.1.0/include -I/home/mirex/work/burza/lib/libXL/include</cppflags>
-        <ldflags>`pkg-config --libs libglademm-2.4` -L/usr/local/lib/ -lxl</ldflags>
-        <ccompilerbinary/>
-        <cxxcompilerbinary/>
-        <f77compilerbinary/>
-        <f77flags/>
+        <topsourcedir></topsourcedir>
+        <cppflags>`pkg-config --cflags libglademm-2.4`-I../libLASi-1.1.0/include -I/home/mirex/work/burza/lib/libXL/include -I/data/work/burza/lib/libharu/include</cppflags>
+        <ldflags>`pkg-config --libs libglademm-2.4` -L/usr/local/lib/ -lxl -L/data/work/burza/lib/libharu/lib/ -lhpdf</ldflags>
+        <ccompilerbinary></ccompilerbinary>
+        <cxxcompilerbinary></cxxcompilerbinary>
+        <f77compilerbinary></f77compilerbinary>
+        <f77flags></f77flags>
       </debug>
     </configurations>
     <make>
@@ -150,10 +150,10 @@
   <kdevdebugger>
     <general>
       <dbgshell>libtool</dbgshell>
-      <gdbpath/>
-      <configGdbScript/>
-      <runShellScript/>
-      <runGdbScript/>
+      <gdbpath></gdbpath>
+      <configGdbScript></configGdbScript>
+      <runShellScript></runShellScript>
+      <runGdbScript></runGdbScript>
       <breakonloadinglibs>true</breakonloadinglibs>
       <separatetty>false</separatetty>
       <floatingtoolbar>false</floatingtoolbar>
@@ -204,7 +204,7 @@
       <designerpluginpaths/>
     </qt>
     <codecompletion>
-      <automaticCodeCompletion>false</automaticCodeCompletion>
+      <automaticCodeCompletion>true</automaticCodeCompletion>
       <automaticArgumentsHint>true</automaticArgumentsHint>
       <automaticHeaderCompletion>true</automaticHeaderCompletion>
       <codeCompletionDelay>250</codeCompletionDelay>
@@ -218,16 +218,16 @@
       <namespaceAliases>std=_GLIBCXX_STD;__gnu_cxx=std</namespaceAliases>
       <processPrimaryTypes>true</processPrimaryTypes>
       <processFunctionArguments>false</processFunctionArguments>
-      <preProcessAllHeaders>false</preProcessAllHeaders>
-      <parseMissingHeadersExperimental>false</parseMissingHeadersExperimental>
-      <resolveIncludePathsUsingMakeExperimental>false</resolveIncludePathsUsingMakeExperimental>
+      <preProcessAllHeaders>true</preProcessAllHeaders>
+      <parseMissingHeadersExperimental>true</parseMissingHeadersExperimental>
+      <resolveIncludePathsUsingMakeExperimental>true</resolveIncludePathsUsingMakeExperimental>
       <alwaysParseInBackground>true</alwaysParseInBackground>
       <usePermanentCaching>true</usePermanentCaching>
-      <alwaysIncludeNamespaces>false</alwaysIncludeNamespaces>
+      <alwaysIncludeNamespaces>true</alwaysIncludeNamespaces>
       <includePaths>.;</includePaths>
     </codecompletion>
     <creategettersetter>
-      <prefixGet/>
+      <prefixGet></prefixGet>
       <prefixSet>set</prefixSet>
       <prefixVariable>m_,_</prefixVariable>
       <parameterName>theValue</parameterName>
@@ -239,7 +239,9 @@
       <synchronize>true</synchronize>
       <orientation>Vertical</orientation>
     </splitheadersource>
-    <references/>
+    <references>
+      <pcs>automatic_%2Fmedia%2Fdata%2Fwork%2Fburza%2Fburza_kdev</pcs>
+    </references>
   </kdevcppsupport>
   <cppsupportpart>
     <filetemplates>
