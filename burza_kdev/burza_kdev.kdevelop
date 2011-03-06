@@ -15,8 +15,8 @@
     <projectname>burza_kdev</projectname>
     <projectdirectory>.</projectdirectory>
     <absoluteprojectpath>false</absoluteprojectpath>
-    <description></description>
-    <defaultencoding></defaultencoding>
+    <description/>
+    <defaultencoding/>
     <versioncontrol/>
   </general>
   <kdevautoproject>
@@ -26,8 +26,8 @@
     </general>
     <run>
       <mainprogram>/media/data/work/burza/temp/kdev_debug/src/burza_kdev</mainprogram>
-      <programargs></programargs>
-      <globaldebugarguments></globaldebugarguments>
+      <programargs/>
+      <globaldebugarguments/>
       <globalcwd>/media/data/work/burza/run/</globalcwd>
       <useglobalprogram>true</useglobalprogram>
       <terminal>false</terminal>
@@ -65,13 +65,13 @@
         <envvars>
           <envvar value="../" name="SOLUTION_DIR" />
         </envvars>
-        <topsourcedir></topsourcedir>
+        <topsourcedir/>
         <cppflags>`pkg-config --cflags libglademm-2.4`-I../libLASi-1.1.0/include -I/home/mirex/work/burza/lib/libXL/include -I/data/work/burza/lib/libharu/include</cppflags>
         <ldflags>`pkg-config --libs libglademm-2.4` -L/usr/local/lib/ -lxl -L/data/work/burza/lib/libharu/lib/ -lhpdf</ldflags>
-        <ccompilerbinary></ccompilerbinary>
-        <cxxcompilerbinary></cxxcompilerbinary>
-        <f77compilerbinary></f77compilerbinary>
-        <f77flags></f77flags>
+        <ccompilerbinary/>
+        <cxxcompilerbinary/>
+        <f77compilerbinary/>
+        <f77flags/>
       </debug>
     </configurations>
     <make>
@@ -150,10 +150,10 @@
   <kdevdebugger>
     <general>
       <dbgshell>libtool</dbgshell>
-      <gdbpath></gdbpath>
-      <configGdbScript></configGdbScript>
-      <runShellScript></runShellScript>
-      <runGdbScript></runGdbScript>
+      <gdbpath/>
+      <configGdbScript/>
+      <runShellScript/>
+      <runGdbScript/>
       <breakonloadinglibs>true</breakonloadinglibs>
       <separatetty>false</separatetty>
       <floatingtoolbar>false</floatingtoolbar>
@@ -227,7 +227,7 @@
       <includePaths>.;</includePaths>
     </codecompletion>
     <creategettersetter>
-      <prefixGet></prefixGet>
+      <prefixGet/>
       <prefixSet>set</prefixSet>
       <prefixVariable>m_,_</prefixVariable>
       <parameterName>theValue</parameterName>

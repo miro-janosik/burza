@@ -20,6 +20,10 @@
 #include "burza.h"
 #include "bdialogs.h"
 
+// not required here, only for test
+#include "pdfwrap.h"
+#include "table.h"
+
 using namespace Burza;
 
 Centrala* Centrala::m_instance = NULL;
@@ -35,32 +39,6 @@ int main2( int argc, char **argv )
 	
 	// do not use local settings, use international. I want '.' as decimal delimiter.
 	setlocale(LC_ALL,"C");
-	
-	PdfWrapper	pdf;
-	TableOfCells	table;
-	TableColumnSpecs columns;
-	
-	table.Resize( 3, 3 );
-	table.Cell( 0, 0 ) = "1.";
-	table.Cell( 1, 0 ) = "2.";
-	table.Cell( 2, 0 ) = "3.";
-	
-	table.Cell( 0, 1 ) = "abc";
-	table.Cell( 1, 1 ) = "def";
-	table.Cell( 2, 1 ) = "ghi";
-	
-	table.Cell( 0, 2 ) = "jkl";
-	table.Cell( 1, 2 ) = "";
-	table.Cell( 2, 2 ) = "mno";
-	
-	columns.AddColumn( "First", 120 );
-	columns.AddColumn( "Second", 90 );
-	columns.AddColumn( "Third!", 100 );
-	
-	pdf.CreatePDF( "/home/mirex/tmp/a.pdf" );
-	pdf.NewPage();
-	pdf.DrawTable( 50, 50, table, columns );
-	pdf.ClosePDF();
 	
 	// ============
 	
@@ -174,11 +152,15 @@ void Seller::LoadFromTxtFile( CConvFile& file )
 			continue;
 		t.m_cislo = atoi( cp );
 		
+		// skip |
+		strpos++;
 		if ( strpos + 40 > strlen( linebuffer ))
 			continue;
 		
 		strncpy( namebuffer, &linebuffer[ strpos ], 40 );
 		t.m_nazov = namebuffer;
+		// skip |
+		strpos++;
 		cp = & linebuffer[ strpos + 40 ];
 		
 		t.m_cena = atof( ConvFuncsInstance->StrItem( cp, 0, delimiters ) );
@@ -187,6 +169,49 @@ void Seller::LoadFromTxtFile( CConvFile& file )
 		
 		m_products.push_back( t );
 	} ;
+}
+
+void Seller::PrintProductsToPDF( PdfWrapperBase& pdf )
+{
+	string str;
+	
+	str = m_kod;
+	str += " - ";
+	str += m_meno;
+	
+	pdf.WriteSingleText( 10, 10, str.c_str() );
+	
+	TableOfCells	table;
+	TableColumnSpecs columns;
+	
+	typedef		std::vector< Product >	t_products;
+	t_products	m_products;
+	
+	int					m_cislo;
+	std::string		m_nazov;
+	double				m_cena;
+	char					m_kategoria;
+	e_product_status	m_stav;
+	
+	columns.AddColumn( "#", 40 );
+	columns.AddColumn( _("nazov"), 200 );
+	columns.AddColumn( _("cena"), 60 );
+	columns.AddColumn( _("kat"), 40 );
+	columns.AddColumn( _("stav"), 90 );
+	
+	table.Resize( m_products.size(), 5 );
+	
+	BurzaRegister* reg = Centrala::Instancia()->Register();	
+	
+	for( unsigned int i=0; i<m_products.size(); ++i ) {
+		table.Cell( 1 + i, 0 ) = ConvFuncs::FormatStdStr( "%i", m_products[ i ].m_cislo );
+		table.Cell( 1 + i, 1 ) = m_products[ i ].m_nazov;
+		table.Cell( 1 + i, 2 ) = ConvFuncs::FormatStdStr( "%0.2f", m_products[ i ].m_cena );
+		table.Cell( 1 + i, 3 ) = ConvFuncs::FormatStdStr( "%c", m_products[ i ].m_kategoria );
+		table.Cell( 1 + i, 4 ) = reg->Stav2String( m_products[ i ].m_stav );
+	}
+	
+	pdf.DrawTable( 50, 50, table, columns );
 }
 
 // ==============================================
@@ -216,7 +241,7 @@ void BurzaRegister::NacitajVsetkychPredajcov( void )
 			
 			if ( f.IsOpened() == 1 ) {
 				Seller	novy;
-				novy.NacitajZTxtSuboru( f );
+				novy.LoadFromTxtFile( f );
 				m_predajcovia.push_back( novy );
 				
 				f.Close();
@@ -311,13 +336,19 @@ NastaveniaProgramu::NastaveniaProgramu()
 
 Centrala::Centrala()
 {
-	mp_dialogs = new BurzaRegister();
+}
+
+Centrala::~Centrala()
+{
+	delete mp_dialogs;
 }
 
 Centrala* Centrala::Instancia( void )
 {
 	if ( m_instance == NULL ) {
 		m_instance = new Centrala;
+		
+		m_instance->mp_dialogs = new BurzaDialogs();
 	}
 	
 	return m_instance;
@@ -326,7 +357,6 @@ Centrala* Centrala::Instancia( void )
 void Centrala::Zmaz( void )
 {
 	if ( m_instance ) {
-		delete mp_dialogs;
 		
 		delete m_instance;
 		m_instance = NULL;

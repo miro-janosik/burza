@@ -7,14 +7,22 @@
 #ifndef _burza_h_
 #define _burza_h_
 
+#include <vector>
+#include <string>
+
+using namespace std;
+
 class CConvFile;
 class BurzaDialogs;
 
 // translate i18n macro
 #define _( text ) ( text )
 
+int main2( int argc, char **argv );
 
 namespace Burza {
+	
+	class PdfWrapperBase;
 	
 	enum e_product_status {
 		caka_na_prijatie,
@@ -68,6 +76,8 @@ public:
 	
 	void SaveToTxtFile( CConvFile& file );
 	void LoadFromTxtFile( CConvFile& file );
+
+	void PrintProductsToPDF( PdfWrapperBase& pdf );
 } ;
 
 // ==============================================
@@ -99,6 +109,7 @@ public:
 class Centrala {
 private:
 	Centrala();
+	~Centrala();
 	Centrala( const Centrala& );
 // nech je to aj singleton ziskatelny odvsadial
 	static Centrala	*m_instance;
@@ -117,7 +128,8 @@ public:
 	BurzaDialogs					*mp_dialogs;
 	BurzaRegister					m_register;
 } ;
-
+	
+	
 } ; // end namespace Burza
 
 #endif

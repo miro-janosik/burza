@@ -10,6 +10,7 @@
 #include "convfncs.h"
 
 #include "excelwrap.h"
+#include "pdfwrap.h"
 
 using namespace Burza;
 using namespace BurzaExcel;
@@ -426,7 +427,7 @@ void BurzaDialogs::ButtonRegisterImportSeller( void )
 	if ( it != reg->m_predajcovia.end() ) {
 		DisplayErrorMessageBox( 
 			ConvFuncs::FormatCstr( _( "Error seller with that code already exists. Erase previous '%s' seller." ),
-				seller.m_kod ) );
+				seller.m_kod.c_str() ) );
 		return;
 	}
 	
@@ -440,6 +441,25 @@ void BurzaDialogs::ButtonRegisterAddSeller( void )
 
 void BurzaDialogs::ButtonRegisterUpdateSeller( void )
 {
+	BurzaRegister::t_predajcovia::iterator	it;
+	Seller *pseller;
+	//it = Centrala::Instancia()->Register()->NajdiPredajcuPodlaKodu( "mj" );
+	pseller = & Centrala::Instancia()->Register()->m_predajcovia[ 0 ];
+	
+	try {
+	PdfWrapper	pdf;
+	pdf.CreatePDF( "/home/mirex/tmp/a.pdf" );
+	pdf.NewPage( "index" );
+	pseller->PrintProductsToPDF( pdf );
+	pdf.ClosePDF();
+	
+	} catch( runtime_error& e ) {
+		DisplayErrorMessageBox( "PDF error", e.what() );
+	} catch( out_of_range& e ) {
+		DisplayErrorMessageBox( "PDF out of range error", e.what() );
+	} catch( ... ) {
+		DisplayErrorMessageBox( "PDF error" );
+	}
 	
 }
 
@@ -641,4 +661,12 @@ void BurzaDialogs::DisplayErrorMessageBox( string msg1, string msg2 )
 	
 	dialog.set_secondary_text( msg1 );
 	dialog.run();
+}
+
+void BurzaDialogs::DisplayErrorMessageBox( const char* msg, const char* msg_title )
+{
+	string msg2, msg_title2;
+	msg2 = ( msg == NULL ) ? "no msg" : msg;
+	msg_title2 = ( msg_title == NULL ) ? "" : msg_title;
+	DisplayErrorMessageBox( msg2, msg_title2 );
 }

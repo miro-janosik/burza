@@ -26,7 +26,7 @@ ExcelFileWrapper::~ExcelFileWrapper()
 {
 }
 
-void ExcelFileWrapper::ReadSheetIntoTable( string filename ) throw()
+void ExcelFileWrapper::ReadSheetIntoTable( string filename ) throw( runtime_error )
 {
 	Book *xls_book = xlCreateBook();
 	string result_str;
@@ -93,7 +93,7 @@ void ExcelFileWrapper::ReadSheetIntoTable( string filename ) throw()
 	
 }
 
-Seller ExcelFileWrapper::ReadSeller( string filename )
+Seller ExcelFileWrapper::ReadSeller( string filename ) throw( runtime_error )
 {
 	string error_str;
 	error_str = "Could not read seller from file '";
@@ -108,7 +108,7 @@ Seller ExcelFileWrapper::ReadSeller( string filename )
 	}
 	
 	// check constant values
-	if (( m_table.Cell( 0, 0 ) != "burza" )) {
+	if (( m_sheet.Cell( 0, 0 ).GetText() != "burza" )) {
 		error_str += "file does not contain special marks";
 		throw runtime_error( error_str );
 	}
@@ -117,9 +117,9 @@ Seller ExcelFileWrapper::ReadSeller( string filename )
 	Product product;
 	
 	// Read seller info
-	seller.m_meno = m_table.Cell( 3, 2 );
-	seller.m_kod = m_table.Cell( 4, 2 );
-	seller.m_poznamka = m_table.Cell( 5, 2 );
+	seller.m_meno = m_sheet.Cell( 3, 2 ).GetText();
+	seller.m_kod = m_sheet.Cell( 4, 2 ).GetText();
+	seller.m_poznamka = m_sheet.Cell( 5, 2 ).GetText();
 	
 	// read stock
 	int num;
@@ -127,13 +127,13 @@ Seller ExcelFileWrapper::ReadSeller( string filename )
 	string s;
 	
 	while( true ) {
-		if (( m_table.Cell( row, 1 ) == "" ) || ( m_table.Cell( row, 2 ) == "" )) {
+		if (( m_sheet.Cell( row, 1 ) == "" ) || ( m_sheet.Cell( row, 2 ) == "" )) {
 			break;
 		}
 		
 		product.Reset();
 		
-		s = m_table.Cell( row, 1 );
+		s = m_sheet.Cell( row, 1 );
 		num = atoi( s.c_str() );
 		
 		if (( num < 1 ) || ( num > 50 )) {
@@ -142,14 +142,14 @@ Seller ExcelFileWrapper::ReadSeller( string filename )
 			throw runtime_error( error_str );
 		}
 		
-		s = m_table.Cell( row, 2 );
-		if ( m_table.Cell( row, 4 ) != "" ) {
+		s = m_sheet.Cell( row, 2 );
+		if ( m_sheet.Cell( row, 4 ) != "" ) {
 			s += " (";
-			s += m_table.Cell( row, 4 );
+			s += m_sheet.Cell( row, 4 );
 			s += ")";
 		}
 		
-		seller.PridajTovar( num, s.c_str(),  atof( m_table.Cell( row, 3 ).c_str() ), 'a', caka_na_prijatie );
+		seller.PridajTovar( num, s.c_str(),  atof( m_sheet.Cell( row, 3 ).GetText().c_str() ), 'a', caka_na_prijatie );
 		
 		row++;
 	} ;

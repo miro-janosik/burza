@@ -47,6 +47,7 @@ public:
 	
 	// Displays message box with message. Function returns only after you click OK on the box.
 	void DisplayErrorMessageBox( string msg, string msg_title = "" );
+	void DisplayErrorMessageBox( const char* msg, const char* msg_title = NULL );
 	
 public:
 	

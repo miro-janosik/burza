@@ -8,6 +8,8 @@
 
 #include<string>
 #include <vector>
+//for exceptions on linux
+#include<stdexcept>
 
 using namespace std;
 
@@ -21,12 +23,30 @@ public:
 	TableCell() {
 		m_text = "";
 	} ;
+		
+	// sets text
+	string& operator=( const char* text ) { m_text = text; return m_text; }
+	// sets text
 	string& operator=( const string& s ) { m_text = s; return m_text; }
-	//void operator=(  ) { m_text = s; }
+	// sets text
+	void  SetText( const string& text ) { m_text = text; }
+	// gets text
+	const string& GetText( void ) { return m_text; }
+	// compares to text
+	bool operator==( const char* text ) { return ( m_text == text ); }
+	//bool operator==( const string& text ) { return ( m_text == text ); }
+	bool operator!=( const char* text ) { return ( m_text != text ); }
+	//bool operator!=( const string& text ) { return ( m_text != text ); }
+	
+	operator const string&() { return m_text; }
+	//operator const char*() { return m_text.c_str(); }
+	
 	void Clear( void ) {
 		m_text = "";
 	}
+	
 } ;
+
 
 template< typename T > class Table {
 private:
@@ -141,6 +161,8 @@ public:
 class TableColumnSpecs {
 public:
 	vector< TableColumnSpec > m_columns;
+	
+	unsigned int Columns( void ) { return m_columns.size(); }
 	
 	void AddColumn( string name, unsigned int width )
 	{
