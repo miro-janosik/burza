@@ -120,7 +120,7 @@ public:
 			( column >= m_columns ))
 			throw std::out_of_range( "Cell() out of range" );
 		
-		unsigned int i = m_rows * row + column;
+		unsigned int i = m_columns * row + column;
 		return m_cells[ i ];
 	}
 	

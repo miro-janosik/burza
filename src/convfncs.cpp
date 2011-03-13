@@ -1552,6 +1552,23 @@ void ConvFuncs::StdStringToLower( std::string& str )
 	std::transform( str.begin(), str.end(), str.begin(), tolower );
 }
 
+void ConvFuncs::StringUTF8toASCII( std::string& str )
+{
+	std::string s;
+	
+	for( unsigned int i=0; i<str.size(); ++i ) {
+		if (( str[ i ] & 0x80 ) == 0 )
+			s += str[ i ];
+	}
+	str = s;
+}
+
+void ConvFuncs::StdStringUTF8toISO8859_2( std::string& str )
+{
+	
+	StringUTF8toASCII( str );
+}
+
 const char* ConvFuncs::FixupPathString( const char *str, bool ending_slash )
 {
 	static	std::string	result;

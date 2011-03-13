@@ -315,7 +315,15 @@ public:
 	static const char* strupr_convfncs( char* input );
 
 	static void		StdStringToLower( std::string& str );
-
+	
+	// Accepts string containing characters in UTF8 encoding.
+	// That means it can also contain normal ASCII characters (in range 0x00 - 0x7F)
+	// and those will remain in the string.
+	// Removes all non-ASCII characters from the string.
+	static void		StringUTF8toASCII( std::string& str );
+	// Converts non-ASCII characters to ISO8859_2 chars.
+	static void		StdStringUTF8toISO8859_2( std::string& str );
+	
 	//various utils
 	int				WaitForKey( void );
 	void			StartCheckTime( void );

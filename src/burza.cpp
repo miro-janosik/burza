@@ -105,9 +105,9 @@ void Seller::PridajTovar( int cislo, const char* nazov, double cena, char katego
 void Seller::SaveToTxtFile( CConvFile& file )
 {
 	file.Write( m_kod.c_str() );
-	file.Write( "|" );
+	file.Write( "*" );
 	file.Write( m_meno.c_str() );
-	file.Write( "|" );
+	file.Write( "*" );
 	file.Write( m_poznamka.c_str() );
 	file.Write( "\n" );
 	
@@ -115,7 +115,7 @@ void Seller::SaveToTxtFile( CConvFile& file )
 	
 	for( unsigned int i=0; i<m_products.size(); i++ ) {
 		s = m_products[ i ].m_nazov.substr( 0, 40 );
-		file.Print( "%i|%40s|%0.1f|%c|%c\n",
+		file.Print( "%i*%40s*%0.1f*%c*%c\n",
 			m_products[ i ].m_cislo, s.c_str(),
 			m_products[ i ].m_cena, m_products[ i ].m_kategoria,
 			Centrala::Instancia()->Register()->Stav2Char( m_products[ i ].m_stav ) );
@@ -124,13 +124,15 @@ void Seller::SaveToTxtFile( CConvFile& file )
 
 void Seller::LoadFromTxtFile( CConvFile& file )
 {
+	// items cannot have fixed length, because source files are unicode (that means variable char length, either 1 or 2 chars)
+	
 	static const int linebuffer_len = 512;
 	char linebuffer[ linebuffer_len ];
 	char namebuffer[ linebuffer_len ];
-	char delimiters[] = "|\r\n";
+	char delimiters[] = "|*\r\n";
 	unsigned short strpos;
 	
-	const char* cp;
+	const char* cp, *linep;
 	Product		t;
 	
 	file.gets( linebuffer, linebuffer_len );
@@ -146,22 +148,19 @@ void Seller::LoadFromTxtFile( CConvFile& file )
 		if ( file.gets( linebuffer, linebuffer_len ) == 0 )
 			break;
 		
+		linep = linebuffer;
 		cp = ConvFuncsInstance->StrItem( linebuffer, 0, delimiters, &strpos );
 		// skip empty lines
 		if ( cp == NULL )
 			continue;
 		t.m_cislo = atoi( cp );
 		
-		// skip |
-		strpos++;
-		if ( strpos + 40 > strlen( linebuffer ))
-			continue;
+		// item name
+		linep += strpos;
+		cp = ConvFuncsInstance->StrItem( linep, 0, delimiters, &strpos );
+		t.m_nazov = cp;
 		
-		strncpy( namebuffer, &linebuffer[ strpos ], 40 );
-		t.m_nazov = namebuffer;
-		// skip |
-		strpos++;
-		cp = & linebuffer[ strpos + 40 ];
+		linep += strpos;
 		
 		t.m_cena = atof( ConvFuncsInstance->StrItem( cp, 0, delimiters ) );
 		t.m_kategoria = * ConvFuncsInstance->StrItem( cp, 1, delimiters );
@@ -179,19 +178,11 @@ void Seller::PrintProductsToPDF( PdfWrapperBase& pdf )
 	str += " - ";
 	str += m_meno;
 	
+	ConvFuncs::StdStringUTF8toISO8859_2( str );
 	pdf.WriteSingleText( 10, 10, str.c_str() );
 	
 	TableOfCells	table;
 	TableColumnSpecs columns;
-	
-	typedef		std::vector< Product >	t_products;
-	t_products	m_products;
-	
-	int					m_cislo;
-	std::string		m_nazov;
-	double				m_cena;
-	char					m_kategoria;
-	e_product_status	m_stav;
 	
 	columns.AddColumn( "#", 40 );
 	columns.AddColumn( _("nazov"), 200 );
@@ -204,11 +195,13 @@ void Seller::PrintProductsToPDF( PdfWrapperBase& pdf )
 	BurzaRegister* reg = Centrala::Instancia()->Register();	
 	
 	for( unsigned int i=0; i<m_products.size(); ++i ) {
-		table.Cell( 1 + i, 0 ) = ConvFuncs::FormatStdStr( "%i", m_products[ i ].m_cislo );
-		table.Cell( 1 + i, 1 ) = m_products[ i ].m_nazov;
-		table.Cell( 1 + i, 2 ) = ConvFuncs::FormatStdStr( "%0.2f", m_products[ i ].m_cena );
-		table.Cell( 1 + i, 3 ) = ConvFuncs::FormatStdStr( "%c", m_products[ i ].m_kategoria );
-		table.Cell( 1 + i, 4 ) = reg->Stav2String( m_products[ i ].m_stav );
+		table.Cell( i, 0 ) = ConvFuncs::FormatStdStr( "%i", m_products[ i ].m_cislo );
+		str = m_products[ i ].m_nazov;
+		ConvFuncs::StdStringUTF8toISO8859_2( str );
+		table.Cell( i, 1 ) = str;
+		table.Cell( i, 2 ) = ConvFuncs::FormatStdStr( "%0.2f", m_products[ i ].m_cena );
+		table.Cell( i, 3 ) = ConvFuncs::FormatStdStr( "%c", m_products[ i ].m_kategoria );
+		table.Cell( i, 4 ) = reg->Stav2String( m_products[ i ].m_stav );
 	}
 	
 	pdf.DrawTable( 50, 50, table, columns );
