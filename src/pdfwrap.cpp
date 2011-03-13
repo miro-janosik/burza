@@ -44,7 +44,7 @@ int PdfWrapper::CreatePDF( string filename )
 		HPDF_SetPageMode( m_pdf, HPDF_PAGE_MODE_USE_OUTLINE);
 		
 		// get default font
-		m_font_helvetica = HPDF_GetFont ( m_pdf, "Helvetica", NULL);
+		m_font_helvetica = HPDF_GetFont ( m_pdf, "Helvetica", "ISO8859-2" );
 		SetCurrentFont( m_font_helvetica, 15 );
 	
 		// load font object

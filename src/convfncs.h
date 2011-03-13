@@ -322,7 +322,18 @@ public:
 	// Removes all non-ASCII characters from the string.
 	static void		StringUTF8toASCII( std::string& str );
 	// Converts non-ASCII characters to ISO8859_2 chars.
-	static void		StdStringUTF8toISO8859_2( std::string& str );
+	static void		StringUTF8toISO8859_2( std::string& str );
+	/*
+	struct EncodingTranslatorTable {
+		unsigned char UTF8[2];
+		unsigned char ISO8859_2;
+	} ;
+	
+	typedef std::vector< EncodingTranslatorTable > t_EncodingTranslatorTables;
+	t_EncodingTranslatorTables	m_EncodingTranslatorTables;
+	
+	m_EncodingTranslatorTables.
+	*/
 	
 	//various utils
 	int				WaitForKey( void );

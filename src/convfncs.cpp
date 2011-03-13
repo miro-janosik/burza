@@ -4,6 +4,10 @@
 #include <string.h>
 #include <stdarg.h>
 
+#include <iconv.h>
+#include <stdexcept>
+#include <exception>
+
 // define either _DOS, _WIN32, _MAC, or _UNIX
 
 // system includes
@@ -1563,10 +1567,54 @@ void ConvFuncs::StringUTF8toASCII( std::string& str )
 	str = s;
 }
 
-void ConvFuncs::StdStringUTF8toISO8859_2( std::string& str )
+void ConvFuncs::StringUTF8toISO8859_2( std::string& str )
 {
+	iconv_t cd;     // conversion descriptor
 	
-	StringUTF8toASCII( str );
+	const unsigned int OutBufLen = 1024;
+	char inBuffer[ OutBufLen + 1 ];
+	char outBuffer[ OutBufLen + 1 ];
+	char* inBufferPtr = inBuffer;
+	char* outBufferPtr = outBuffer;
+	
+	size_t inleft = str.size();
+	size_t outleft = OutBufLen;
+	
+	unsigned int c = str.size();
+	if ( c > OutBufLen )
+		c = OutBufLen;
+	memcpy( inBuffer, str.c_str(), c );
+	inBuffer[ c ] = 0;
+	
+	
+	if ((cd = iconv_open( "ISO_8859-2", "UTF-8")) == (iconv_t)(-1)) 
+	{
+		throw std::runtime_error( "StringUTF8toISO8859_2: Cannot open converter" );
+	}
+	
+	
+	
+	/* return code of iconv() */
+	int rc = iconv(cd, &inBufferPtr, &inleft, &outBufferPtr, &outleft);
+	if (rc == -1) 
+	{
+		std::string errstr;
+		errstr = "StringUTF8toISO8859_2: Error in converting characters;";
+		
+		if(errno == E2BIG)
+				errstr += "errno == E2BIG";
+		if(errno == EILSEQ)
+				errstr += "errno == EILSEQ";
+		if(errno == EINVAL)
+				errstr +="errno == EINVAL";
+
+		iconv_close(cd);
+		throw std::runtime_error( errstr );
+	}
+	iconv_close(cd);
+	
+	*outBufferPtr = 0;
+	str = outBuffer;
 }
 
 const char* ConvFuncs::FixupPathString( const char *str, bool ending_slash )

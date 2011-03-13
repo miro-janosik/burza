@@ -178,7 +178,7 @@ void Seller::PrintProductsToPDF( PdfWrapperBase& pdf )
 	str += " - ";
 	str += m_meno;
 	
-	ConvFuncs::StdStringUTF8toISO8859_2( str );
+	ConvFuncs::StringUTF8toISO8859_2( str );
 	pdf.WriteSingleText( 10, 10, str.c_str() );
 	
 	TableOfCells	table;
@@ -197,7 +197,7 @@ void Seller::PrintProductsToPDF( PdfWrapperBase& pdf )
 	for( unsigned int i=0; i<m_products.size(); ++i ) {
 		table.Cell( i, 0 ) = ConvFuncs::FormatStdStr( "%i", m_products[ i ].m_cislo );
 		str = m_products[ i ].m_nazov;
-		ConvFuncs::StdStringUTF8toISO8859_2( str );
+		ConvFuncs::StringUTF8toISO8859_2( str );
 		table.Cell( i, 1 ) = str;
 		table.Cell( i, 2 ) = ConvFuncs::FormatStdStr( "%0.2f", m_products[ i ].m_cena );
 		table.Cell( i, 3 ) = ConvFuncs::FormatStdStr( "%c", m_products[ i ].m_kategoria );
