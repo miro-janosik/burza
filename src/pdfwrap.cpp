@@ -193,7 +193,7 @@ void PdfWrapper::DrawTable( unsigned int x, unsigned int y, TableOfCells& t, Tab
 	py = m_default_page_height - y - cell_text_top_margin;
 	px = x + cell_text_left_margin;
 	// print out header text
-	for ( unsigned int ix = 0; ix < t.Columns(); ++ix ) {
+	for ( unsigned int ix = 0; ix < c.m_columns.size(); ++ix ) {
 		
 		if ( c.m_columns[ ix ].m_name.empty() )
 			continue;
@@ -239,3 +239,4 @@ void PdfWrapper::WriteSingleTextIntoWidth( unsigned int x, unsigned int y,
 	HPDF_Page_ShowText( m_current_page, text.c_str() );
 	HPDF_Page_EndText( m_current_page );
 }
+

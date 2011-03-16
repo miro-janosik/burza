@@ -51,7 +51,7 @@ am_burza_kdev_OBJECTS = bdialogs.$(OBJEXT) burza.$(OBJEXT) \
 	burza_kdev.$(OBJEXT) convfile.$(OBJEXT) convfncs.$(OBJEXT) \
 	excelwrap.$(OBJEXT) log.$(OBJEXT) main_window.$(OBJEXT) \
 	main_window_glade.$(OBJEXT) odswrap.$(OBJEXT) \
-	pdfwrap.$(OBJEXT)
+	pdfwrap.$(OBJEXT) stringencoding.$(OBJEXT)
 burza_kdev_OBJECTS = $(am_burza_kdev_OBJECTS)
 burza_kdev_DEPENDENCIES =
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
@@ -194,10 +194,10 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 burza_kdev_SOURCES = bdialogs.cpp burza.cpp burza_kdev.cc convfile.cpp \
 	convfncs.cpp excelwrap.cpp log.cpp main_window.cc main_window_glade.cc odswrap.cpp \
-	pdfwrap.cpp pdfwrap.h
+	pdfwrap.cpp pdfwrap.h stringencoding.cpp
 
 noinst_HEADERS = bdialogs.h burza.h convfile.h convfncs.h excelwrap.h log.h \
-	main_window.hh main_window_glade.hh odswrap.h table.h
+	main_window.hh main_window_glade.hh odswrap.h stringencoding.h table.h
 
 AM_CXXFLAGS = @CXXFLAGS@ @GTKMM_CFLAGS@ 
 burza_kdev_LDADD = @LIBS@ @GTKMM_LIBS@ 
@@ -283,6 +283,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main_window_glade.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/odswrap.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pdfwrap.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stringencoding.Po@am__quote@
 
 .cc.o:
 @am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<

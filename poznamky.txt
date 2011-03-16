@@ -1,3 +1,6 @@
+* using LibXL
+* using IConv GNU C lib + for windows http://gnuwin32.sourceforge.net/packages/libiconv.htm
+
 tel. cislo
 samostatny harok na kociky
 tlacitko uprav tovar

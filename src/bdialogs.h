@@ -71,13 +71,27 @@ public:
 	void ComboCashoutLookupSeller( void );
 	void ComboCashoutLookupItem( void );
 	
+	void ComboCashoutLookupItem( void );
+	
+	// "item properties dialog functions
+	//! Item editing finished. Fill item back to seller, and notify that seller was modified.
+	void ButtonItemEditOk( void );
+	void ButtonItemEditCancel( void );
+	void ComboItemEditStatusChanged( void );
+	
+	// "seller" edit dialog
+	void ButtonSellerEditOk( void );
+	void ButtonSellerEditCancel( void );
+	
 	
 public:
 	Burza::BurzaRegister			*mp_register;
 	
-	Glib::RefPtr<Gnome::Glade::Xml> 	xmlWndRegister, xmlWndCashOut;
+	Glib::RefPtr<Gnome::Glade::Xml> 	xmlWndRegister, xmlWndCashOut, 
+ 			xmlWndModifySeller, xmlWndModifyItem;
 		
-	Gtk::Window		*m_pWndRegister, *m_pWndCashOut;
+	Gtk::Window		*m_pWndRegister, *m_pWndCashOut, 
+ 			*m_pWndSeller, *m_pWndItem;
 	
 	// register dialog
 	ComboBoxTextDer	*m_pComboSeller;
@@ -109,6 +123,22 @@ public:
 	Gtk::Label			*m_pCashoutLabelSum;
 	Gtk::Button		*m_pCashoutButtonFinish;
 	
+	// item details edit dialog
+	Gtk::Entry			*m_pItemeditName;
+	Gtk::Entry			*m_pItemeditNumber;
+	Gtk::Entry			*m_pItemeditPrice;
+	Gtk::Entry			*m_pItemeditCategory;
+	ComboBoxTextDer	*m_pItemeditStatusCombo;
+	Gtk::Button		*m_pItemeditOk;
+	Gtk::Button		*m_pItemeditCancel;
+	
+	// seller details edit dialog
+	Gtk::Entry			*m_pSellerEditName;
+	Gtk::Entry			*m_pSellerEditCode;
+	Gtk::Entry			*m_pSellerEditNote;
+	Gtk::Button		*m_pSellerEditOk;
+	Gtk::Button		*m_pSellerEditCancel;
+	
 	// helper variables for dialogs
 	
 	Glib::RefPtr<Gtk::TreeSelection>	m_CashoutItemsSelection;
@@ -137,6 +167,12 @@ public:
 	int		m_CashoutVybranyTovarIdx;
 	
 	float		m_cashout_sum;
+	
+	// If user is editing some item, its pointer should be here, so it can be saved after modified.
+	// edited product
+	Product* m_product_edited;
+	// edited seller
+	Seller* m_seller_edited;
 	
 	string	m_working_directory;
 } ;
