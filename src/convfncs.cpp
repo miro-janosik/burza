@@ -3,6 +3,9 @@
 #include <assert.h>
 #include <string.h>
 #include <stdarg.h>
+#include <string>
+// for std transform
+#include <algorithm>
 
 // define either _DOS, _WIN32, _MAC, or _UNIX
 
@@ -59,6 +62,8 @@
 #ifdef CONV_FNCS_FORM_INCLUDED
 	#include "_form.h"
 #endif
+
+using namespace std;
 
 ConvFuncs::s_datetime ConvFuncs::datetime;
 char ConvFuncs::DateTimeString[ ConvFuncs::DateTimeString_len ];
@@ -1287,7 +1292,7 @@ int ConvFuncs::Find_CurrentIsReadOnly( void )
 #endif
 }
 
-int ConvFuncs::MoveFile( const char* src, const char* dest )
+int ConvFuncs::DoMoveFile( const char* src, const char* dest )
 {
 	
 #if (( defined _UNIX ) || defined ( _WIN32 ))
@@ -1298,7 +1303,7 @@ int ConvFuncs::MoveFile( const char* src, const char* dest )
 	return 0;
 }
 
-int ConvFuncs::DeleteFile( const char* src )
+int ConvFuncs::DoDeleteFile( const char* src )
 {
 #if (( defined _UNIX ) || defined ( _WIN32 ))
 	return ( remove( src ) == 0 );
@@ -1552,6 +1557,11 @@ void ConvFuncs::StdStringToLower( std::string& str )
 	std::transform( str.begin(), str.end(), str.begin(), tolower );
 }
 
+void ConvFuncs::StdStringToUpper( std::string& str )
+{
+	std::transform( str.begin(), str.end(), str.begin(), toupper );
+}
+
 const char* ConvFuncs::FixupPathString( const char *str, bool ending_slash )
 {
 	static	std::string	result;
@@ -1609,6 +1619,7 @@ const char* ConvFuncs::FixupPathFilenameString( const char *str )
 
 bool ConvFuncs::DirChangeNotificationSubscribe( const char* directory )
 {
+#ifdef _UNIX
 	/*
 	if ( m_DirChangeNotificationFileDescriptor >= 0 ) {
 		LogS( InfoError, "ConvFuncs::DirChangeNotificationSubscribe() there is already some subscriber, it was unsubscribed now.\n" );
@@ -1667,10 +1678,58 @@ bool ConvFuncs::DirChangeNotificationSubscribe( const char* directory )
 		LogS( InfoError, "ConvFuncs::DirChangeNotificationSubscribe() unable to open directory '%s'\n", directory );
 		return false;
 	}
+	return true;
+
+#endif
+#ifdef _WIN_NEDOKONCENE
+public:
+    FileChangeEvent (char const * folder, BOOL recursive, DWORD notifyFlags)
+    {
+        _handle = FindFirstChangeNotification (folder, recursive, 
+		                             notifyFlags);
+        if (INVALID_HANDLE_VALUE == _handle)
+            throw WinException ("Cannot create change notification handle");
+    }
+    ~FileChangeEvent ()
+    {
+        if (INVALID_HANDLE_VALUE != _handle)
+            FindCloseChangeNotification (_handle);
+    }
+
+    operator HANDLE () const { return _handle; }
+    BOOL ContinueNotification ()
+    {
+        return FindNextChangeNotification (_handle);
+    }
+
+private:
+    HANDLE _handle;
+};
+
+class FolderChangeEvent : public FileChangeEvent
+{
+public:
+    FolderChangeEvent (char const * folder)
+        : FileChangeEvent (folder, FALSE, FILE_NOTIFY_CHANGE_FILE_NAME)
+    {}
+};
+
+class TreeChangeEvent : public FileChangeEvent
+{
+public:
+    TreeChangeEvent (char const * root)
+        : FileChangeEvent (root, TRUE,
+                           FILE_NOTIFY_CHANGE_FILE_NAME
+                         | FILE_NOTIFY_CHANGE_DIR_NAME)
+    {}
+#endif
+
+	return false;
 }
 
 bool ConvFuncs::DirChangeNotificationUnsubscribe( void )
 {
+#ifdef _UNIX
 	/*
 	if ( m_DirChangeNotificationFileDescriptor < 0 )
 		return true;
@@ -1699,6 +1758,8 @@ bool ConvFuncs::DirChangeNotificationUnsubscribe( void )
 	}
 	
 	return true;
+#endif
+	return false;
 }
 
 /*
@@ -1715,6 +1776,7 @@ void ConvFuncs::DirChangeNotificationInternalHandler( int sig, siginfo_t *si, vo
 
 bool ConvFuncs::DirChangeNotificationCheck( s_DirChangeNotificationCheckStatus& status )
 {
+#ifdef _UNIX
 	// return next item from array if possible
 	if ( ! m_DirChangeNotificationsArray.empty() ) {
 		status = m_DirChangeNotificationsArray[ 0 ];
@@ -1812,4 +1874,27 @@ bool ConvFuncs::DirChangeNotificationCheck( s_DirChangeNotificationCheckStatus& 
 		return true;
 	} else
 		return false;
+#endif
+
+	return false;
+}
+
+//! Gets words from the string into array.
+//! Does not clear tokens array.
+void ConvFuncs::Tokenize(const std::string& str, std::vector<std::string>& tokens, const std::string& delimiters )
+{
+    // Skip delimiters at beginning.
+    std::string::size_type lastPos = str.find_first_not_of(delimiters, 0);
+    // Find first "non-delimiter".
+    std::string::size_type pos     = str.find_first_of(delimiters, lastPos);
+
+    while (string::npos != pos || string::npos != lastPos)
+    {
+        // Found a token, add it to the vector.
+        tokens.push_back(str.substr(lastPos, pos - lastPos));
+        // Skip delimiters.  Note the "not_of"
+        lastPos = str.find_first_not_of(delimiters, pos);
+        // Find next "non-delimiter"
+        pos = str.find_first_of(delimiters, lastPos);
+    }
 }

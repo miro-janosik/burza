@@ -55,7 +55,8 @@ public:
 public:
 	char	m_znak_stavu_v_subore[ pocet_stavov ];
 	std::string		m_string_stavu[ pocet_stavov ];
-
+	
+	std::string		m_data_dir_path;
 } ;
 
 class Seller {
@@ -68,15 +69,20 @@ public:
 	
 	t_products	m_products;
 	
+	// ID generated through Register::GenerateSellerUniqueCode()
+	unsigned int	m_unique_id;
+	
 	Seller();
-
+	
+	/// ! if [cislo] == -1  it is replaced by next number
 	void PridajTovar( int cislo, const char* nazov, double cena, char kategoria, e_product_status stav );
 	void ZmazTovar( int cislo );
 	void ZmenStavTovaru( int cislo, e_product_status stav );
 	
 	void SaveToTxtFile( CConvFile& file );
 	void LoadFromTxtFile( CConvFile& file );
-
+	void Save( void );
+	
 	void PrintProductsToPDF( PdfWrapperBase& pdf );
 } ;
 
@@ -103,6 +109,11 @@ public:
 	char Stav2Char( e_product_status stav );
 	const char* Stav2String( e_product_status stav );
 	e_product_status Char2Stav( char c );
+	
+	
+	unsigned int GenerateSellerUniqueId( void );
+	void GenerateSellerUniqueCode( Seller& seller, std::string try_this_code );
+	
 } ;
 
 // ==============================================

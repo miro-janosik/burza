@@ -111,10 +111,23 @@ void BiturnLog::ResetLogFile( void )
 
 }
 
-void BiturnLog::Log( const char *text, int type )
+void BiturnLog::Log( const char *_text, int type )
 {
 	assert( (type >= InfoMinor) && (type <=InfoDebug) );
 
+	
+	// fix case when there are % in the text
+	char text[ 1024 ];
+	strncpy( text, _text, 1023 );
+	text[ 1023 ] = 0;
+	
+	char *t = text;
+	while( *t != 0 ) {
+		if ( *t == '%' )
+			*t = '/';
+		t++;
+	}
+	
 	FILE	*flog;
 	int		whereto = toNone;
 	unsigned int	i, j;

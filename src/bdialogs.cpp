@@ -29,6 +29,8 @@ BurzaDialogs::BurzaDialogs()
 {
 	mp_register = Centrala::Instancia()->Register();
 	
+	m_pRegisterVybranyPredajca = NULL;
+	
 	m_pCashoutVybranyPredajca = NULL;
 	m_CashoutVybranyPredajcaIdx = -1;
 	m_pCashoutVybranyTovar = NULL;
@@ -36,8 +38,8 @@ BurzaDialogs::BurzaDialogs()
 	
 	m_cashout_sum = 0.0;
 	
-	m_product_edited = NULL;
-	m_seller_edited = NULL;
+	m_productEdited = NULL;
+	m_sellerEdited = NULL;
 	
 	ConvFuncs::SingletonInstanceCreate();
 	
@@ -136,7 +138,7 @@ int BurzaDialogs::NahrajDialogy( void )
 	m_pButtonCalcRepayment->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::ButtonRegisterCalcRepayment ) );
 	m_pButtonCashout->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::ButtonSwitchToCashout ) );
 	
-	m_pComboSeller->signal_changed().connect( sigc::mem_fun( *this, &BurzaDialogs::ComboChangedSeller ) );
+	m_pComboSeller->signal_changed().connect( sigc::mem_fun( *this, &BurzaDialogs::ComboRegisterChangedSeller ) );
 	
 	m_RegisterItemsSelection = m_pTreeViewItems->get_selection();
 	m_RegisterItemsSelection->set_mode( Gtk::SELECTION_SINGLE );
@@ -309,13 +311,13 @@ int BurzaDialogs::NahrajDialogy( void )
 	}
 	
 	// == item details edit dialog ==
-	xmlWndModifyItem->get_widget( "name", m_pItemeditName );
-	xmlWndModifyItem->get_widget( "number", m_pItemeditNumber );
-	xmlWndModifyItem->get_widget( "price", m_pItemeditPrice );
-	xmlWndModifyItem->get_widget( "category", m_pItemeditCategory );
-	xmlWndModifyItem->get_widget_derived( "status_combobox", m_pItemeditStatusCombo );
-	xmlWndModifyItem->get_widget( "button_item_ok", m_pItemeditOk );
-	xmlWndModifyItem->get_widget( "button_item_cancel", m_pItemeditCancel );
+	xmlWndModifyItem->get_widget( "itemName", m_pItemeditName );
+	xmlWndModifyItem->get_widget( "itemNumber", m_pItemeditNumber );
+	xmlWndModifyItem->get_widget( "itemPrice", m_pItemeditPrice );
+	xmlWndModifyItem->get_widget( "itemCategory", m_pItemeditCategory );
+	xmlWndModifyItem->get_widget_derived( "itemStatus_combobox", m_pItemeditStatusCombo );
+	xmlWndModifyItem->get_widget( "itemButton_ok", m_pItemeditOk );
+	xmlWndModifyItem->get_widget( "itemButton_cancel", m_pItemeditCancel );
 	
 	if (( m_pItemeditName == NULL ) ||
 		( m_pItemeditNumber == NULL ) ||
@@ -334,11 +336,11 @@ int BurzaDialogs::NahrajDialogy( void )
 	
 	// == seller details edit dialog == 
 
-	xmlWndModifySeller->get_widget( "entryName", m_pSellerEditName );
-	xmlWndModifySeller->get_widget( "entryCode", m_pSellerEditCode );
-	xmlWndModifySeller->get_widget( "entryNote", m_pSellerEditNote );
-	xmlWndModifySeller->get_widget( "button_seller_ok", m_pSellerEditOk );
-	xmlWndModifySeller->get_widget( "button_seller_cancel", m_pSellerEditCancel );
+	xmlWndModifySeller->get_widget( "sellerName", m_pSellerEditName );
+	xmlWndModifySeller->get_widget( "sellerCode", m_pSellerEditCode );
+	xmlWndModifySeller->get_widget( "sellerNote", m_pSellerEditNote );
+	xmlWndModifySeller->get_widget( "sellerButton_ok", m_pSellerEditOk );
+	xmlWndModifySeller->get_widget( "sellerButton_cancel", m_pSellerEditCancel );
 	
 	if (( m_pSellerEditName == NULL ) ||
 		( m_pSellerEditCode == NULL ) ||
@@ -351,7 +353,6 @@ int BurzaDialogs::NahrajDialogy( void )
 	
 	m_pSellerEditOk->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::ButtonSellerEditOk ) );
 	m_pSellerEditCancel->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::ButtonSellerEditCancel ) );
-	m_pSellerEditCode->signal_changed().connect( sigc::mem_fun( *this, &BurzaDialogs::EditSellerCodeChange ) );
 	
 		// === --- === --- === throw - catch  === --- === --- ===
 	
@@ -387,6 +388,7 @@ void BurzaDialogs::RegisterZobrazPredajcu( const char* kod )
 void BurzaDialogs::RegisterZobrazPredajcuCezIndex( unsigned int idx )
 {
 	if ( idx >= mp_register->m_predajcovia.size() ) {
+		m_pRegisterVybranyPredajca = NULL;
 		assert( false );
 		return;
 	}
@@ -395,7 +397,8 @@ void BurzaDialogs::RegisterZobrazPredajcuCezIndex( unsigned int idx )
 	it = mp_register->m_predajcovia.begin() + idx;
 	
 	Seller	*pr = & (*it );
-	
+	m_pRegisterVybranyPredajca = pr;
+			
 	m_pComboSeller->set_active( idx );
 	// i = m_pComboSeller->get_active_row_number();
 	
@@ -502,6 +505,9 @@ void BurzaDialogs::ButtonRegisterAddSeller( void )
 
 void BurzaDialogs::ButtonRegisterUpdateSeller( void )
 {
+	if ( m_pRegisterVybranyPredajca != NULL )
+		StartDialogEditSeller( m_pRegisterVybranyPredajca );
+	
 	BurzaRegister::t_predajcovia::iterator	it;
 	Seller *pseller;
 	//it = Centrala::Instancia()->Register()->NajdiPredajcuPodlaKodu( "mj" );
@@ -528,7 +534,14 @@ void BurzaDialogs::ButtonRegisterUpdateSeller( void )
 
 void BurzaDialogs::ButtonRegisterAddItem( void )
 {
+	if ( m_pRegisterVybranyPredajca == NULL )
+		return;
 	
+	m_pRegisterVybranyPredajca->PridajTovar( -1, "", 0.0, 'a', caka_na_prijatie );
+	Product* p = & m_pRegisterVybranyPredajca->m_products[ 
+		m_pRegisterVybranyPredajca->m_products.size() - 1 ];
+	
+	StartDialogEditProduct( p, m_pRegisterVybranyPredajca );
 }
 
 void BurzaDialogs::ButtonRegisterRemoveItem( void )
@@ -560,7 +573,7 @@ void BurzaDialogs::ButtonSwitchToRegister( void )
 	m_pWndRegister->maximize();
 }
 
-void BurzaDialogs::ComboChangedSeller( void )
+void BurzaDialogs::ComboRegisterChangedSeller( void )
 {
 	int i = m_pComboSeller->get_active_row_number();
 	
@@ -734,12 +747,12 @@ void BurzaDialogs::DisplayErrorMessageBox( const char* msg, const char* msg_titl
 	DisplayErrorMessageBox( msg2, msg_title2 );
 }
 
-void BurzaDialogs::StartDialogEditProduct( Product& product, Seller& seller )
+void BurzaDialogs::StartDialogEditProduct( Product* product, Seller* seller )
 {
-	m_pItemeditName->set_text( product.m_nazov );
-	m_pItemeditNumber->set_text( ConvFuncs::FormatCstr( "%i", product.m_cislo ) );
-	m_pItemeditPrice->set_text( ConvFuncs::FormatCstr( "%0.2f", product.m_cena ) );
-	m_pItemeditCategory->set_text( ConvFuncs::FormatCstr( "%c", product.m_kategoria );
+	m_pItemeditName->set_text( product->m_nazov );
+	m_pItemeditNumber->set_text( ConvFuncs::FormatCstr( "%i", product->m_cislo ) );
+	m_pItemeditPrice->set_text( ConvFuncs::FormatCstr( "%0.2f", product->m_cena ) );
+	m_pItemeditCategory->set_text( ConvFuncs::FormatCstr( "%c", product->m_kategoria ) );
 	
 	m_pItemeditStatusCombo->clear();
 	
@@ -747,45 +760,45 @@ void BurzaDialogs::StartDialogEditProduct( Product& product, Seller& seller )
 		m_pItemeditStatusCombo->append_text( 
 			mp_register->Stav2String( (e_product_status) i ) );
 	}
-	m_pItemeditStatusCombo->set_active( product.m_stav );
+	m_pItemeditStatusCombo->set_active( product->m_stav );
 	
-	assert( m_product_edited == NULL );
-	m_product_edited = &product;
-	m_seller_edited = &seller;
+	assert( m_productEdited == NULL );
+	m_productEdited = product;
+	m_sellerEdited = seller;
 	m_pWndItem->show();
 }
 
 void BurzaDialogs::ButtonItemEditOk( void )
 {
-	assert( m_product_edited != NULL );
-	assert( m_seller_edited != NULL );
+	assert( m_productEdited != NULL );
+	assert( m_sellerEdited != NULL );
 	
 	m_pWndItem->hide();
 	
-	m_product_edited->m_nazov = m_pItemeditName->get_text();
-	m_product_edited->m_cislo =  atoi( m_pItemeditNumber->get_text() );
-	m_product_edited->m_cena = atof(  m_pItemeditPrice->get_text() );
+	m_productEdited->m_nazov = m_pItemeditName->get_text();
+	m_productEdited->m_cislo =  atoi( m_pItemeditNumber->get_text().c_str() );
+	m_productEdited->m_cena = atof(  m_pItemeditPrice->get_text().c_str() );
 	if ( m_pItemeditCategory->get_text().empty() )
-		m_product_edited->m_kategoria = ' ';
+		m_productEdited->m_kategoria = ' ';
 	else
-		m_product_edited->m_kategoria = m_pItemeditCategory->get_text().c_str()[0];
+		m_productEdited->m_kategoria = m_pItemeditCategory->get_text().c_str()[0];
 	
 	int i = m_pItemeditStatusCombo->get_active_row_number();
 	if ( i != -1 ) {
-		m_product_edited->m_stav = (e_product_status) i;
+		m_productEdited->m_stav = (e_product_status) i;
 	}
 	
-	SellerModified( *m_seller_edited );
+	SellerModified( m_sellerEdited );
 	
-	m_product_edited = NULL;
-	m_seller_edited = NULL;
+	m_productEdited = NULL;
+	m_sellerEdited = NULL;
 }
 
 void BurzaDialogs::ButtonItemEditCancel( void )
 {
 	m_pWndItem->hide();
-	m_product_edited = NULL;
-	m_seller_edited = NULL;
+	m_productEdited = NULL;
+	m_sellerEdited = NULL;
 }
 
 
@@ -793,43 +806,41 @@ void BurzaDialogs::ComboItemEditStatusChanged( void )
 {
 }
 
-void BurzaDialogs::StartDialogEditSeller( Seller& seller )
+void BurzaDialogs::StartDialogEditSeller( Seller* seller )
 {
-	m_pSellerEditName->set_text( seller.m_meno );
-	m_pSellerEditCode->set_text( seller.m_kod );
-	m_pSellerEditNote->set_text( seller.m_poznamka );
+	m_pSellerEditName->set_text( seller->m_meno );
+	m_pSellerEditCode->set_text( seller->m_kod );
+	m_pSellerEditNote->set_text( seller->m_poznamka );
 	
-	assert( m_seller_edited == NULL );
-	m_seller_edited = &seller;
+	assert( m_sellerEdited == NULL );
+	m_sellerEdited = seller;
 	m_pWndSeller->show();
-}
-
-void BurzaDialogs::EditSellerCodeChange( void )
-{
-	string str = m_pSellerEditCode->get_text();
-	while ( str.size() < 2 )
-		str += "A";
-	if ( str.size() > 2 ) {
-		str.remove( 2 );
-	}
-	
-	ConvFuncs::ToUpper( str );
-	m_pSellerEditCode->set_text( str );
 }
 
 void BurzaDialogs::ButtonSellerEditOk( void )
 {
+	assert( m_sellerEdited != NULL );
 	
-	SellerModified( *m_seller_edited );
+	m_sellerEdited->m_meno = m_pSellerEditName->get_text();
+	m_sellerEdited->m_poznamka = m_pSellerEditNote->get_text();
+	
+	string str = m_pSellerEditCode->get_text();
+	// check new code and set it to seller
+	mp_register->GenerateSellerUniqueCode( *m_sellerEdited, str );
+	
+	m_pWndSeller->hide();
+	
+	SellerModified( m_sellerEdited );
+	m_sellerEdited = NULL;
 }
-
 
 void BurzaDialogs::ButtonSellerEditCancel( void )
 {
-	
+	m_sellerEdited = NULL;
+	m_pWndSeller->hide();
 }
 
-void Burza::SellerModified( Seller& seller )
+void BurzaDialogs::SellerModified( Seller* seller )
 {
-	
+	seller->Save();
 }

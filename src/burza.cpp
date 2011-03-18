@@ -99,7 +99,19 @@ void Seller::PridajTovar( int cislo, const char* nazov, double cena, char katego
 	t.m_kategoria = kategoria;
 	t.m_nazov = nazov;
 	t.m_stav = stav;
-
+	
+	// generate 'cislo'
+	if ( t.m_cislo == -1 ) {
+		
+		int max = 0;
+		for( int i=0; i<m_products.size(); ++i ) {
+			if ( max < m_products[ i ].m_cislo )
+				max = m_products[ i ].m_cislo;
+		}
+		
+		t.m_cislo = max + 1;
+	}
+	
 	m_products.push_back( t );
 }
 
@@ -122,6 +134,53 @@ void Seller::SaveToTxtFile( CConvFile& file )
 			Centrala::Instancia()->Register()->Stav2Char( m_products[ i ].m_stav ) );
 	}
 }
+
+void Seller::Save( void )
+{
+	// File name is specified as "<seller id>-<short code>.txt".
+	// Only seller id is unique, as short code could be changed.
+	// so I have to look for file starting with seller id.
+	
+	string previous_filename, new_filename;
+	
+	// find previous filename
+	string predajca_pat = Centrala::Instancia()->Nastavenia()->m_data_dir_path;
+	predajca_pat += ConvFuncs::FormatStdStr( "%i*.txt", m_unique_id );
+	bool found;
+	found = ConvFuncsInstance->Find_FirstFile( predajca_pat.c_str() );
+	if ( found ) {
+		previous_filename = ConvFuncsInstance->Find_CurrentFileName();
+	}
+	
+	new_filename = ConvFuncs::FormatStdStr( "%i-%s.txt", m_unique_id, m_kod.c_str() );
+	
+	// save
+	predajca_pat = Centrala::Instancia()->Nastavenia()->m_data_dir_path;
+	predajca_pat += new_filename;
+	
+	CConvFile	file;
+	file.OpenFile( predajca_pat.c_str(), CConvFile::fm_text, CConvFile::fm_write );
+	if ( ! file.OpenedWriteable() ) {
+		
+		string s1 = _( "Could not open output file '%s'" );
+		string s2 = ConvFuncs::FormatStdStr( s1.c_str(), new_filename.c_str() );
+		
+		throw runtime_error( s2 );
+	}
+	
+	SaveToTxtFile( file );
+	file.Close();
+	
+	// compare new filename with previous
+	// if different, erase previous file.
+	if ( new_filename != previous_filename ) {
+		predajca_pat = Centrala::Instancia()->Nastavenia()->m_data_dir_path;
+		predajca_pat += previous_filename;
+		
+		ConvFuncs::DoDeleteFile( previous_filename.c_str() );
+	}
+}
+
 
 void Seller::LoadFromTxtFile( CConvFile& file )
 {
@@ -311,6 +370,58 @@ e_product_status BurzaRegister::Char2Stav( char c )
 	return nedefinovane;
 }
 
+void BurzaRegister::GenerateSellerUniqueCode( Seller& seller, std::string try_this_code )
+{
+	// if its empty try to generate it from name
+	if ( try_this_code.empty() ) {
+		std::vector<std::string> tokens;
+		ConvFuncs::Tokenize( seller.m_meno, tokens );
+		
+		for( int i=0; i<tokens.size(); ++i ) {
+			try_this_code += tokens[ i ][ 0 ];
+		}
+	}
+	
+	// minimum length 2
+	while ( try_this_code.size() < 2 ) {
+		try_this_code += "A";
+	}
+	
+	// run through all the sellers to see if its unique
+	// if its not, generate first that is.
+	t_predajcovia::iterator it;
+	int tries = 0;
+	while( true ) {
+		
+		ConvFuncs::StdStringToUpper( try_this_code );
+		it = NajdiPredajcuPodlaKodu( try_this_code.c_str() );
+		if ( it == m_predajcovia.end() )
+			break;
+		
+		// inc characters, AB => AC, AZ => BA
+		int char_pos = try_this_code.size() - 1;
+		while( char_pos >= 0 ) {
+			if ( try_this_code[ char_pos ] >= 'Z' ) {
+				try_this_code = 'A';
+				char_pos--;
+			} else {
+				try_this_code[ char_pos ]++;
+				break;
+			}
+		}
+		
+		// Wooh, I could loop like this forever. Just help it if its too much
+		tries++;
+		if ( tries > 100 ) {
+			try_this_code += "A";
+			tries = 0;
+		}
+	}
+	
+	seller.m_kod = try_this_code;
+}
+
+
 // ==============================================
 // ==============================================
 
@@ -328,6 +439,9 @@ NastaveniaProgramu::NastaveniaProgramu()
 	m_string_stavu[ dar ] = "Dar";
 	m_string_stavu[ dohladat ] = "Dohladat";
 	
+	m_data_dir_path = ConvFuncsInstance->GetPathFromPathFilename(
+		ConvFuncsInstance->GetExecutableFilePathName() );
+	m_data_dir_path += "data/";
 }
 
 // ==============================================

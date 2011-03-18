@@ -263,8 +263,10 @@ public:
 	const char*		GetExecutableFilePathName( void );
 
 	// moves file to different directory and renames file
-	static int			MoveFile( const char* src, const char* dest );
-	static int			DeleteFile( const char* src );
+	//! comment: changed name of functions because MSVC 9.0 express has some 
+	//! defines which caused conflicts
+	static int			DoMoveFile( const char* src, const char* dest );
+	static int			DoDeleteFile( const char* src );
 
 	//string utils
 #ifdef _UNIX
@@ -284,6 +286,11 @@ public:
 	Result length is limited by [ResultMaxLen]
 	*/
 	char*			StrItem( const char *str, char num, const char *separators_pnt = NULL, unsigned short *pos = NULL );
+	
+	//! Gets words from the string into array.
+	//! Does not clear tokens array.
+	static void Tokenize(const std::string& str, std::vector<std::string>& tokens, const std::string& delimiters = " ");
+	
 	// returns 1 if string represents a number (int or float)
 	// returns 0 otherwise
 	int				IsNumber( const char *text );
@@ -315,6 +322,7 @@ public:
 	static const char* strupr_convfncs( char* input );
 
 	static void		StdStringToLower( std::string& str );
+	static void		StdStringToUpper( std::string& str );
 	
 	//various utils
 	int				WaitForKey( void );
@@ -450,10 +458,12 @@ public:
 
 #endif // #ifdef CONV_FNCS_FORM_INCLUDED
 
-	// subscribe for notifications about change of files in the directory. Your program can subscribe only
-	// one handler for the notification. If you want to watch for different directory then unsubscribe and
-	// subscribe again for new directory.
+	//! subscribe for notifications about change of files in the directory. Your program can subscribe only
+	//! one handler for the notification. If you want to watch for different directory then unsubscribe and
+	//! subscribe again for new directory.
+	//@returns: true on success, false on failure. Reason of failure is printed into logs.
 	bool DirChangeNotificationSubscribe( const char* directory );
+	//@returns: true on success, false on failure. Reason of failure is printed into logs.
 	bool DirChangeNotificationUnsubscribe( void );
 	
 	enum e_DirChangeNotificationFileStatus {

@@ -49,6 +49,10 @@ public:
 	void DisplayErrorMessageBox( string msg, string msg_title = "" );
 	void DisplayErrorMessageBox( const char* msg, const char* msg_title = NULL );
 	
+	void StartDialogEditProduct( Burza::Product* product, Burza::Seller* seller );
+	void StartDialogEditSeller( Burza::Seller* seller );
+	void SellerModified( Burza::Seller* seller );
+	
 public:
 	
 	// "register" dialog functions
@@ -60,7 +64,7 @@ public:
 	void ButtonRegisterCalcFee( void );
 	void ButtonRegisterCalcRepayment( void );
 	void ButtonSwitchToCashout( void );
-	void ComboChangedSeller( void );
+	void ComboRegisterChangedSeller( void );
 	void TreeSelectChangedItem( void );
 	
 	// "cash-out" dialog functions
@@ -69,8 +73,6 @@ public:
 	void ButtonCashoutFinished( void );
 	void ButtonCashoutRemoveItem( void );
 	void ComboCashoutLookupSeller( void );
-	void ComboCashoutLookupItem( void );
-	
 	void ComboCashoutLookupItem( void );
 	
 	// "item properties dialog functions
@@ -168,11 +170,14 @@ public:
 	
 	float		m_cashout_sum;
 	
+	// Register
+	Burza::Seller		*m_pRegisterVybranyPredajca;
+	
 	// If user is editing some item, its pointer should be here, so it can be saved after modified.
 	// edited product
-	Product* m_product_edited;
+	Burza::Product* m_productEdited;
 	// edited seller
-	Seller* m_seller_edited;
+	Burza::Seller* m_sellerEdited;
 	
 	string	m_working_directory;
 } ;
