@@ -147,14 +147,17 @@ private:
 		bool		any;
 		bool		asterisk_start;
 		bool		asterisk_end;
+		bool		asterisk_center;
 		bool		full_name;
 		bool		case_sensitive;
 		std::string		str;
+		std::string		str2;
 		
 		void Reset( void ) {
 			any = true;
 			asterisk_start = false;
 			asterisk_end = false;
+			asterisk_center = false;
 			full_name = false;
 			case_sensitive = true;
 			str = "";
@@ -240,7 +243,7 @@ public:
 
 	//! Finds first file in the directory
 	//! You have to search with search pattern, for example: "c:/dir/directory/*.txt"
-	//! Pattern can be "*txt" or "asdf*" or "text*ext". To look for all files use "*" or "*.*" or ""
+	//! Pattern can be "*txt" or "asdf*", "*text*" or "text*ext". To look for all files use "*" or "*.*" or ""
 	//! for example "/home/user/".
 	//! @returns true if respective file found, false if not. Use other Find_* functions to get 
 	//! properties of found files/directories and to retrieve next files/directories

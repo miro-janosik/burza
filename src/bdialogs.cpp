@@ -57,9 +57,8 @@ int BurzaDialogs::NahrajDialogy( void )
 {
 	std::string		glade_fname;
 	
-	glade_fname = ConvFuncsInstance->GetPathFromPathFilename(
-		ConvFuncsInstance->GetExecutableFilePathName() );
-	glade_fname += "data/burza.glade";
+	glade_fname = Centrala::Instancia()->Nastavenia()->m_data_dir_path;
+	glade_fname += "burza.glade";
 	
 	std::string		error;
 	
@@ -332,6 +331,7 @@ int BurzaDialogs::NahrajDialogy( void )
 	
 	m_pItemeditOk->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::ButtonItemEditOk ) );
 	m_pItemeditCancel->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::ButtonItemEditCancel ) );
+	m_pWndItem->signal_delete_event().connect( sigc::mem_fun( *this, &BurzaDialogs::ButtonItemEditClose ) );
 	m_pItemeditStatusCombo->signal_changed().connect( sigc::mem_fun( *this, &BurzaDialogs::ComboItemEditStatusChanged ) );
 	
 	// == seller details edit dialog == 
@@ -353,6 +353,7 @@ int BurzaDialogs::NahrajDialogy( void )
 	
 	m_pSellerEditOk->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::ButtonSellerEditOk ) );
 	m_pSellerEditCancel->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::ButtonSellerEditCancel ) );
+	m_pWndSeller->signal_delete_event().connect( sigc::mem_fun( *this, &BurzaDialogs::ButtonSellerEditClose ) );
 	
 		// === --- === --- === throw - catch  === --- === --- ===
 	
@@ -462,15 +463,20 @@ void BurzaDialogs::ButtonRegisterImportSeller( void )
 	dialog.add_button( Gtk::Stock::OK, Gtk::RESPONSE_OK );
 	dialog.set_filename( m_working_directory );
 	
+	Gtk::FileFilter	xls_filter;
+	xls_filter.set_name( "Excel XLS files." );
+	xls_filter.add_pattern( "*.xls" );
+	dialog.add_filter( xls_filter );
+	
 	int result = dialog.run();
 	//Handle the response:
 	switch(result) {
 	case(Gtk::RESPONSE_OK):
 		break;
 	case(Gtk::RESPONSE_CANCEL):
-		return;
+	case Gtk::RESPONSE_DELETE_EVENT:
 	default:
-		DisplayErrorMessageBox( "BiturnDialogsGtkmm::on_clicked_ViewDirs() Unexpected button clicked.\n" );
+		//DisplayErrorMessageBox( "BiturnDialogsGtkmm::on_clicked_ViewDirs() Unexpected button clicked.\n" );
 		return;
 	}
 	
@@ -500,36 +506,18 @@ void BurzaDialogs::ButtonRegisterImportSeller( void )
 
 void BurzaDialogs::ButtonRegisterAddSeller( void )
 {
+	mp_register->PridajNovehoPredajcu( "", _("Nový predajca"), "" );
 	
+	m_sellerEditAction = ea_add;
+	StartDialogEditSeller( &mp_register->m_predajcovia[ 
+		mp_register->m_predajcovia.size() - 1 ] );
 }
 
 void BurzaDialogs::ButtonRegisterUpdateSeller( void )
 {
+	m_sellerEditAction = ea_modify;
 	if ( m_pRegisterVybranyPredajca != NULL )
 		StartDialogEditSeller( m_pRegisterVybranyPredajca );
-	
-	BurzaRegister::t_predajcovia::iterator	it;
-	Seller *pseller;
-	//it = Centrala::Instancia()->Register()->NajdiPredajcuPodlaKodu( "mj" );
-	pseller = & Centrala::Instancia()->Register()->m_predajcovia[ 0 ];
-	
-	try {
-	PdfWrapper	pdf;
-	pdf.CreatePDF( "/home/mirex/tmp/a.pdf" );
-	for( unsigned int i=0; i<150; i++ ) {
-		pdf.NewPage( ConvFuncs::FormatCstr( "index %i", i ) );
-		pseller->PrintProductsToPDF( pdf );
-	}
-	pdf.ClosePDF();
-	
-	} catch( runtime_error& e ) {
-		DisplayErrorMessageBox( "PDF error", e.what() );
-	} catch( out_of_range& e ) {
-		DisplayErrorMessageBox( "PDF out of range error", e.what() );
-	} catch( ... ) {
-		DisplayErrorMessageBox( "PDF error" );
-	}
-	
 }
 
 void BurzaDialogs::ButtonRegisterAddItem( void )
@@ -541,6 +529,7 @@ void BurzaDialogs::ButtonRegisterAddItem( void )
 	Product* p = & m_pRegisterVybranyPredajca->m_products[ 
 		m_pRegisterVybranyPredajca->m_products.size() - 1 ];
 	
+	m_productEditAction = ea_add;
 	StartDialogEditProduct( p, m_pRegisterVybranyPredajca );
 }
 
@@ -775,6 +764,36 @@ void BurzaDialogs::ButtonItemEditOk( void )
 	
 	m_pWndItem->hide();
 	
+	// validate
+	bool validate_needed = false;
+	string str;
+	
+	if ( m_pItemeditName->get_text().empty() ) {
+		m_pItemeditName->set_text( _("item name") );
+		validate_needed = true;
+	}
+	
+	str = m_pItemeditPrice->get_text();
+	if ( ConvFuncsInstance->IsNumber( str.c_str() ) == 0 ) {
+		m_pItemeditPrice->set_text( "1.0" );
+		validate_needed = true;
+	} else {
+		
+		if ( atof( str.c_str() ) < 0 ) {
+			m_pItemeditPrice->set_text( "1.0" );
+			validate_needed = true;
+		}
+	}
+	
+	if ( m_pItemeditName->get_text().empty() ) {
+		m_pItemeditName->set_text( _("item name") );
+		validate_needed = true;
+	}
+	
+	if ( validate_needed ) {
+		return;
+	}
+	
 	m_productEdited->m_nazov = m_pItemeditName->get_text();
 	m_productEdited->m_cislo =  atoi( m_pItemeditNumber->get_text().c_str() );
 	m_productEdited->m_cena = atof(  m_pItemeditPrice->get_text().c_str() );
@@ -796,11 +815,20 @@ void BurzaDialogs::ButtonItemEditOk( void )
 
 void BurzaDialogs::ButtonItemEditCancel( void )
 {
+	if ( m_productEditAction == ea_add )
+		m_sellerEdited->m_products.erase( m_sellerEdited->m_products.end() -1 );
+	
 	m_pWndItem->hide();
 	m_productEdited = NULL;
 	m_sellerEdited = NULL;
 }
 
+
+bool BurzaDialogs::ButtonItemEditClose( GdkEventAny* )
+{
+	ButtonItemEditCancel(); 
+	return true; 
+}
 
 void BurzaDialogs::ComboItemEditStatusChanged( void )
 {
@@ -821,12 +849,27 @@ void BurzaDialogs::ButtonSellerEditOk( void )
 {
 	assert( m_sellerEdited != NULL );
 	
-	m_sellerEdited->m_meno = m_pSellerEditName->get_text();
-	m_sellerEdited->m_poznamka = m_pSellerEditNote->get_text();
 	
-	string str = m_pSellerEditCode->get_text();
+	// validate
+	string str;
+	
+	if ( m_pSellerEditName->get_text().empty() ) {
+		m_pSellerEditName->set_text( _( "Seller" ) );
+		return;
+	}
+	
+	string sellerOriginalCode = m_sellerEdited->m_kod;
+	str = m_pSellerEditCode->get_text();
 	// check new code and set it to seller
 	mp_register->GenerateSellerUniqueCode( *m_sellerEdited, str );
+	if ( m_sellerEdited->m_kod != str ) {
+		m_pSellerEditCode->set_text( m_sellerEdited->m_kod );
+		m_sellerEdited->m_kod = sellerOriginalCode;
+		return;
+	}
+	
+	m_sellerEdited->m_meno = m_pSellerEditName->get_text();
+	m_sellerEdited->m_poznamka = m_pSellerEditNote->get_text();
 	
 	m_pWndSeller->hide();
 	
@@ -836,11 +879,47 @@ void BurzaDialogs::ButtonSellerEditOk( void )
 
 void BurzaDialogs::ButtonSellerEditCancel( void )
 {
+	if ( m_productEditAction == ea_add )
+		Centrala::Instancia()->Register()->m_predajcovia.erase( 
+			Centrala::Instancia()->Register()->m_predajcovia.end() -1 );
+	
 	m_sellerEdited = NULL;
 	m_pWndSeller->hide();
+}
+
+bool BurzaDialogs::ButtonSellerEditClose( GdkEventAny* )
+{
+	ButtonSellerEditCancel(); 
+	return true; 
 }
 
 void BurzaDialogs::SellerModified( Seller* seller )
 {
 	seller->Save();
+	VyplnPredajcovDoKomb();
 }
+
+/*
+	BurzaRegister::t_predajcovia::iterator	it;
+	Seller *pseller;
+	//it = Centrala::Instancia()->Register()->NajdiPredajcuPodlaKodu( "mj" );
+	pseller = & Centrala::Instancia()->Register()->m_predajcovia[ 0 ];
+	
+	try {
+	PdfWrapper	pdf;
+	pdf.CreatePDF( "/home/mirex/tmp/a.pdf" );
+	for( unsigned int i=0; i<150; i++ ) {
+		pdf.NewPage( ConvFuncs::FormatCstr( "index %i", i ) );
+		pseller->PrintProductsToPDF( pdf );
+	}
+	pdf.ClosePDF();
+	
+	} catch( runtime_error& e ) {
+		DisplayErrorMessageBox( "PDF error", e.what() );
+	} catch( out_of_range& e ) {
+		DisplayErrorMessageBox( "PDF out of range error", e.what() );
+	} catch( ... ) {
+		DisplayErrorMessageBox( "PDF error" );
+	}
+	
+*/

@@ -64,13 +64,13 @@ public:
 	std::string		m_kod;
 	std::string		m_meno;
 	std::string		m_poznamka;
+	// ID generated through Register::GenerateSellerUniqueCode()
+	unsigned int	m_unique_id;
 	
 	typedef		std::vector< Product >	t_products;
 	
 	t_products	m_products;
 	
-	// ID generated through Register::GenerateSellerUniqueCode()
-	unsigned int	m_unique_id;
 	
 	Seller();
 	
@@ -82,6 +82,11 @@ public:
 	void SaveToTxtFile( CConvFile& file );
 	void LoadFromTxtFile( CConvFile& file );
 	void Save( void );
+	
+	void ReplaceCharactersInString( std::string& str, std::string& from, char to );
+	void ReplaceCharactersInString( std::string& str, const char* from, char to );
+	
+	static char file_field_delimiters[];
 	
 	void PrintProductsToPDF( PdfWrapperBase& pdf );
 } ;
@@ -113,7 +118,6 @@ public:
 	
 	unsigned int GenerateSellerUniqueId( void );
 	void GenerateSellerUniqueCode( Seller& seller, std::string try_this_code );
-	
 } ;
 
 // ==============================================

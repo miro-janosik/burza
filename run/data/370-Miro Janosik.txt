@@ -1,8 +1,0 @@
-370*mj*Miro Jánošík*poznamka - nič
-1*Čiapočka s kvetinkami*1*a*s
-2*Šaty prúžkované bielo-modré*4*a*s
-3*Topánočky hnedé slon*15*a*s
-4*Ponožky biele*0.2*a*s
-5*Kočík skladací per-perego*30*b*s
-20*Kočík skladací makyta*0*b*d
-21*Body modré s macíkom*0*a*d

@@ -6,7 +6,8 @@
 #include <string>
 // for std transform
 #include <algorithm>
-
+//for exceptions on linux
+#include<stdexcept>
 // define either _DOS, _WIN32, _MAC, or _UNIX
 
 // system includes
@@ -1133,9 +1134,36 @@ bool ConvFuncs::Find_FirstFile( const char* filename )
 		}
 		
 		if (( m_find_file_pattern.asterisk_start == false ) &&
-		    ( m_find_file_pattern.asterisk_end == false ))
-			m_find_file_pattern.full_name = true;
-		
+		    ( m_find_file_pattern.asterisk_end == false )) {
+			// count if there are any stars inside
+			size_t pos = 0;
+			unsigned int count = 0;
+			do {
+				pos = str_file.find( '*', pos );
+				if ( pos == string::npos )
+					break;
+				
+				count++;
+				pos++;
+			} while( true );
+			
+			// if there are more than 1 stars in string then there is something wrong.
+			if ( count > 1 )
+				throw runtime_error( "Too many * in the search string " );
+			
+			if ( count == 1 ) {
+				m_find_file_pattern.asterisk_center = true;
+				
+				pos = str_file.find( '*' );
+				m_find_file_pattern.str2 = str_file.substr( pos+1 );
+				str_file.erase( pos );
+			}
+			else
+			{
+				m_find_file_pattern.full_name = true;
+			}
+		}
+			
 		m_find_file_pattern.str = str_file;
 	}
 	
@@ -1233,9 +1261,41 @@ bool ConvFuncs::Find_NextFile( void )
 			continue;
 		}
 		
+		if ( m_find_file_pattern.asterisk_center ) {
+			std::string		str;
+			
+			// check start of string with 'str' as in case of 'something*'
+			str = DirEntry.d_name;
+			if ( str.size() < m_find_file_pattern.str.size() )
+				continue;
+			if ( str.size() < m_find_file_pattern.str2.size() )
+				continue;
+			
+			str.erase( m_find_file_pattern.str.size() );
+			if ( m_find_file_pattern.case_sensitive )
+				if ( strcmp( str.c_str(), m_find_file_pattern.str.c_str() ) != 0 )
+					continue;
+			else
+				if ( stricmp( str.c_str(), m_find_file_pattern.str.c_str() ) != 0 )
+					continue;
+			
+			// check end of string with 'str2' as in case of '*something'
+			str = DirEntry.d_name;
+			
+			str.erase( 0, ( str.size() - m_find_file_pattern.str2.size() ) );
+			if ( m_find_file_pattern.case_sensitive )
+				if ( strcmp( str.c_str(), m_find_file_pattern.str2.c_str() ) != 0 )
+					continue;
+			else
+				if ( stricmp( str.c_str(), m_find_file_pattern.str2.c_str() ) != 0 )
+					continue;
+			
+			return true;
+		}
+		
 		// what am I looking for then ?
 		assert( false );
-		
+		return false;
 	} ;
 	
 	return false;

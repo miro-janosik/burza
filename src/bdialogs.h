@@ -79,12 +79,13 @@ public:
 	//! Item editing finished. Fill item back to seller, and notify that seller was modified.
 	void ButtonItemEditOk( void );
 	void ButtonItemEditCancel( void );
+	bool ButtonItemEditClose( GdkEventAny* );
 	void ComboItemEditStatusChanged( void );
 	
 	// "seller" edit dialog
 	void ButtonSellerEditOk( void );
 	void ButtonSellerEditCancel( void );
-	
+	bool ButtonSellerEditClose( GdkEventAny* );
 	
 public:
 	Burza::BurzaRegister			*mp_register;
@@ -178,6 +179,14 @@ public:
 	Burza::Product* m_productEdited;
 	// edited seller
 	Burza::Seller* m_sellerEdited;
+	
+	enum edit_action {
+		ea_add,
+		ea_modify,
+	} ;
+	// what is going on with edited item
+	edit_action	m_productEditAction;
+	edit_action	m_sellerEditAction;
 	
 	string	m_working_directory;
 } ;

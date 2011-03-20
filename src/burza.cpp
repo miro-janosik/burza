@@ -83,11 +83,14 @@ void Product::Reset( void )
 	m_stav = caka_na_prijatie;
 }
 
+char Seller::file_field_delimiters[] = "|*\r\n";
+
 Seller::Seller()
 {
 	m_kod = "";
 	m_meno = "?";
 	m_poznamka = "";
+	m_unique_id = Centrala::Instancia()->Register()->GenerateSellerUniqueId();
 }
 
 void Seller::PridajTovar( int cislo, const char* nazov, double cena, char kategoria, e_product_status stav )
@@ -115,8 +118,21 @@ void Seller::PridajTovar( int cislo, const char* nazov, double cena, char katego
 	m_products.push_back( t );
 }
 
+void Seller::ReplaceCharactersInString( std::string& str, const char* from, char to )
+{
+	unsigned int len = strlen( from );
+	for( unsigned int i=0; i<len; i++ ) {
+		std::replace( str.begin(), str.end(), from[ i ], to );
+	}
+}
+
 void Seller::SaveToTxtFile( CConvFile& file )
 {
+	ReplaceCharactersInString( m_meno, file_field_delimiters, '_' );
+	ReplaceCharactersInString( m_poznamka, file_field_delimiters, '_' );
+	
+	file.Print( "%i", m_unique_id );
+	file.Write( "*" );
 	file.Write( m_kod.c_str() );
 	file.Write( "*" );
 	file.Write( m_meno.c_str() );
@@ -127,10 +143,13 @@ void Seller::SaveToTxtFile( CConvFile& file )
 	string s;
 	
 	for( unsigned int i=0; i<m_products.size(); i++ ) {
-		s = m_products[ i ].m_nazov.substr( 0, 40 );
-		file.Print( "%i*%40s*%0.1f*%c*%c\n",
-			m_products[ i ].m_cislo, s.c_str(),
-			m_products[ i ].m_cena, m_products[ i ].m_kategoria,
+		
+		ReplaceCharactersInString( m_products[ i ].m_nazov, file_field_delimiters, '_' );
+		
+		file.Print( "%i*%s*%0.1f",
+			m_products[ i ].m_cislo, m_products[ i ].m_nazov.c_str(), m_products[ i ].m_cena );
+		file.Print( "*%c*%c\n",
+			m_products[ i ].m_kategoria,
 			Centrala::Instancia()->Register()->Stav2Char( m_products[ i ].m_stav ) );
 	}
 }
@@ -142,17 +161,21 @@ void Seller::Save( void )
 	// so I have to look for file starting with seller id.
 	
 	string previous_filename, new_filename;
+	string predajca_dir, predajca_pat;
+	
+	predajca_pat = predajca_dir;
+	predajca_pat += "*.txt";
 	
 	// find previous filename
-	string predajca_pat = Centrala::Instancia()->Nastavenia()->m_data_dir_path;
-	predajca_pat += ConvFuncs::FormatStdStr( "%i*.txt", m_unique_id );
-	bool found;
-	found = ConvFuncsInstance->Find_FirstFile( predajca_pat.c_str() );
-	if ( found ) {
+	predajca_pat = Centrala::Instancia()->Nastavenia()->m_data_dir_path;
+	predajca_pat += ConvFuncs::FormatStdStr( "%i-*.txt", m_unique_id );
+	bool previous_found;
+	previous_found = ConvFuncsInstance->Find_FirstFile( predajca_pat.c_str() );
+	if ( previous_found ) {
 		previous_filename = ConvFuncsInstance->Find_CurrentFileName();
 	}
 	
-	new_filename = ConvFuncs::FormatStdStr( "%i-%s.txt", m_unique_id, m_kod.c_str() );
+	new_filename = ConvFuncs::FormatStdStr( "%i-%s-%s.txt", m_unique_id, m_kod.c_str(), m_meno.c_str() );
 	
 	// save
 	predajca_pat = Centrala::Instancia()->Nastavenia()->m_data_dir_path;
@@ -173,11 +196,11 @@ void Seller::Save( void )
 	
 	// compare new filename with previous
 	// if different, erase previous file.
-	if ( new_filename != previous_filename ) {
+	if (( previous_found ) && ( new_filename != previous_filename )) {
 		predajca_pat = Centrala::Instancia()->Nastavenia()->m_data_dir_path;
 		predajca_pat += previous_filename;
 		
-		ConvFuncs::DoDeleteFile( previous_filename.c_str() );
+		ConvFuncs::DoDeleteFile( predajca_pat.c_str() );
 	}
 }
 
@@ -189,16 +212,16 @@ void Seller::LoadFromTxtFile( CConvFile& file )
 	static const int linebuffer_len = 512;
 	char linebuffer[ linebuffer_len ];
 	char namebuffer[ linebuffer_len ];
-	char delimiters[] = "|*\r\n";
 	unsigned short strpos;
 	
 	const char* cp, *linep;
 	Product		t;
 	
 	file.gets( linebuffer, linebuffer_len );
-	m_kod = ConvFuncsInstance->StrItem( linebuffer, 0, delimiters );
-	m_meno = ConvFuncsInstance->StrItem( linebuffer, 1, delimiters );
-	m_poznamka = ConvFuncsInstance->StrItem( linebuffer, 2, delimiters );
+	m_unique_id = atoi( ConvFuncsInstance->StrItem( linebuffer, 0, file_field_delimiters ) );
+	m_kod = ConvFuncsInstance->StrItem( linebuffer, 1, file_field_delimiters );
+	m_meno = ConvFuncsInstance->StrItem( linebuffer, 2, file_field_delimiters );
+	m_poznamka = ConvFuncsInstance->StrItem( linebuffer, 3, file_field_delimiters );
 	
 	m_products.clear();
 	
@@ -209,7 +232,7 @@ void Seller::LoadFromTxtFile( CConvFile& file )
 			break;
 		
 		linep = linebuffer;
-		cp = ConvFuncsInstance->StrItem( linebuffer, 0, delimiters, &strpos );
+		cp = ConvFuncsInstance->StrItem( linebuffer, 0, file_field_delimiters, &strpos );
 		// skip empty lines
 		if ( cp == NULL )
 			continue;
@@ -217,14 +240,14 @@ void Seller::LoadFromTxtFile( CConvFile& file )
 		
 		// item name
 		linep += strpos;
-		cp = ConvFuncsInstance->StrItem( linep, 0, delimiters, &strpos );
+		cp = ConvFuncsInstance->StrItem( linep, 0, file_field_delimiters, &strpos );
 		t.m_nazov = cp;
 		
 		linep += strpos;
 		
-		t.m_cena = atof( ConvFuncsInstance->StrItem( cp, 0, delimiters ) );
-		t.m_kategoria = * ConvFuncsInstance->StrItem( cp, 1, delimiters );
-		t.m_stav = Centrala::Instancia()->Register()->Char2Stav( ( * ConvFuncsInstance->StrItem( cp, 2, delimiters ) ) );
+		t.m_cena = atof( ConvFuncsInstance->StrItem( linep, 0, file_field_delimiters ) );
+		t.m_kategoria = * ConvFuncsInstance->StrItem( linep, 1, file_field_delimiters );
+		t.m_stav = Centrala::Instancia()->Register()->Char2Stav( ( * ConvFuncsInstance->StrItem( linep, 2, file_field_delimiters ) ) );
 		
 		m_products.push_back( t );
 	} ;
@@ -280,9 +303,7 @@ void BurzaRegister::NacitajVsetkychPredajcov( void )
 {
 	std::string		predajca_dir, predajca_pat, predajca_fname;
 			
-	predajca_dir = ConvFuncsInstance->GetPathFromPathFilename(
-		ConvFuncsInstance->GetExecutableFilePathName() );
-	predajca_dir += "data/";
+	predajca_dir = Centrala::Instancia()->Nastavenia()->m_data_dir_path;
 	
 	predajca_pat = predajca_dir;
 	predajca_pat += "*.txt";
@@ -368,6 +389,17 @@ e_product_status BurzaRegister::Char2Stav( char c )
 			return (Burza::e_product_status) i;
 	
 	return nedefinovane;
+}
+
+unsigned int BurzaRegister::GenerateSellerUniqueId( void )
+{
+	unsigned int max = 0;
+	for( int i=0; i<m_predajcovia.size(); ++i ) {
+		if ( m_predajcovia[ i ].m_unique_id > max )
+			max = m_predajcovia[ i ].m_unique_id;
+	}
+	
+	return max+1;
 }
 
 void BurzaRegister::GenerateSellerUniqueCode( Seller& seller, std::string try_this_code )
