@@ -4,10 +4,11 @@
 // Vytvorene pre MC Srdiecko Trencin
 // -----
 
+#include <string>
+
 #include <gtkmm.h>
 #include <gtkmm/main.h>
 #include <libglademm.h>
-#include <string>
 
 #include "burza.h"
 
@@ -48,6 +49,8 @@ public:
 	// Displays message box with message. Function returns only after you click OK on the box.
 	void DisplayErrorMessageBox( string msg, string msg_title = "" );
 	void DisplayErrorMessageBox( const char* msg, const char* msg_title = NULL );
+	//! returns true if Yes is pressed, false otherwise (you can expect that either No or 'x' was pressed.
+	bool DisplayYesNoMessageBox( string message, string title );
 	
 	void StartDialogEditProduct( Burza::Product* product, Burza::Seller* seller );
 	void StartDialogEditSeller( Burza::Seller* seller );
@@ -60,6 +63,7 @@ public:
 	void ButtonRegisterAddSeller( void );
 	void ButtonRegisterUpdateSeller( void );
 	void ButtonRegisterAddItem( void );
+	void ButtonRegisterModifyItem( void );
 	void ButtonRegisterRemoveItem( void );
 	void ButtonRegisterCalcFee( void );
 	void ButtonRegisterCalcRepayment( void );
@@ -103,6 +107,7 @@ public:
 	Gtk::Button		*m_pButtonUpdateSeller;
 	Gtk::TreeView	*m_pTreeViewItems;
 	Gtk::Button		*m_pButtonAddItem;
+	Gtk::Button		*m_pButtonModifyItem;
 	Gtk::Button		*m_pButtonRemoveItem;
 	Gtk::Button		*m_pButtonCalcFee;
 	Gtk::Button		*m_pButtonCalcRepayment;

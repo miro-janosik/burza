@@ -118,6 +118,18 @@ void Seller::PridajTovar( int cislo, const char* nazov, double cena, char katego
 	m_products.push_back( t );
 }
 
+void Seller::ZmazTovar( int cislo )
+{
+	for( int i=0; i<m_products.size(); ++i ) {
+		if ( cislo == m_products[ i ].m_cislo ) {
+			m_products.erase( m_products.begin() + i );
+			return;
+		}
+	}
+	
+	throw runtime_error( "Seller::ZmazTovar : invalid number." );
+}
+
 void Seller::ReplaceCharactersInString( std::string& str, const char* from, char to )
 {
 	unsigned int len = strlen( from );
@@ -295,6 +307,54 @@ void Seller::PrintProductsToPDF( PdfWrapperBase& pdf )
 	pdf.DrawTable( 50, 50, table, columns );
 }
 
+double Seller::CalculateFee( void )
+{
+	double fee = 0;
+	t_items_in_categories itemCategories;
+	t_items_in_categories::iterator icit;
+	ProductCategory*	cat;
+	
+	itemCategories = GetItemsCategories();
+	for( icit = itemCategories.begin(); icit != itemCategories.end(); ++icit ) {
+		
+		double itemFee;
+		
+		cat = Centrala::Instancia()->Register()->FindProductCategory( icit->first );
+		if ( cat == NULL )
+			itemFee = -100.0;
+		else
+			itemFee = cat->m_fee_per_item;
+		
+		fee += itemFee * icit->second;
+	}
+	
+	SellerCategory* scat;
+	scat = Centrala::Instancia()->Register()->FindSellerCategory( m_kategoria );
+	if ( scat == NULL )
+		fee -= 10000;
+	else
+		fee += scat->m_fee_per_sale;
+}
+
+Seller::t_items_in_categories Seller::GetItemsCategories( void )
+{
+	t_items_in_categories res;
+	t_items_in_categories::iterator it;
+	
+	for( unsigned int i=0; i<m_products.size(); ++i ) {
+		
+		it = res.find( m_products[ i ].m_kategoria );
+		
+		if ( it == res.end() )
+			res[ m_products[ i ].m_kategoria ] = 1;
+		else
+			it->second++;
+		
+	}
+	
+	return res;
+}
+
 // ==============================================
 // ==============================================
 // ==============================================
@@ -357,6 +417,22 @@ BurzaRegister::t_predajcovia::iterator BurzaRegister::NajdiPredajcuPodlaKodu( co
 	}
 	
 	return it;
+}
+
+ProductCategory* BurzaRegister::FindProductCategory( char category )
+{
+	t_productCategories::iterator it = m_productCategories.find( category );
+	if ( it == m_productCategories.end() )
+		return NULL;
+	return & it->second;
+}
+
+SellerCategory* BurzaRegister::FindSellerCategory( char seller_category )
+{
+	t_sellerCategories::iterator it = m_sellerCategories.find( seller_category );
+	if ( it == m_sellerCategories.end() )
+		return NULL;
+	return & it->second;
 }
 
 // ==============================================
@@ -474,6 +550,8 @@ NastaveniaProgramu::NastaveniaProgramu()
 	m_data_dir_path = ConvFuncsInstance->GetPathFromPathFilename(
 		ConvFuncsInstance->GetExecutableFilePathName() );
 	m_data_dir_path += "data/";
+
+	m_string_mena = "∈";
 }
 
 // ==============================================

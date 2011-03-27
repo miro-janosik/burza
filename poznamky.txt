@@ -3,7 +3,8 @@ po pridani uzivatela - combo prehod; otvor pridaj tovar
 tovar edit - nazov edit je maly; stav default = skladom
 po pridani tovaru zobraz predajcu a jeho tovar nevidno nic.
 po pridani tovaru - znova pridavaj tovar
-
+suma = fix konverzia 5,5 na 5.5
+predajca kombo - smerom dolu.
 
 MINOR
 zobraz tovar - column 1 align left, 2 stretch, 3,4,5 right.

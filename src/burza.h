@@ -9,6 +9,7 @@
 
 #include <vector>
 #include <string>
+#include <map>
 
 using namespace std;
 
@@ -48,6 +49,18 @@ public:
 	void Reset( void );
 } ;
 
+class SellerCategory {
+public:
+	char			m_category;
+	double		m_fee_per_sale;
+};
+
+class ProductCategory {
+public:
+	char			m_category;
+	double		m_fee_per_item;
+};
+
 class NastaveniaProgramu {
 public:
 	NastaveniaProgramu();
@@ -55,6 +68,8 @@ public:
 public:
 	char	m_znak_stavu_v_subore[ pocet_stavov ];
 	std::string		m_string_stavu[ pocet_stavov ];
+	
+	std::string		m_string_mena; 
 	
 	std::string		m_data_dir_path;
 } ;
@@ -64,6 +79,7 @@ public:
 	std::string		m_kod;
 	std::string		m_meno;
 	std::string		m_poznamka;
+	char					m_kategoria;
 	// ID generated through Register::GenerateSellerUniqueCode()
 	unsigned int	m_unique_id;
 	
@@ -86,9 +102,15 @@ public:
 	void ReplaceCharactersInString( std::string& str, std::string& from, char to );
 	void ReplaceCharactersInString( std::string& str, const char* from, char to );
 	
-	static char file_field_delimiters[];
-	
 	void PrintProductsToPDF( PdfWrapperBase& pdf );
+	double CalculateFee( void );
+	
+	// key: category character; value: number of items of that category
+	typedef std::map< char, int > t_items_in_categories;
+	
+	t_items_in_categories GetItemsCategories( void );
+	
+	static char file_field_delimiters[];
 } ;
 
 // ==============================================
@@ -100,15 +122,21 @@ public:
 	NastaveniaProgramu		m_nastavenia;
 	
 public:
-	typedef		std::vector< Seller >	t_predajcovia; 
+	typedef		std::vector< Seller >	t_predajcovia;
+	typedef		std::map< char, ProductCategory >	t_productCategories;
+	typedef		std::map< char, SellerCategory >	t_sellerCategories;
+	
 	
 	t_predajcovia	m_predajcovia;
+	t_productCategories	m_productCategories;
+	t_sellerCategories	m_sellerCategories;
 	
 	void PridajNovehoPredajcu( const char* kod, const char* meno, const char* poznamka );
-	
 	void NacitajVsetkychPredajcov( void );
 	
 	t_predajcovia::iterator NajdiPredajcuPodlaKodu( const char* kod );
+	ProductCategory* FindProductCategory( char product_category );
+	SellerCategory* FindSellerCategory( char seller_category );
 	
 public:
 	char Stav2Char( e_product_status stav );

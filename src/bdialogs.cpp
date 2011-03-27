@@ -104,6 +104,7 @@ int BurzaDialogs::NahrajDialogy( void )
 	xmlWndRegister->get_widget( "button update seller", m_pButtonUpdateSeller );
 	xmlWndRegister->get_widget( "treeview items", m_pTreeViewItems );
 	xmlWndRegister->get_widget( "button add item", m_pButtonAddItem );
+	xmlWndRegister->get_widget( "button modify item", m_pButtonModifyItem );
 	xmlWndRegister->get_widget( "button remove item", m_pButtonRemoveItem );
 	xmlWndRegister->get_widget( "button calc fee", m_pButtonCalcFee );
 	xmlWndRegister->get_widget( "button calc repayment", m_pButtonCalcRepayment );
@@ -117,6 +118,7 @@ int BurzaDialogs::NahrajDialogy( void )
 		( m_pButtonUpdateSeller == NULL ) ||
 		( m_pTreeViewItems == NULL ) ||
 		( m_pButtonAddItem == NULL ) ||
+		( m_pButtonModifyItem == NULL ) ||
 		( m_pButtonRemoveItem == NULL ) ||
 		( m_pButtonCalcFee == NULL ) ||
 		( m_pButtonCalcRepayment == NULL ) ||
@@ -132,6 +134,7 @@ int BurzaDialogs::NahrajDialogy( void )
 	m_pButtonAddSeller->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::ButtonRegisterAddSeller ) );
 	m_pButtonUpdateSeller->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::ButtonRegisterUpdateSeller ) );
 	m_pButtonAddItem->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::ButtonRegisterAddItem ) );
+	m_pButtonModifyItem->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::ButtonRegisterModifyItem ) );
 	m_pButtonRemoveItem->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::ButtonRegisterRemoveItem ) );
 	m_pButtonCalcFee->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::ButtonRegisterCalcFee ) );
 	m_pButtonCalcRepayment->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::ButtonRegisterCalcRepayment ) );
@@ -140,8 +143,7 @@ int BurzaDialogs::NahrajDialogy( void )
 	m_pComboSeller->signal_changed().connect( sigc::mem_fun( *this, &BurzaDialogs::ComboRegisterChangedSeller ) );
 	
 	m_RegisterItemsSelection = m_pTreeViewItems->get_selection();
-	m_RegisterItemsSelection->set_mode( Gtk::SELECTION_SINGLE );
-	m_RegisterItemsSelection->signal_changed().connect( sigc::mem_fun( this, &BurzaDialogs::TreeSelectChangedItem ) );
+	m_RegisterItemsSelection->set_mode( Gtk::SELECTION_MULTIPLE );
 	
 	// setup item list
 	m_RegisterItemsListModel = Gtk::ListStore::create( m_ItemsColumn );
@@ -375,7 +377,7 @@ void BurzaDialogs::RegisterZobrazPredajcu( const char* kod )
 	BurzaRegister::t_predajcovia::iterator	it;
 	int	idx;
 	
-	for( idx = 0, it = mp_register->m_predajcovia.begin(); it != mp_register->m_predajcovia.end(); it++ ) {
+	for( idx = 0, it = mp_register->m_predajcovia.begin(); it != mp_register->m_predajcovia.end(); it++, idx++ ) {
 		if ( it->m_kod == kod )
 			break;
 	}
@@ -533,19 +535,66 @@ void BurzaDialogs::ButtonRegisterAddItem( void )
 	StartDialogEditProduct( p, m_pRegisterVybranyPredajca );
 }
 
+void BurzaDialogs::ButtonRegisterModifyItem( void )
+{
+	if ( m_pRegisterVybranyPredajca == NULL )
+		return;
+	
+	Product* p = & m_pRegisterVybranyPredajca->m_products[ 
+		m_pRegisterVybranyPredajca->m_products.size() - 1 ];
+	
+	m_productEditAction = ea_add;
+	StartDialogEditProduct( p, m_pRegisterVybranyPredajca );
+}
+
 void BurzaDialogs::ButtonRegisterRemoveItem( void )
 {
+	if ( m_pRegisterVybranyPredajca == NULL )
+		return;
 	
+	// count selected items
+	Gtk::TreeSelection::ListHandle_Path	selected_items = m_RegisterItemsSelection->get_selected_rows();
+	if ( selected_items.empty() )
+		return;
+	
+	// ask user if he is sure
+	string str = ConvFuncs::FormatStdStr( _( "Ste si istý že chcete odstrániť %i ks tovaru?" ), selected_items.size() );
+	if ( DisplayYesNoMessageBox( str, "" ) == false )
+		return;
+	
+	// to avoid pointing to array that removes under our feet I'll make list of item numbers to delete
+	vector< int > productNumbersToDelete;
+	
+	for( Gtk::TreeSelection::ListHandle_Path::iterator it=selected_items.begin();
+			it != selected_items.end(); ++it ) {
+		assert( (*it).size() == 1 );
+		
+		productNumbersToDelete.push_back( 
+			m_pRegisterVybranyPredajca->m_products[ (*it)[ 0 ] ].m_cislo );
+	}
+	
+	// delete items
+	for( unsigned int i=0; i<productNumbersToDelete.size(); ++i ) {
+		m_pRegisterVybranyPredajca->ZmazTovar( productNumbersToDelete[ i ] );
+	}
+	
+	RegisterZobrazPredajcu( m_pRegisterVybranyPredajca->m_kod.c_str() );
 }
 
 void BurzaDialogs::ButtonRegisterCalcFee( void )
 {
+	if ( m_pRegisterVybranyPredajca == NULL )
+		return;
 	
+	double fee = m_pRegisterVybranyPredajca->CalculateFee();
+	
+	m_pLabelFee->set_text( ConvFuncs::FormatStdStr( "%0.2f %s", fee, 
+		mp_register->m_nastavenia.m_string_mena.c_str() ) );
 }
 
 void BurzaDialogs::ButtonRegisterCalcRepayment( void )
 {
-	
+	m_pLabelFee->set_text( string( " -4500.00 ") + mp_register->m_nastavenia.m_string_mena );
 }
 
 void BurzaDialogs::ButtonSwitchToCashout( void )
@@ -641,7 +690,9 @@ void BurzaDialogs::ButtonCashoutFinished( void )
 	m_CashoutItemsListModel->clear();
 	
 	m_cashout_sum = 0.0;
-	m_pCashoutLabelSum->set_text( "0 ∈" );
+	string str = "0 ";
+	str += mp_register->m_nastavenia.m_string_mena;
+	m_pCashoutLabelSum->set_text( str );
 }
 
 void BurzaDialogs::ButtonCashoutRemoveItem( void )
@@ -736,6 +787,15 @@ void BurzaDialogs::DisplayErrorMessageBox( const char* msg, const char* msg_titl
 	DisplayErrorMessageBox( msg2, msg_title2 );
 }
 
+bool BurzaDialogs::DisplayYesNoMessageBox( string message, string title )
+{
+	Gtk::MessageDialog dialog( message, false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO, true );
+	
+	dialog.set_message( title );
+	int res = dialog.run();
+	return ( res == Gtk::RESPONSE_YES );
+}
+
 void BurzaDialogs::StartDialogEditProduct( Product* product, Seller* seller )
 {
 	m_pItemeditName->set_text( product->m_nazov );
@@ -762,8 +822,6 @@ void BurzaDialogs::ButtonItemEditOk( void )
 	assert( m_productEdited != NULL );
 	assert( m_sellerEdited != NULL );
 	
-	m_pWndItem->hide();
-	
 	// validate
 	bool validate_needed = false;
 	string str;
@@ -775,7 +833,14 @@ void BurzaDialogs::ButtonItemEditOk( void )
 	
 	str = m_pItemeditPrice->get_text();
 	if ( ConvFuncsInstance->IsNumber( str.c_str() ) == 0 ) {
-		m_pItemeditPrice->set_text( "1.0" );
+		
+		ConvFuncsInstance->StrReplaceChars( str, ",", "." );
+		
+		if ( ConvFuncsInstance->IsNumber( str.c_str() ) == 1 ) {
+			m_pItemeditPrice->set_text( str );
+		} else {
+			m_pItemeditPrice->set_text( "1.0" );
+		}
 		validate_needed = true;
 	} else {
 		
@@ -794,6 +859,8 @@ void BurzaDialogs::ButtonItemEditOk( void )
 		return;
 	}
 	
+	m_pWndItem->hide();
+	
 	m_productEdited->m_nazov = m_pItemeditName->get_text();
 	m_productEdited->m_cislo =  atoi( m_pItemeditNumber->get_text().c_str() );
 	m_productEdited->m_cena = atof(  m_pItemeditPrice->get_text().c_str() );
@@ -809,8 +876,20 @@ void BurzaDialogs::ButtonItemEditOk( void )
 	
 	SellerModified( m_sellerEdited );
 	
+	Seller* sellerThatWasModified = m_sellerEdited;
 	m_productEdited = NULL;
 	m_sellerEdited = NULL;
+
+	if ( m_productEditAction == ea_add ) {
+		
+		sellerThatWasModified->PridajTovar( -1, "", 0.0, 'a', caka_na_prijatie );
+		Product* p = & m_pRegisterVybranyPredajca->m_products[ 
+			m_pRegisterVybranyPredajca->m_products.size() - 1 ];
+		
+		m_productEditAction = ea_add;
+		StartDialogEditProduct( p, sellerThatWasModified );
+	}
+	
 }
 
 void BurzaDialogs::ButtonItemEditCancel( void )
@@ -849,7 +928,6 @@ void BurzaDialogs::ButtonSellerEditOk( void )
 {
 	assert( m_sellerEdited != NULL );
 	
-	
 	// validate
 	string str;
 	
@@ -874,12 +952,24 @@ void BurzaDialogs::ButtonSellerEditOk( void )
 	m_pWndSeller->hide();
 	
 	SellerModified( m_sellerEdited );
+	Seller* sellerThatWasModified = m_sellerEdited;
 	m_sellerEdited = NULL;
+	
+	if ( m_sellerEditAction == ea_add ) {
+		
+		sellerThatWasModified->PridajTovar( -1, "", 0.0, 'a', caka_na_prijatie );
+		Product* p = & m_pRegisterVybranyPredajca->m_products[ 
+			m_pRegisterVybranyPredajca->m_products.size() - 1 ];
+		
+		m_productEditAction = ea_add;
+		
+		StartDialogEditProduct( p, sellerThatWasModified );
+	}
 }
 
 void BurzaDialogs::ButtonSellerEditCancel( void )
 {
-	if ( m_productEditAction == ea_add )
+	if ( m_sellerEditAction == ea_add )
 		Centrala::Instancia()->Register()->m_predajcovia.erase( 
 			Centrala::Instancia()->Register()->m_predajcovia.end() -1 );
 	
@@ -897,6 +987,7 @@ void BurzaDialogs::SellerModified( Seller* seller )
 {
 	seller->Save();
 	VyplnPredajcovDoKomb();
+	RegisterZobrazPredajcu( seller->m_kod.c_str() );
 }
 
 /*
