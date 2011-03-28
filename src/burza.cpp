@@ -118,6 +118,30 @@ void Seller::PridajTovar( int cislo, const char* nazov, double cena, char katego
 	m_products.push_back( t );
 }
 
+void Seller::VerifikujCisloTovaru( Product& p, int newNumber )
+{
+	int max = 0;
+	bool valid = true;
+	for( int i=0; i<m_products.size(); ++i ) {
+		
+		if ( max < m_products[ i ].m_cislo )
+			max = m_products[ i ].m_cislo;
+		
+		if (( newNumber == m_products[ i ].m_cislo ) && ( &m_products[ i ] != &p )) {
+			valid = false;
+		}
+	}
+	
+	if ( newNumber == -1 )
+		valid = false;
+	
+	if ( ! valid ) {
+		t.m_cislo = max + 1;
+	}
+	
+	return t.m_cislo;
+}
+
 void Seller::ZmazTovar( int cislo )
 {
 	for( int i=0; i<m_products.size(); ++i ) {
@@ -128,6 +152,17 @@ void Seller::ZmazTovar( int cislo )
 	}
 	
 	throw runtime_error( "Seller::ZmazTovar : invalid number." );
+}
+
+int Seller::NajdiTovarIndex( int cislo )
+{
+	for( unsigned int i=0; i<m_products.size(); ++i ) {
+		if ( cislo == m_products[ i ].m_cislo ) {
+			return i;
+		}
+	}
+	
+	return -1;
 }
 
 void Seller::ReplaceCharactersInString( std::string& str, const char* from, char to )

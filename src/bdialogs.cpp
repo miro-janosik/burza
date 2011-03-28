@@ -540,10 +540,19 @@ void BurzaDialogs::ButtonRegisterModifyItem( void )
 	if ( m_pRegisterVybranyPredajca == NULL )
 		return;
 	
-	Product* p = & m_pRegisterVybranyPredajca->m_products[ 
-		m_pRegisterVybranyPredajca->m_products.size() - 1 ];
+	vector< unsigned int > listOfItems;
+	RegisterGetSelectedItemNumbers( listOfItems );
 	
-	m_productEditAction = ea_add;
+	if ( listOfItems.size() != 1 )
+		return;
+	
+	int idx= m_pRegisterVybranyPredajca->NajdiTovarIndex( listOfItems[ 0 ] );
+	if ( idx == -1 )
+		throw runtime_error( "BurzaDialogs::ButtonRegisterModifyItem item not in list" );
+	
+	Product* p = & m_pRegisterVybranyPredajca->m_products[ idx ];
+	
+	m_productEditAction = ea_modify;
 	StartDialogEditProduct( p, m_pRegisterVybranyPredajca );
 }
 
@@ -552,26 +561,15 @@ void BurzaDialogs::ButtonRegisterRemoveItem( void )
 	if ( m_pRegisterVybranyPredajca == NULL )
 		return;
 	
-	// count selected items
-	Gtk::TreeSelection::ListHandle_Path	selected_items = m_RegisterItemsSelection->get_selected_rows();
-	if ( selected_items.empty() )
-		return;
+	// to avoid pointing to array that removes under our feet I'll make list of item numbers to delete
+	vector< unsigned int > productNumbersToDelete;
+	
+	RegisterGetSelectedItemNumbers( productNumbersToDelete );
 	
 	// ask user if he is sure
-	string str = ConvFuncs::FormatStdStr( _( "Ste si istý že chcete odstrániť %i ks tovaru?" ), selected_items.size() );
+	string str = ConvFuncs::FormatStdStr( _( "Ste si istý že chcete odstrániť %i ks tovaru?" ), productNumbersToDelete.size() );
 	if ( DisplayYesNoMessageBox( str, "" ) == false )
 		return;
-	
-	// to avoid pointing to array that removes under our feet I'll make list of item numbers to delete
-	vector< int > productNumbersToDelete;
-	
-	for( Gtk::TreeSelection::ListHandle_Path::iterator it=selected_items.begin();
-			it != selected_items.end(); ++it ) {
-		assert( (*it).size() == 1 );
-		
-		productNumbersToDelete.push_back( 
-			m_pRegisterVybranyPredajca->m_products[ (*it)[ 0 ] ].m_cislo );
-	}
 	
 	// delete items
 	for( unsigned int i=0; i<productNumbersToDelete.size(); ++i ) {
@@ -624,6 +622,24 @@ void BurzaDialogs::ComboRegisterChangedSeller( void )
 void BurzaDialogs::TreeSelectChangedItem( void )
 {
 	
+}
+
+void BurzaDialogs::RegisterGetSelectedItemNumbers( vector<unsigned int>& listOfItems )
+{
+	listOfItems.clear();
+	
+	// count selected items
+	Gtk::TreeSelection::ListHandle_Path	selected_items = m_RegisterItemsSelection->get_selected_rows();
+	if ( selected_items.empty() )
+		return;
+	
+	for( Gtk::TreeSelection::ListHandle_Path::iterator it=selected_items.begin();
+			it != selected_items.end(); ++it ) {
+		assert( (*it).size() == 1 );
+		
+		listOfItems.push_back( 
+			m_pRegisterVybranyPredajca->m_products[ (*it)[ 0 ] ].m_cislo );
+	}
 }
 
 void BurzaDialogs::ButtonCashoutAddItem( void )
@@ -855,6 +871,18 @@ void BurzaDialogs::ButtonItemEditOk( void )
 		validate_needed = true;
 	}
 	
+	
+	// number
+	str = m_pItemeditNumber->get_text();
+	int num = atoi( str.c_str() );
+	
+	num = VerifikujCisloTovaru( m_productEdited, num );
+	string str2 = ConvFuncs::FormatStdStr( "%i", num );
+	if ( str != str2 ) {
+		m_pItemeditNumber->set_text( str2 );
+		validate_needed = true;
+	}
+	
 	if ( validate_needed ) {
 		return;
 	}
@@ -880,6 +908,7 @@ void BurzaDialogs::ButtonItemEditOk( void )
 	m_productEdited = NULL;
 	m_sellerEdited = NULL;
 
+	// add new item in row.
 	if ( m_productEditAction == ea_add ) {
 		
 		sellerThatWasModified->PridajTovar( -1, "", 0.0, 'a', caka_na_prijatie );

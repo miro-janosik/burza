@@ -93,7 +93,9 @@ public:
 	/// ! if [cislo] == -1  it is replaced by next number
 	void PridajTovar( int cislo, const char* nazov, double cena, char kategoria, e_product_status stav );
 	void ZmazTovar( int cislo );
+	int NajdiTovarIndex( int cislo );
 	void ZmenStavTovaru( int cislo, e_product_status stav );
+	int VerifikujCisloTovaru( Product& p, int newNumber = -1 );
 	
 	void SaveToTxtFile( CConvFile& file );
 	void LoadFromTxtFile( CConvFile& file );

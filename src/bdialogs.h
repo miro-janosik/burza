@@ -70,6 +70,7 @@ public:
 	void ButtonSwitchToCashout( void );
 	void ComboRegisterChangedSeller( void );
 	void TreeSelectChangedItem( void );
+	void RegisterGetSelectedItemNumbers( vector<unsigned int>& listOfItems );
 	
 	// "cash-out" dialog functions
 	void ButtonSwitchToRegister( void );
