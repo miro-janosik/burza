@@ -137,6 +137,7 @@ public:
 	void NacitajVsetkychPredajcov( void );
 	
 	t_predajcovia::iterator NajdiPredajcuPodlaKodu( const char* kod );
+	int NajdiPredajcuPodlaKoduIndex( const char* kod );
 	ProductCategory* FindProductCategory( char product_category );
 	SellerCategory* FindSellerCategory( char seller_category );
 	

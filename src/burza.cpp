@@ -118,7 +118,7 @@ void Seller::PridajTovar( int cislo, const char* nazov, double cena, char katego
 	m_products.push_back( t );
 }
 
-void Seller::VerifikujCisloTovaru( Product& p, int newNumber )
+int Seller::VerifikujCisloTovaru( Product& p, int newNumber )
 {
 	int max = 0;
 	bool valid = true;
@@ -136,10 +136,11 @@ void Seller::VerifikujCisloTovaru( Product& p, int newNumber )
 		valid = false;
 	
 	if ( ! valid ) {
-		t.m_cislo = max + 1;
+		newNumber = max + 1;
 	}
 	
-	return t.m_cislo;
+	p.m_cislo = newNumber;
+	return newNumber;
 }
 
 void Seller::ZmazTovar( int cislo )
@@ -452,6 +453,20 @@ BurzaRegister::t_predajcovia::iterator BurzaRegister::NajdiPredajcuPodlaKodu( co
 	}
 	
 	return it;
+}
+
+int BurzaRegister::NajdiPredajcuPodlaKoduIndex( const char* kod )
+{
+	std::vector< Seller >::iterator	it;
+	int idx;
+	
+	for( idx = 0, it = m_predajcovia.begin(); it != m_predajcovia.end(); it++, idx++ ) {
+		if ( it->m_kod == kod ) {
+			return idx;
+		}
+	}
+	
+	return -1;
 }
 
 ProductCategory* BurzaRegister::FindProductCategory( char category )

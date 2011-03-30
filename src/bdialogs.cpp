@@ -224,6 +224,8 @@ int BurzaDialogs::NahrajDialogy( void )
 	xmlWndCashOut->get_widget( "label sum", m_pCashoutLabelSum );
 	xmlWndCashOut->get_widget( "label cashout finished", m_pCashoutButtonFinish );
 	xmlWndCashOut->get_widget( "button register", m_pButtonRegister );
+	xmlWndCashOut->get_widget_derived( "comboboxentry_search", m_pCashoutComboSearch );
+	m_pCashoutComboSearchEntry = dynamic_cast<Gtk::Entry*>( m_pCashoutComboSearch->get_child() );
 	
 	if (( m_pButtonRegister == NULL ) ||
 		( m_pCashoutTreeViewList == NULL ) ||
@@ -235,7 +237,9 @@ int BurzaDialogs::NahrajDialogy( void )
 		( m_pCashoutButtonAddItem == NULL ) ||
 		( m_pCashoutButtonRemoveItem == NULL ) ||
 		( m_pCashoutLabelSum == NULL ) ||
-		( m_pCashoutButtonFinish == NULL )) {
+		( m_pCashoutButtonFinish == NULL ) ||
+	   ( m_pCashoutComboSearch == NULL ) ||
+	   ( m_pCashoutComboSearchEntry == NULL )) {
 		error = "Dialog file is corrupt [4].";
 		throw;
 	}
@@ -245,12 +249,17 @@ int BurzaDialogs::NahrajDialogy( void )
 	m_pCashoutButtonRemoveItem->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::ButtonCashoutRemoveItem ) );
 	m_pCashoutButtonFinish->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::ButtonCashoutFinished ) );
 	
-	m_pCashoutComboLookupSeller->signal_changed().connect( sigc::mem_fun( *this, &BurzaDialogs::ComboCashoutLookupSeller ) );
-	m_pCashoutComboLookupItem->signal_changed().connect( sigc::mem_fun( *this, &BurzaDialogs::ComboCashoutLookupItem ) );
-	
 	m_CashoutItemsSelection = m_pTreeViewItems->get_selection();
 	m_CashoutItemsSelection->set_mode( Gtk::SELECTION_SINGLE );
 	m_CashoutItemsSelection->signal_changed().connect( sigc::mem_fun( this, &BurzaDialogs::TreeSelectChangedItem ) );
+	
+	m_pCashoutEntryLookupSeller->signal_changed().connect( sigc::mem_fun( this, &BurzaDialogs::CashoutEditLookupSellerChanged ) );
+	m_pCashoutEntryLookupItem->signal_changed().connect( sigc::mem_fun( this, &BurzaDialogs::CashoutEditLookupItemChanged ) );
+	m_pCashoutComboLookupSeller->signal_changed().connect( sigc::mem_fun( *this, &BurzaDialogs::ComboCashoutLookupSeller ) );
+	m_pCashoutComboLookupItem->signal_changed().connect( sigc::mem_fun( *this, &BurzaDialogs::ComboCashoutLookupItem ) );
+	
+	m_pCashoutComboSearch->signal_changed().connect( sigc::mem_fun( this, &BurzaDialogs::CashoutEditSearchChanged ) );
+	m_pCashoutComboSearchEntry->signal_changed().connect( sigc::mem_fun( this, &BurzaDialogs::CashoutEditSearchEntryChanged ) );
 	
 	// setup item list
 	m_CashoutItemsListModel = Gtk::ListStore::create( m_ItemsColumn );
@@ -600,6 +609,15 @@ void BurzaDialogs::ButtonSwitchToCashout( void )
 	m_pWndRegister->hide();
 	m_pWndCashOut->show();
 	m_pWndCashOut->maximize();
+	
+	VyplnPredajcovDoKomb();
+	
+	m_pCashoutComboLookupSeller->clear();
+	m_pCashoutComboLookupItem->clear();
+	m_pCashoutEntryLookupSeller->set_text( "" );
+	m_pCashoutEntryLookupItem->set_text( "" );
+	m_pCashoutComboSearch->clear();
+	m_pCashoutComboSearchEntry->set_text( "" );
 }
 
 void BurzaDialogs::ButtonSwitchToRegister( void )
@@ -607,6 +625,9 @@ void BurzaDialogs::ButtonSwitchToRegister( void )
 	m_pWndRegister->show();
 	m_pWndCashOut->hide();
 	m_pWndRegister->maximize();
+	
+	VyplnPredajcovDoKomb();
+	m_pLabelFee->set_text( "" );
 }
 
 void BurzaDialogs::ComboRegisterChangedSeller( void )
@@ -746,7 +767,6 @@ void BurzaDialogs::ComboCashoutLookupItem( void )
 		return;
 	
 	int i = m_pCashoutComboLookupItem->get_active_row_number();
-	
 	if ( i == -1 )
 		return;
 	
@@ -757,6 +777,16 @@ void BurzaDialogs::ComboCashoutLookupItem( void )
 	
 	m_pCashoutVybranyTovar = & ( * (m_pCashoutVybranyPredajca->m_products.begin() + i ));
 	m_CashoutVybranyTovarIdx = i;
+	
+	CashoutSelectedItemChanged();
+}
+	
+void BurzaDialogs::CashoutSelectedItemChanged( void )
+{
+	if ( m_pCashoutVybranyTovar == NULL ) {
+		m_pCashoutLabelItemPrice->set_text( "" );
+		return;
+	}
 	
 	std::string		str;
 	
@@ -876,7 +906,7 @@ void BurzaDialogs::ButtonItemEditOk( void )
 	str = m_pItemeditNumber->get_text();
 	int num = atoi( str.c_str() );
 	
-	num = VerifikujCisloTovaru( m_productEdited, num );
+	num = m_sellerEdited->VerifikujCisloTovaru( *m_productEdited, num );
 	string str2 = ConvFuncs::FormatStdStr( "%i", num );
 	if ( str != str2 ) {
 		m_pItemeditNumber->set_text( str2 );
@@ -1018,6 +1048,51 @@ void BurzaDialogs::SellerModified( Seller* seller )
 	VyplnPredajcovDoKomb();
 	RegisterZobrazPredajcu( seller->m_kod.c_str() );
 }
+
+void BurzaDialogs::CashoutEditLookupSellerChanged( void )
+{
+	CashoutZobrazPredajcu( m_pCashoutEntryLookupSeller->get_text() );
+}
+
+void BurzaDialogs::CashoutZobrazPredajcu( const char* kod )
+{
+	int idx = mp_register->NajdiPredajcuPodlaKoduIndex( kod );
+	
+	m_pCashoutComboLookupItem->clear();
+	
+	if ( idx == -1 ) {
+		m_pCashoutComboLookupSeller->set_text( "" );
+		m_pCashoutVybranyPredajca = NULL;
+	} else {
+		m_pCashoutVybranyPredajca = & mp_register->m_predajcovia[ idx ];
+		m_pCashoutComboLookupSeller->set_active( idx );
+	}
+	
+	PokladnaZmenaPredajcu();
+}
+
+void BurzaDialogs::CashoutEditLookupItemChanged( void )
+{
+	if ( m_pCashoutVybranyPredajca == NULL )
+		return;
+	
+	// set it into combo
+	int idx = m_pCashoutVybranyPredajca->NajdiTovarIndex( m_pCashoutEntryLookupItem->get_text().c_str() );
+	m_pCashoutComboLookupItem->set_active_row_number( idx );
+	// and let combo to do the work.
+	ComboCashoutLookupItem();
+}
+
+void BurzaDialogs::CashoutEditSearchChanged( void )
+{
+	// m_pCashoutComboLookupItem
+	//m_pCashoutComboSearch
+}
+
+void BurzaDialogs::CashoutEditSearchEntryChanged( void )
+{
+}
+
 
 /*
 	BurzaRegister::t_predajcovia::iterator	it;

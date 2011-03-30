@@ -131,6 +131,8 @@ public:
 	Gtk::Button		*m_pCashoutButtonRemoveItem;
 	Gtk::Label			*m_pCashoutLabelSum;
 	Gtk::Button		*m_pCashoutButtonFinish;
+	ComboBoxTextDer	*m_pCashoutComboSearch;
+	Gtk::Entry			*m_pCashoutComboSearchEntry;
 	
 	// item details edit dialog
 	Gtk::Entry			*m_pItemeditName;
