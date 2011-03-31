@@ -439,7 +439,7 @@ void BurzaRegister::PridajNovehoPredajcu( const char* kod, const char* meno, con
 	m_predajcovia.push_back( p );
 }
 
-BurzaRegister::t_predajcovia::iterator BurzaRegister::NajdiPredajcuPodlaKodu( const char* kod )
+BurzaRegister::t_predajcovia::iterator BurzaRegister::NajdiPredajcuPodlaKoduIt( const char* kod )
 {
 	std::vector< Seller >::iterator	it;
 	Seller	*p;
@@ -461,12 +461,25 @@ int BurzaRegister::NajdiPredajcuPodlaKoduIndex( const char* kod )
 	int idx;
 	
 	for( idx = 0, it = m_predajcovia.begin(); it != m_predajcovia.end(); it++, idx++ ) {
-		if ( it->m_kod == kod ) {
+		if ( stricmp( it->m_kod.c_str(), kod ) == 0 ) {
 			return idx;
 		}
 	}
 	
 	return -1;
+}
+
+Seller* BurzaRegister::NajdiPredajcuPodlaKoduPtr( const char* kod )
+{
+	std::vector< Seller >::iterator	it;
+	
+	for( it = m_predajcovia.begin(); it != m_predajcovia.end(); it++ ) {
+		if ( stricmp( it->m_kod.c_str(), kod ) == 0 ) {
+			return &(*it);
+		}
+	}
+	
+	return NULL;
 }
 
 ProductCategory* BurzaRegister::FindProductCategory( char category )
@@ -552,7 +565,7 @@ void BurzaRegister::GenerateSellerUniqueCode( Seller& seller, std::string try_th
 	while( true ) {
 		
 		ConvFuncs::StdStringToUpper( try_this_code );
-		it = NajdiPredajcuPodlaKodu( try_this_code.c_str() );
+		it = NajdiPredajcuPodlaKoduIt( try_this_code.c_str() );
 		if ( it == m_predajcovia.end() )
 			break;
 		
@@ -579,6 +592,101 @@ void BurzaRegister::GenerateSellerUniqueCode( Seller& seller, std::string try_th
 	seller.m_kod = try_this_code;
 }
 
+void BurzaRegister::FinishCheckout( BurzaRegister::t_sellerProducts& items )
+{
+	double sum = CalcPriceOfProducts( items );
+	
+	// mark items in register as sold
+	BurzaRegister::t_sellerProducts::iterator it, ite;
+	
+	int pidx;
+	Product* p;
+	Seller* s;
+	
+	for( it = items.begin(), ite = items.end(); it != ite; ++it ) {
+		s = NajdiPredajcuPodlaKoduPtr( it->sellerCode.c_str() );
+		if ( s == NULL ) {
+			throw runtime_error( "BurzaRegister::CalcPriceOfProducts: Seller not found" );
+		}
+		pidx = s->NajdiTovarIndex( it->productNumber );
+		if ( pidx == -1 ) {
+			throw runtime_error( "BurzaRegister::CalcPriceOfProducts: Item not found" );
+		}
+		sum = s->m_products[ pidx ].m_stav = predane;
+	}
+	
+	// prepare PDF receipt
+	// and print sold items to receipt
+	try {
+		PdfWrapper	pdf;
+		string pdfFileName = Centrala::Instancia->Nastavenia()->m_data_dir_path;
+		pdfFileName += "ucet_";
+		
+		ConvFuncs::GetDateTime();
+		ConvFuncs::s_datetime *dt = &ConvFuncs::datetime;
+		pdfFileName += ConvFuncs::FormatStdStr( "%i_%i_%i-%i_%i",
+			dt->year, dt->month, dt->day, dt->hour, dt->minute );
+		pdfFileName += ".pdf";
+		
+		pdf.CreatePDF( pdfFileName );
+		
+		// print page title
+		string title;
+		title = _( "Účet vystavený " );
+		title += ConvFuncs::FormatStdStr( "%i-%i-%i %i:%i",
+			dt->year, dt->month, dt->day, dt->hour, dt->minute );
+			
+		pdf.NewPage( title );
+		
+		pseller->PrintProductsToPDF( pdf );
+		sadfasfd
+		
+		for( it = items.begin(), ite = items.end(); it != ite; ++it ) {
+			s = NajdiPredajcuPodlaKoduPtr( it->sellerCode.c_str() );
+			if ( s == NULL ) {
+				throw runtime_error( "BurzaRegister::CalcPriceOfProducts: Seller not found" );
+			}
+			pidx = s->NajdiTovarIndex( it->productNumber );
+			if ( pidx == -1 ) {
+				throw runtime_error( "BurzaRegister::CalcPriceOfProducts: Item not found" );
+			}
+			sum = s->m_products[ pidx ].m_stav = predane;
+		}
+		
+		pdf.ClosePDF();
+	} catch( runtime_error& e ) {
+		DisplayErrorMessageBox( "PDF error", e.what() );
+	} catch( out_of_range& e ) {
+		DisplayErrorMessageBox( "PDF out of range error", e.what() );
+	} catch( ... ) {
+		DisplayErrorMessageBox( "PDF error" );
+	}
+
+}
+
+double BurzaRegister::CalcPriceOfProducts( BurzaRegister::t_sellerProducts& items )
+{
+	BurzaRegister::t_sellerProducts::iterator it, ite;
+	
+	double sum = 0;
+	int pidx;
+	Product* p;
+	Seller* s;
+	
+	for( it = items.begin(), ite = items.end(); it != ite; ++it ) {
+		s = NajdiPredajcuPodlaKoduPtr( it->sellerCode.c_str() );
+		if ( s == NULL ) {
+			throw runtime_error( "BurzaRegister::CalcPriceOfProducts: Seller not found" );
+		}
+		pidx = s->NajdiTovarIndex( it->productNumber );
+		if ( pidx == -1 ) {
+			throw runtime_error( "BurzaRegister::CalcPriceOfProducts: Item not found" );
+		}
+		sum = s->m_products[ pidx ].m_cena;
+	}
+	
+	return sum;
+}
 
 // ==============================================
 // ==============================================

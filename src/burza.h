@@ -133,13 +133,25 @@ public:
 	t_productCategories	m_productCategories;
 	t_sellerCategories	m_sellerCategories;
 	
+	struct SellerProduct {
+		string sellerCode;
+		int productNumber;
+	} ;
+	
+	typedef std::vector< SellerProduct > t_sellerProducts;
+	
 	void PridajNovehoPredajcu( const char* kod, const char* meno, const char* poznamka );
 	void NacitajVsetkychPredajcov( void );
 	
-	t_predajcovia::iterator NajdiPredajcuPodlaKodu( const char* kod );
+	t_predajcovia::iterator NajdiPredajcuPodlaKoduIt( const char* kod );
 	int NajdiPredajcuPodlaKoduIndex( const char* kod );
+	Seller* NajdiPredajcuPodlaKoduPtr( const char* kod );
 	ProductCategory* FindProductCategory( char product_category );
 	SellerCategory* FindSellerCategory( char seller_category );
+	
+	//! marks products as sold
+	//! creates checkout receipt
+	void FinishCheckout( t_sellerProducts& items );
 	
 public:
 	char Stav2Char( e_product_status stav );

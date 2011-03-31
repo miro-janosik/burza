@@ -42,10 +42,6 @@ BurzaDialogs::BurzaDialogs()
 	m_sellerEdited = NULL;
 	
 	ConvFuncs::SingletonInstanceCreate();
-	
-	m_working_directory = 
-		ConvFuncsInstance->GetPathFromPathFilename(
-			ConvFuncsInstance->GetExecutableFilePathName() );
 }
 
 BurzaDialogs::~BurzaDialogs()
@@ -255,12 +251,14 @@ int BurzaDialogs::NahrajDialogy( void )
 	
 	m_pCashoutEntryLookupSeller->signal_changed().connect( sigc::mem_fun( this, &BurzaDialogs::CashoutEditLookupSellerChanged ) );
 	m_pCashoutEntryLookupItem->signal_changed().connect( sigc::mem_fun( this, &BurzaDialogs::CashoutEditLookupItemChanged ) );
-	m_pCashoutComboLookupSeller->signal_changed().connect( sigc::mem_fun( *this, &BurzaDialogs::ComboCashoutLookupSeller ) );
-	m_pCashoutComboLookupItem->signal_changed().connect( sigc::mem_fun( *this, &BurzaDialogs::ComboCashoutLookupItem ) );
+	m_pCashoutComboLookupSeller->signal_changed().connect( sigc::mem_fun( *this,
+		&BurzaDialogs::CashoutComboLookupSellerChanged ) );
+	m_pCashoutComboLookupItem->signal_changed().connect( 
+		sigc::mem_fun( *this, &BurzaDialogs::CashoutComboLookupItemChanged ) );
 	
 	m_pCashoutComboSearch->signal_changed().connect( sigc::mem_fun( this, &BurzaDialogs::CashoutEditSearchChanged ) );
 	m_pCashoutComboSearchEntry->signal_changed().connect( sigc::mem_fun( this, &BurzaDialogs::CashoutEditSearchEntryChanged ) );
-	
+
 	// setup item list
 	m_CashoutItemsListModel = Gtk::ListStore::create( m_ItemsColumn );
 	m_pCashoutTreeViewList->set_model( m_CashoutItemsListModel );
@@ -472,7 +470,7 @@ void BurzaDialogs::ButtonRegisterImportSeller( void )
 	//Add response buttons the the dialog:
 	dialog.add_button( Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL );
 	dialog.add_button( Gtk::Stock::OK, Gtk::RESPONSE_OK );
-	dialog.set_filename( m_working_directory );
+	dialog.set_filename( Centrala::Instancia()->Nastavenia()->m_data_dir_path );
 	
 	Gtk::FileFilter	xls_filter;
 	xls_filter.set_name( "Excel XLS files." );
@@ -504,7 +502,7 @@ void BurzaDialogs::ButtonRegisterImportSeller( void )
 	
 	BurzaRegister	*reg = Centrala::Instancia()->Register();
 	BurzaRegister::t_predajcovia::iterator	it;	
-	it = reg->NajdiPredajcuPodlaKodu( seller.m_kod.c_str() );
+	it = reg->NajdiPredajcuPodlaKoduIt( seller.m_kod.c_str() );
 	if ( it != reg->m_predajcovia.end() ) {
 		DisplayErrorMessageBox( 
 			ConvFuncs::FormatCstr( _( "Error seller with that code already exists. Erase previous '%s' seller." ),
@@ -610,14 +608,34 @@ void BurzaDialogs::ButtonSwitchToCashout( void )
 	m_pWndCashOut->show();
 	m_pWndCashOut->maximize();
 	
-	VyplnPredajcovDoKomb();
-	
 	m_pCashoutComboLookupSeller->clear();
 	m_pCashoutComboLookupItem->clear();
 	m_pCashoutEntryLookupSeller->set_text( "" );
 	m_pCashoutEntryLookupItem->set_text( "" );
 	m_pCashoutComboSearch->clear();
 	m_pCashoutComboSearchEntry->set_text( "" );
+
+	VyplnPredajcovDoKomb();
+	
+	// set focus chaing = set order of tab-stops on items. Weird, but has to be done in the code.
+	// Default tab-order
+	vector<Gtk::Widget*> cashoutFocusList;
+	
+	cashoutFocusList.push_back( m_pCashoutEntryLookupSeller );
+	cashoutFocusList.push_back( m_pCashoutEntryLookupItem );
+	cashoutFocusList.push_back( m_pCashoutButtonAddItem );
+	cashoutFocusList.push_back( m_pCashoutButtonFinish );
+	
+	cashoutFocusList.push_back( m_pCashoutComboLookupSeller );
+	cashoutFocusList.push_back( m_pCashoutComboLookupItem );
+	cashoutFocusList.push_back( m_pCashoutComboSearchEntry );
+	cashoutFocusList.push_back( m_pCashoutComboSearch );
+	
+	cashoutFocusList.push_back( m_pTreeViewItems );
+	cashoutFocusList.push_back( m_pCashoutButtonRemoveItem );
+	cashoutFocusList.push_back( m_pButtonRegister );
+	
+	m_pWndCashOut->set_focus_chain( cashoutFocusList );
 }
 
 void BurzaDialogs::ButtonSwitchToRegister( void )
@@ -695,49 +713,47 @@ void BurzaDialogs::ButtonCashoutAddItem( void )
 	row[ m_ItemsColumn.m_predajca_idx ] = m_CashoutVybranyPredajcaIdx;
 	row[ m_ItemsColumn.m_Product_idx ] = m_CashoutVybranyTovarIdx;
 	
-	m_cashout_sum += t->m_cena;
+	m_shoppingCart.push_back( new SellerProduct( 
+		m_pCashoutVybranyPredajca->m_kod, m_pCashoutVybranyTovar->m_cislo ) );
+	
+	CheckoutCartChanged();
+}
+
+void BurzaDialogs::CheckoutCartChanged( void )
+{
+	m_cashout_sum = mp_register->CalcPriceOfProducts( m_shoppingCart );
 	
 	std::string	str;
-	str = ConvFuncsInstance->FormatCstr( "Suma: %0.2f ∈", m_cashout_sum );
+	str = ConvFuncsInstance->FormatCstr( _("Suma: %0.2f", m_cashout_sum );
+	str += " ";
+	str += Centrala::Instancia()->Nastavenia()->m_string_mena;
 	m_pCashoutLabelSum->set_text( str );
 }
 
 void BurzaDialogs::ButtonCashoutFinished( void )
 {
-	// mark items in register
-	Gtk::TreeModel::Children	::iterator	it, itb, ite;
-	Gtk::TreeModel::Row row;
-	
-	itb = m_CashoutItemsListModel->children().begin();
-	ite = m_CashoutItemsListModel->children().end();
-	
-	for( it=itb; it!=ite; ++it ) {
-		row = *it;
-		
-		assert( row[ m_ItemsColumn.m_predajca_idx ] < mp_register->m_predajcovia.size() );
-		
-		assert( row[ m_ItemsColumn.m_Product_idx ] < 
-			mp_register->m_predajcovia[ row[ m_ItemsColumn.m_predajca_idx ] ].m_products.size() );
-		
-		mp_register->m_predajcovia[ row[ m_ItemsColumn.m_predajca_idx ] ].m_products[ 
- 			row[ m_ItemsColumn.m_Product_idx ] ].m_stav = predane;
-		
+	if ( ! DisplayYesNoMessageBox( _("Dokončiť nákup?"), "" )) {
+		return;
 	}
+	
+	mp_register->FinishCheckout( m_shoppingCart );
 	
 	m_CashoutItemsListModel->clear();
 	
-	m_cashout_sum = 0.0;
-	string str = "0 ";
-	str += mp_register->m_nastavenia.m_string_mena;
-	m_pCashoutLabelSum->set_text( str );
+	m_shoppingCart.clear();
+	CheckoutCartChanged();
 }
 
 void BurzaDialogs::ButtonCashoutRemoveItem( void )
 {
+	for
+	m_shoppingCart.push_back( new SellerProduct( 
+		m_pCashoutVybranyPredajca->m_kod, m_pCashoutVybranyTovar->m_cislo ) );
 	
+	CheckoutCartChanged();
 }
 
-void BurzaDialogs::ComboCashoutLookupSeller( void )
+void BurzaDialogs::CashoutComboLookupSellerChanged( void )
 {
 	m_pCashoutVybranyPredajca = NULL;
 	m_CashoutVybranyPredajcaIdx = -1;
@@ -758,7 +774,7 @@ void BurzaDialogs::ComboCashoutLookupSeller( void )
 	PokladnaZmenaPredajcu();
 }
 
-void BurzaDialogs::ComboCashoutLookupItem( void )
+void BurzaDialogs::CashoutComboLookupItemChanged( void )
 {
 	m_pCashoutVybranyTovar = NULL;
 	m_CashoutVybranyTovarIdx = -1;
@@ -780,7 +796,7 @@ void BurzaDialogs::ComboCashoutLookupItem( void )
 	
 	CashoutSelectedItemChanged();
 }
-	
+
 void BurzaDialogs::CashoutSelectedItemChanged( void )
 {
 	if ( m_pCashoutVybranyTovar == NULL ) {
@@ -1051,7 +1067,8 @@ void BurzaDialogs::SellerModified( Seller* seller )
 
 void BurzaDialogs::CashoutEditLookupSellerChanged( void )
 {
-	CashoutZobrazPredajcu( m_pCashoutEntryLookupSeller->get_text() );
+	string str = m_pCashoutEntryLookupSeller->get_text();
+	CashoutZobrazPredajcu( str.c_str() );
 }
 
 void BurzaDialogs::CashoutZobrazPredajcu( const char* kod )
@@ -1061,11 +1078,11 @@ void BurzaDialogs::CashoutZobrazPredajcu( const char* kod )
 	m_pCashoutComboLookupItem->clear();
 	
 	if ( idx == -1 ) {
-		m_pCashoutComboLookupSeller->set_text( "" );
+		m_pCashoutComboLookupSeller->set_active( -1 );
 		m_pCashoutVybranyPredajca = NULL;
 	} else {
-		m_pCashoutVybranyPredajca = & mp_register->m_predajcovia[ idx ];
 		m_pCashoutComboLookupSeller->set_active( idx );
+		m_pCashoutVybranyPredajca = & mp_register->m_predajcovia[ idx ];
 	}
 	
 	PokladnaZmenaPredajcu();
@@ -1077,10 +1094,11 @@ void BurzaDialogs::CashoutEditLookupItemChanged( void )
 		return;
 	
 	// set it into combo
-	int idx = m_pCashoutVybranyPredajca->NajdiTovarIndex( m_pCashoutEntryLookupItem->get_text().c_str() );
-	m_pCashoutComboLookupItem->set_active_row_number( idx );
+	int num = atoi( m_pCashoutEntryLookupItem->get_text().c_str() );
+	int idx = m_pCashoutVybranyPredajca->NajdiTovarIndex( num );
+	m_pCashoutComboLookupItem->set_active( idx );
 	// and let combo to do the work.
-	ComboCashoutLookupItem();
+	CashoutComboLookupItemChanged();
 }
 
 void BurzaDialogs::CashoutEditSearchChanged( void )
@@ -1097,7 +1115,7 @@ void BurzaDialogs::CashoutEditSearchEntryChanged( void )
 /*
 	BurzaRegister::t_predajcovia::iterator	it;
 	Seller *pseller;
-	//it = Centrala::Instancia()->Register()->NajdiPredajcuPodlaKodu( "mj" );
+	//it = Centrala::Instancia()->Register()->NajdiPredajcuPodlaKoduIt( "mj" );
 	pseller = & Centrala::Instancia()->Register()->m_predajcovia[ 0 ];
 	
 	try {

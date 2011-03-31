@@ -72,13 +72,24 @@ public:
 	void TreeSelectChangedItem( void );
 	void RegisterGetSelectedItemNumbers( vector<unsigned int>& listOfItems );
 	
-	// "cash-out" dialog functions
+	// "cash-out" dialog callback functions
 	void ButtonSwitchToRegister( void );
 	void ButtonCashoutAddItem( void );
 	void ButtonCashoutFinished( void );
 	void ButtonCashoutRemoveItem( void );
 	void ComboCashoutLookupSeller( void );
 	void ComboCashoutLookupItem( void );
+	void CashoutEditLookupSellerChanged( void );
+	void CashoutEditLookupItemChanged( void );
+	void CashoutComboLookupSellerChanged( void );
+	void CashoutComboLookupItemChanged( void );
+	void CashoutEditSearchChanged( void );
+	void CashoutEditSearchEntryChanged( void );
+	void CashoutSelectedItemChanged( void );
+	
+	// "cash-out" helper functions
+	void CashoutZobrazPredajcu( const char* kod );
+	void CheckoutCartChanged( void );
 	
 	// "item properties dialog functions
 	//! Item editing finished. Fill item back to seller, and notify that seller was modified.
@@ -196,6 +207,8 @@ public:
 	edit_action	m_productEditAction;
 	edit_action	m_sellerEditAction;
 	
-	string	m_working_directory;
+	// == Checkout ==
+	BurzaRegister::t_sellerProducts		m_shoppingCart;
+	
 } ;
 
