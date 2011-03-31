@@ -713,8 +713,10 @@ void BurzaDialogs::ButtonCashoutAddItem( void )
 	row[ m_ItemsColumn.m_predajca_idx ] = m_CashoutVybranyPredajcaIdx;
 	row[ m_ItemsColumn.m_Product_idx ] = m_CashoutVybranyTovarIdx;
 	
-	m_shoppingCart.push_back( new SellerProduct( 
-		m_pCashoutVybranyPredajca->m_kod, m_pCashoutVybranyTovar->m_cislo ) );
+	Burza::BurzaRegister::SellerProduct	sp;
+	sp.sellerCode = m_pCashoutVybranyPredajca->m_kod;
+	sp.productNumber = m_pCashoutVybranyTovar->m_cislo;
+	m_shoppingCart.push_back( sp );
 	
 	CheckoutCartChanged();
 }
@@ -724,7 +726,7 @@ void BurzaDialogs::CheckoutCartChanged( void )
 	m_cashout_sum = mp_register->CalcPriceOfProducts( m_shoppingCart );
 	
 	std::string	str;
-	str = ConvFuncsInstance->FormatCstr( _("Suma: %0.2f", m_cashout_sum );
+	str = ConvFuncsInstance->FormatCstr( _("Suma: %0.2f" ), m_cashout_sum );
 	str += " ";
 	str += Centrala::Instancia()->Nastavenia()->m_string_mena;
 	m_pCashoutLabelSum->set_text( str );

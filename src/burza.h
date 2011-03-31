@@ -148,6 +148,7 @@ public:
 	Seller* NajdiPredajcuPodlaKoduPtr( const char* kod );
 	ProductCategory* FindProductCategory( char product_category );
 	SellerCategory* FindSellerCategory( char seller_category );
+	double CalcPriceOfProducts( t_sellerProducts& items );
 	
 	//! marks products as sold
 	//! creates checkout receipt

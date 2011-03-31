@@ -606,13 +606,13 @@ void BurzaRegister::FinishCheckout( BurzaRegister::t_sellerProducts& items )
 	for( it = items.begin(), ite = items.end(); it != ite; ++it ) {
 		s = NajdiPredajcuPodlaKoduPtr( it->sellerCode.c_str() );
 		if ( s == NULL ) {
-			throw runtime_error( "BurzaRegister::CalcPriceOfProducts: Seller not found" );
+			throw runtime_error( "BurzaRegister::FinishCheckout: Seller not found" );
 		}
 		pidx = s->NajdiTovarIndex( it->productNumber );
 		if ( pidx == -1 ) {
-			throw runtime_error( "BurzaRegister::CalcPriceOfProducts: Item not found" );
+			throw runtime_error( "BurzaRegister::FinishCheckout: Item not found" );
 		}
-		sum = s->m_products[ pidx ].m_stav = predane;
+		sum = s->m_products[ pidx ].m_cena;
 	}
 	
 	// prepare PDF receipt
@@ -635,25 +635,48 @@ void BurzaRegister::FinishCheckout( BurzaRegister::t_sellerProducts& items )
 		title = _( "Účet vystavený " );
 		title += ConvFuncs::FormatStdStr( "%i-%i-%i %i:%i",
 			dt->year, dt->month, dt->day, dt->hour, dt->minute );
-			
+		
+		StringEncoding::UTF8toISO8859_2( title );
 		pdf.NewPage( title );
 		
-		pseller->PrintProductsToPDF( pdf );
-		sadfasfd
+		// items in a table
+		TableOfCells	table;
+		TableColumnSpecs columns;
+		unsigned int index;
 		
-		for( it = items.begin(), ite = items.end(); it != ite; ++it ) {
+		columns.AddColumn( "#", 40 );
+		columns.AddColumn( _("číslo"), 60 );
+		columns.AddColumn( _("názov"), 200 );
+		columns.AddColumn( _("cena"), 60 );
+		
+		table.Resize( items.size(), 4 );
+		
+		for( it = items.begin(), ite = items.end(), index = 0; 
+				it != ite; ++it, ++index ) {
+			
 			s = NajdiPredajcuPodlaKoduPtr( it->sellerCode.c_str() );
 			if ( s == NULL ) {
-				throw runtime_error( "BurzaRegister::CalcPriceOfProducts: Seller not found" );
+				throw runtime_error( "BurzaRegister::FinishCheckout: Seller not found" );
 			}
 			pidx = s->NajdiTovarIndex( it->productNumber );
 			if ( pidx == -1 ) {
-				throw runtime_error( "BurzaRegister::CalcPriceOfProducts: Item not found" );
+				throw runtime_error( "BurzaRegister::FinishCheckout: Item not found" );
 			}
-			sum = s->m_products[ pidx ].m_stav = predane;
+			
+			table.Cell( index, 0 ) = ConvFuncs::FormatStdStr( "%i", index + 1 );
+			str = ConvFuncs::FormatStdStr( "%s-%i", it->sellerCode.c_str(), it->productNumber );
+			StringEncoding::UTF8toISO8859_2( str );
+			table.Cell( index, 1 ) = str;
+			str = s->m_products[ pidx ].m_nazov;
+			StringEncoding::UTF8toISO8859_2( str );
+			table.Cell( index, 2 ) = str;
+			table.Cell( index, 3 ) = ConvFuncs::FormatStdStr( "%0.2f", s->m_products[ pidx ].m_cena );
 		}
 		
+		pdf.DrawTable( 50, 50, table, columns );
+		
 		pdf.ClosePDF();
+		
 	} catch( runtime_error& e ) {
 		DisplayErrorMessageBox( "PDF error", e.what() );
 	} catch( out_of_range& e ) {

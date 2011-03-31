@@ -208,7 +208,7 @@ public:
 	edit_action	m_sellerEditAction;
 	
 	// == Checkout ==
-	BurzaRegister::t_sellerProducts		m_shoppingCart;
+	Burza::BurzaRegister::t_sellerProducts		m_shoppingCart;
 	
 } ;
 
