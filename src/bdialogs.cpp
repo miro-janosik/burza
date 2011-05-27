@@ -245,7 +245,7 @@ int BurzaDialogs::NahrajDialogy( void )
 	m_pCashoutButtonRemoveItem->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::ButtonCashoutRemoveItem ) );
 	m_pCashoutButtonFinish->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::ButtonCashoutFinished ) );
 	
-	m_CashoutItemsSelection = m_pTreeViewItems->get_selection();
+	m_CashoutItemsSelection = m_pCashoutTreeViewList->get_selection();
 	m_CashoutItemsSelection->set_mode( Gtk::SELECTION_SINGLE );
 	m_CashoutItemsSelection->signal_changed().connect( sigc::mem_fun( this, &BurzaDialogs::TreeSelectChangedItem ) );
 	
@@ -663,21 +663,35 @@ void BurzaDialogs::TreeSelectChangedItem( void )
 	
 }
 
-void BurzaDialogs::RegisterGetSelectedItemNumbers( vector<unsigned int>& listOfItems )
+void BurzaDialogs::GetSelectedItemNumbers( Glib::RefPtr<Gtk::TreeSelection>& selector, vector<unsigned int>& listOfItems )
 {
 	listOfItems.clear();
 	
 	// count selected items
-	Gtk::TreeSelection::ListHandle_Path	selected_items = m_RegisterItemsSelection->get_selected_rows();
+	Gtk::TreeSelection::ListHandle_Path	selected_items = selector->get_selected_rows();
 	if ( selected_items.empty() )
 		return;
 	
 	for( Gtk::TreeSelection::ListHandle_Path::iterator it=selected_items.begin();
 			it != selected_items.end(); ++it ) {
 		assert( (*it).size() == 1 );
+		listOfItems.push_back( (*it)[ 0 ] );
+	}
+}
+
+void BurzaDialogs::RegisterGetSelectedItemNumbers( vector<unsigned int>& listOfItems )
+{
+	listOfItems.clear();
+	
+	vector<unsigned int>	selectedIndexes;
+	
+	// count selected items
+	GetSelectedItemNumbers( m_RegisterItemsSelection, selectedIndexes );
+	
+	for( int i=0; i<selectedIndexes.size(); ++i ) {
 		
 		listOfItems.push_back( 
-			m_pRegisterVybranyPredajca->m_products[ (*it)[ 0 ] ].m_cislo );
+			m_pRegisterVybranyPredajca->m_products[ selectedIndexes[ i ] ].m_cislo );
 	}
 }
 
@@ -748,9 +762,28 @@ void BurzaDialogs::ButtonCashoutFinished( void )
 
 void BurzaDialogs::ButtonCashoutRemoveItem( void )
 {
-	for
-	m_shoppingCart.push_back( new SellerProduct( 
-		m_pCashoutVybranyPredajca->m_kod, m_pCashoutVybranyTovar->m_cislo ) );
+	vector<unsigned int> listOfItems;
+	vector<BurzaRegister::SellerProduct> listOfProducts;
+	
+	// get selected items into list
+	GetSelectedItemNumbers( m_CashoutItemsSelection, listOfItems );
+	
+	// get items into list
+	for(int i=0; i<listOfItems.size(); ++i ) {
+		listOfProducts.push_back( m_shoppingCart[ listOfItems[ i ] ] );
+	}
+	
+	// remove items
+	for(int i=0; i<listOfProducts.size(); ++i ) {
+		
+		for( int p=0; p<m_shoppingCart.size(); ++p ) {
+			
+			if ( m_shoppingCart[ p ] == listOfProducts[ i ] ) {
+				m_shoppingCart.erase( m_shoppingCart.begin() + p );
+				break;
+			}
+		}
+	}
 	
 	CheckoutCartChanged();
 }

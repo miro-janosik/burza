@@ -1,3 +1,12 @@
+TODO:
+* vyznac farebne policka ktore potrebuju upravit alebo boli automaticky upravene (inou farbou)
+* pri vyuctovani tovaru - zobraz ucet v PDF, uloz ho na disk (casom do DB, aspon udaje)
+	- zapis vsetko potrebne do pdf
+	- uloz do konkretneho miesta na disku
+* vyuctovanie predajcu do PDF - co bolo predane, kolko mu dat penazi atd.
+	- zapis meno do PDF, tovar do PDF, vyznac tovar ktory nebol predany ani vrateny (samostatne stlpce predane/vratene/nenajdene)
+	- 
+
 MAJOR
 po pridani uzivatela - combo prehod; otvor pridaj tovar
 tovar edit - nazov edit je maly; stav default = skladom

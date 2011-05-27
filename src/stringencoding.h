@@ -25,7 +25,7 @@ public:
 	static void		UTF8toISO8859_2( std::string& str );
 	/*
 	struct EncodingTranslatorTable {
-		unsigned char UTF8[2];
+			unsigned char UTF8[2];
 		unsigned char ISO8859_2;
 	} ;
 	

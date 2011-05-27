@@ -592,6 +592,22 @@ void BurzaRegister::GenerateSellerUniqueCode( Seller& seller, std::string try_th
 	seller.m_kod = try_this_code;
 }
 
+/*
+		PdfWrapper	pdf;
+		string pdfFileName = Centrala::Instancia->Nastavenia()->m_data_dir_path;
+		pdfFileName += "ucet_";
+		
+		ConvFuncs::GetDateTime();
+		ConvFuncs::s_datetime *dt = &ConvFuncs::datetime;
+		pdfFileName += ConvFuncs::FormatStdStr( "%i_%i_%i-%i_%i",
+			dt->year, dt->month, dt->day, dt->hour, dt->minute );
+		pdfFileName += ".pdf";
+		
+		pdf.CreatePDF( pdfFileName );
+		
+
+*/
+
 void BurzaRegister::FinishCheckout( BurzaRegister::t_sellerProducts& items )
 {
 	double sum = CalcPriceOfProducts( items );
@@ -615,24 +631,20 @@ void BurzaRegister::FinishCheckout( BurzaRegister::t_sellerProducts& items )
 		sum = s->m_products[ pidx ].m_cena;
 	}
 	
+}
+
+void BurzaRegister::PrintRecipeeAtEndOfCheckout( BurzaRegister::t_sellerProducts& items, PdfWrapperBase& pdf )
+{
+	string errorMessage;
+	
 	// prepare PDF receipt
 	// and print sold items to receipt
 	try {
-		PdfWrapper	pdf;
-		string pdfFileName = Centrala::Instancia->Nastavenia()->m_data_dir_path;
-		pdfFileName += "ucet_";
-		
-		ConvFuncs::GetDateTime();
-		ConvFuncs::s_datetime *dt = &ConvFuncs::datetime;
-		pdfFileName += ConvFuncs::FormatStdStr( "%i_%i_%i-%i_%i",
-			dt->year, dt->month, dt->day, dt->hour, dt->minute );
-		pdfFileName += ".pdf";
-		
-		pdf.CreatePDF( pdfFileName );
-		
 		// print page title
 		string title;
 		title = _( "Účet vystavený " );
+		ConvFuncs::GetDateTime();
+		ConvFuncs::s_datetime *dt = &ConvFuncs::datetime;
 		title += ConvFuncs::FormatStdStr( "%i-%i-%i %i:%i",
 			dt->year, dt->month, dt->day, dt->hour, dt->minute );
 		
@@ -651,6 +663,11 @@ void BurzaRegister::FinishCheckout( BurzaRegister::t_sellerProducts& items )
 		
 		table.Resize( items.size(), 4 );
 		
+		Seller* s;
+		int pidx;
+		string str;
+		
+		BurzaRegister::t_sellerProducts::iterator it, ite;
 		for( it = items.begin(), ite = items.end(), index = 0; 
 				it != ite; ++it, ++index ) {
 			
@@ -675,16 +692,24 @@ void BurzaRegister::FinishCheckout( BurzaRegister::t_sellerProducts& items )
 		
 		pdf.DrawTable( 50, 50, table, columns );
 		
+		// pocet poloziek: suma:
+		
+		
 		pdf.ClosePDF();
 		
 	} catch( runtime_error& e ) {
-		DisplayErrorMessageBox( "PDF error", e.what() );
+		errorMessage = "PDF error:";
+		errorMessage += e.what();
 	} catch( out_of_range& e ) {
-		DisplayErrorMessageBox( "PDF out of range error", e.what() );
+		errorMessage = "PDF out of range error";
+		errorMessage += e.what();
 	} catch( ... ) {
-		DisplayErrorMessageBox( "PDF error" );
+		errorMessage = "PDF error(unknown)";
 	}
-
+	
+	if (!errorMessage.empty()) {
+		throw runtime_error( errorMessage );
+	}
 }
 
 double BurzaRegister::CalcPriceOfProducts( BurzaRegister::t_sellerProducts& items )

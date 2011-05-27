@@ -136,6 +136,11 @@ public:
 	struct SellerProduct {
 		string sellerCode;
 		int productNumber;
+		
+		bool operator==(const SellerProduct& other) const
+		{
+			return (( sellerCode == other.sellerCode ) && ( productNumber == other.productNumber ));
+		}
 	} ;
 	
 	typedef std::vector< SellerProduct > t_sellerProducts;
@@ -151,8 +156,10 @@ public:
 	double CalcPriceOfProducts( t_sellerProducts& items );
 	
 	//! marks products as sold
-	//! creates checkout receipt
 	void FinishCheckout( t_sellerProducts& items );
+	
+	//! creates checkout receipt
+	void PrintRecipeeAtEndOfCheckout( BurzaRegister::t_sellerProducts& items, PdfWrapperBase& pdf );
 	
 public:
 	char Stav2Char( e_product_status stav );
