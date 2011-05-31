@@ -10,6 +10,10 @@
 #include <exception>
 #include <errno.h>
 
+#ifdef _UNIX
+#include <string.h>
+#endif
+
 using namespace std;
 
 namespace Burza {

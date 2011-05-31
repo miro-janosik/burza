@@ -25,14 +25,15 @@
 
 // use compiler flag -D_UNIX on unix
 #ifdef _UNIX
-	#include <stdlib.h>
+	// commented on 30.5.2011 should not include both cstdlib and #include <stdlib.h>
+	#include <cstdlib>
 	#include <time.h>
 	#include <sys/types.h>
 	#include <sys/time.h>
 	#include <unistd.h>
 
 	// for DirChangeNotification functionality
-	#define _GNU_SOURCE	// needed to get the defines
+	// commented on 30.5.2011 #define _GNU_SOURCE	// needed to get the defines
 	#include <fcntl.h>	// in glibc 2.2 this has the needed values defined
 	#include <signal.h>
 	#include <stdio.h>
@@ -1614,12 +1615,12 @@ int ConvFuncs::IntersectLines2d( float2& A, float2& Av, float2& B, float2& Bv, f
 
 void ConvFuncs::StdStringToLower( std::string& str )
 {
-	std::transform( str.begin(), str.end(), str.begin(), tolower );
+	std::transform( str.begin(), str.end(), str.begin(), static_cast<int (*)(int)>(tolower) );
 }
 
 void ConvFuncs::StdStringToUpper( std::string& str )
 {
-	std::transform( str.begin(), str.end(), str.begin(), toupper );
+	std::transform( str.begin(), str.end(), str.begin(), static_cast<int (*)(int)>(toupper) );
 }
 
 const char* ConvFuncs::FixupPathString( const char *str, bool ending_slash )

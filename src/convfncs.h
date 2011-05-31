@@ -38,7 +38,7 @@
 #endif
 
 #ifdef _UNIX
-	#define srand std::srand
+//	#define srand std::srand
 	#include <cstdlib>
 
 	// for DirChangeNotification functionality

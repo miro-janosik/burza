@@ -1,0 +1,14 @@
+[Buildset]
+BuildItems=@Variant(\x00\x00\x00\t\x00\x00\x00\x00\x01\x00\x00\x00\x0b\x00\x00\x00\x00\x01\x00\x00\x00\x14\x00b\x00u\x00r\x00z\x00a\x00_\x00k\x00d\x00e\x00v)
+
+[CMake]
+BuildDirs[$e]=/media/data/work/burza/temp/burza_kdev_debug/,/media/data/work/burza/burza_kdev
+CMakeDir=/usr/share/cmake-2.8/Modules
+Current CMake Binary=file:///usr/bin/cmake
+CurrentBuildDir=file:///media/data/work/burza/burza_kdev
+CurrentBuildType=Debug
+CurrentInstallDir=file:///media/data/work/burza/temp/burza_kdev_debug/burza_install
+ProjectRootRelative=./
+
+[MakeBuilder]
+Number Of Jobs=1

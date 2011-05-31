@@ -14,7 +14,7 @@
 
 #include <assert.h>
 
-#include "libglademm.h"
+#include <libglademm.h>
 #include "convfile.h"
 #include "convfncs.h"
 #include "burza.h"

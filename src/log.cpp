@@ -8,6 +8,12 @@
 
 #include "log.h"
 
+#ifdef _UNIX
+
+#include <string.h>
+
+#endif
+
 #ifdef _MSC_VER
 
 #ifndef vsnprintf
