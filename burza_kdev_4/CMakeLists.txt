@@ -24,7 +24,7 @@ pkg_check_modules(GTKMM REQUIRED gtkmm-2.4)
 pkg_check_modules(GLADEMM REQUIRED libglademm-2.4)
 
 MESSAGE("gtkmm: ${GTKMM_FOUND}, ${GTKMM_INCLUDE_DIRS} , ${GTKMM_LIBRARY_DIRS}.")
-MESSAGE("Glade: ${LIBGLADEMM_FOUND}, ${GLADEMM_LIBRARY_DIRS} , ${GLADEMM_INCLUDE_DIRS} , ${GLADEMM_LIBRARIES} .")
+MESSAGE("Glade: ${GLADEMM_FOUND}, ${GLADEMM_LIBRARY_DIRS} , ${GLADEMM_INCLUDE_DIRS} , ${GLADEMM_LIBRARIES} .")
 
 set(PRJ_LIB_DIR "${PROJECT_SOURCE_DIR}/../lib")
 
@@ -38,13 +38,12 @@ include_directories(
 link_directories( 
   ${GTKMM_LIBRARY_DIRS} 
   ${GLADEMM_LIBRARY_DIRS}
-  "${PRJ_LIB_DIR}/libharu/lib"
-  "${PRJ_LIB_DIR}/libXL"
+  ${PRJ_LIB_DIR}"/libXL"
   )
 
 target_link_libraries(burza_kdev 
   ${GTKMM_LIBRARIES}
   ${GLADEMM_LIBRARIES}
-  xl
-  hpdf
+  "${PRJ_LIB_DIR}/libharu/lib/libhpdf.a"
+  "${PRJ_LIB_DIR}/libXL/libxl.so"
   )
