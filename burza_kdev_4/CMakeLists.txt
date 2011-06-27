@@ -8,11 +8,15 @@ set(Burza_VERSION_MAJOR 0)
 set(Burza_VERSION_MINOR 5)
 ADD_DEFINITIONS(-D_UNIX)
 
+OPTION( DOES_NOTHING "This option does nothig, it is as hint." ON )
+
 #get source files in the subdirectories instead of writing them all by hand.
 AUX_SOURCE_DIRECTORY(kdev_src KDEV_SRC_FILES)
 AUX_SOURCE_DIRECTORY(src SRC_FILES)
 
-ADD_EXECUTABLE(burza_kdev 
+SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/../run)
+
+ADD_EXECUTABLE(burza_kdev src/burzadata.cpp 
 ${KDEV_SRC_FILES}
 ${SRC_FILES}
 )
@@ -47,3 +51,4 @@ target_link_libraries(burza_kdev
   "${PRJ_LIB_DIR}/libharu/lib/libhpdf.a"
   "${PRJ_LIB_DIR}/libXL/libxl.so"
   )
+

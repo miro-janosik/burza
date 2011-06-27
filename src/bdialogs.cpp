@@ -11,6 +11,7 @@
 
 #include "excelwrap.h"
 #include "pdfwrap.h"
+#include "recipees.h"
 
 using namespace Burza;
 using namespace BurzaExcel;
@@ -575,7 +576,7 @@ void BurzaDialogs::ButtonRegisterRemoveItem( void )
 	
 	// ask user if he is sure
 	string str = ConvFuncs::FormatStdStr( _( "Ste si istý že chcete odstrániť %i ks tovaru?" ), productNumbersToDelete.size() );
-	if ( DisplayYesNoMessageBox( str, "" ) == false )
+	if ( DisplayYesNoMessageBox( str, _("Odstránenie tovaru") ) == false )
 		return;
 	
 	// delete items
@@ -600,6 +601,34 @@ void BurzaDialogs::ButtonRegisterCalcFee( void )
 void BurzaDialogs::ButtonRegisterCalcRepayment( void )
 {
 	m_pLabelFee->set_text( string( " -4500.00 ") + mp_register->m_nastavenia.m_string_mena );
+	
+	Recipees recipees;
+	Seller* seller = RegisterGetSelectedSeller();
+	if (seller == NULL) {
+		return;
+	}
+
+	try {
+	  PdfWrapper	pdf;
+	  pdf.CreatePDF( "/home/mirex/tmp/a.pdf" );
+	  /*
+	  for( unsigned int i=0; i<150; i++ ) {
+		  pdf.NewPage( ConvFuncs::FormatCstr( "index %i", i ) );
+		  pseller->PrintProductsToPDF( pdf );
+	  }
+	  */
+
+	  recipees.PrintSellerStatus( pdf, *seller );
+	  
+	  pdf.ClosePDF();
+	
+	} catch( runtime_error& e ) {
+		DisplayErrorMessageBox( "PDF error", e.what() );
+	} catch( out_of_range& e ) {
+		DisplayErrorMessageBox( "PDF out of range error", e.what() );
+	} catch( ... ) {
+		DisplayErrorMessageBox( "PDF error" );
+	}
 }
 
 void BurzaDialogs::ButtonSwitchToCashout( void )
@@ -693,6 +722,11 @@ void BurzaDialogs::RegisterGetSelectedItemNumbers( vector<unsigned int>& listOfI
 		listOfItems.push_back( 
 			m_pRegisterVybranyPredajca->m_products[ selectedIndexes[ i ] ].m_cislo );
 	}
+}
+
+Seller* BurzaDialogs::RegisterGetSelectedSeller( void )
+{
+  return m_pRegisterVybranyPredajca;
 }
 
 void BurzaDialogs::ButtonCashoutAddItem( void )
@@ -888,7 +922,8 @@ bool BurzaDialogs::DisplayYesNoMessageBox( string message, string title )
 {
 	Gtk::MessageDialog dialog( message, false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO, true );
 	
-	dialog.set_message( title );
+	dialog.set_title( title );
+	dialog.set_secondary_text( title );
 	int res = dialog.run();
 	return ( res == Gtk::RESPONSE_YES );
 }

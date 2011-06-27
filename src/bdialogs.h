@@ -73,6 +73,9 @@ public:
 	
 	void RegisterGetSelectedItemNumbers( vector<unsigned int>& listOfItems );
 	
+	//! returns currently displayed seller in Register window, or NULL if none selected.
+	Burza::Seller* RegisterGetSelectedSeller( void );
+	
 	// Goes through selector's selected items in the list and returns array of indexes of selected items in the list.
 	static void GetSelectedItemNumbers( Glib::RefPtr<Gtk::TreeSelection>& selector, vector<unsigned int>& listOfItems );
 	
