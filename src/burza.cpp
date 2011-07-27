@@ -593,7 +593,7 @@ void BurzaRegister::GenerateSellerUniqueCode( Seller& seller, std::string try_th
 }
 
 /*
-		PdfWrapper	pdf;
+		HPDFWrapper	pdf;
 		string pdfFileName = Centrala::Instancia->Nastavenia()->m_data_dir_path;
 		pdfFileName += "ucet_";
 		

@@ -13,7 +13,7 @@ using namespace std;
 using namespace Burza;
 using namespace BurzaTable;
 
-PdfWrapper::PdfWrapper()
+HPDFWrapper::HPDFWrapper()
 {
 	m_default_page_width = 400;
 	m_default_page_height = 600;
@@ -24,13 +24,13 @@ PdfWrapper::PdfWrapper()
 	m_font_height_below_line = m_font_height_above_line = 0;
 }
 
-PdfWrapper::~PdfWrapper()
+HPDFWrapper::~HPDFWrapper()
 {
 	if ( m_open )
 		ClosePDF();
 }
 
-int PdfWrapper::CreatePDF( string filename )
+int HPDFWrapper::CreatePDF( string filename )
 {
 	m_pdf = HPDF_New( &PdfErrorHandler, NULL); 
 	if (!m_pdf) {
@@ -71,7 +71,7 @@ int PdfWrapper::CreatePDF( string filename )
 	m_open = true;
 }
 
-void PdfWrapper::ClosePDF( void )
+void HPDFWrapper::ClosePDF( void )
 {
 	if ( ! m_open ) {
 		throw runtime_error( "PDF not open" );
@@ -89,7 +89,7 @@ void PdfWrapper::ClosePDF( void )
 	m_open = false;
 }
 
-void PdfWrapper::PdfErrorHandler( 
+void HPDFWrapper::PdfErrorHandler( 
 	HPDF_STATUS   error_no,
 	HPDF_STATUS   detail_no,
 	void         *user_data)
@@ -101,8 +101,11 @@ void PdfWrapper::PdfErrorHandler(
 	throw runtime_error( s );
 }
 
-void PdfWrapper::SetCurrentFont( HPDF_Font font, unsigned int size )
+void HPDFWrapper::SetCurrentFont( HPDF_Font font, float size )
 {
+	int sx, sy;
+	PercentToPos( 0, size, sx, sy );
+
 	m_current_font = font;
 	m_current_font_size = size;
 	
@@ -113,7 +116,7 @@ void PdfWrapper::SetCurrentFont( HPDF_Font font, unsigned int size )
 	
 }
 
-void PdfWrapper::NewPage( string name )
+void HPDFWrapper::NewPage( string name )
 {
 	m_current_page = HPDF_AddPage( m_pdf );
 	
@@ -133,17 +136,35 @@ void PdfWrapper::NewPage( string name )
 	HPDF_Page_SetFontAndSize( m_current_page, m_current_font, m_current_font_size );
 }
 
-void PdfWrapper::WriteSingleText( unsigned int x, unsigned int y, string text )
+void HPDFWrapper::PercentToPos( float percentx, float percenty, int& posx, int& posy )
 {
+	posx = percentx * m_default_page_width / 100;
+	posy = percenty * m_default_page_height / 100;
+}
+
+void HPDFWrapper::PosToPercent( int posx, int posy, float& percentx, float& percenty )
+{
+	percentx = (float)posx / m_default_page_width * 100;
+	percenty = (float)posy / m_default_page_height * 100; 
+}
+
+void HPDFWrapper::WriteSingleText( float x, float y, string text )
+{
+	int px, py;
+	PercentToPos( x, y, px, py );
+  
 	HPDF_Page_BeginText( m_current_page );
 	//HPDF_Page_SetFontAndSize( m_current_page, font, m_current_font_size );
-	HPDF_Page_MoveTextPos( m_current_page, x, y );
+	HPDF_Page_MoveTextPos( m_current_page, px, py );
 	HPDF_Page_ShowText( m_current_page, text.c_str() );
 	HPDF_Page_EndText( m_current_page  );
 }
 
-void PdfWrapper::DrawTable( unsigned int x, unsigned int y, TableOfCells& t, TableColumnSpecs& c )
+void HPDFWrapper::DrawTable( float fx, float fy, TableOfCells& t, TableColumnSpecs& c )
 {
+	int pixelsx, pixelsy;
+	PercentToPos( fx, fy, pixelsx, pixelsy );
+	
 	unsigned int pos, table_width, table_height, cell_height;
 	
 	// everything has to be drawn upside down
@@ -154,8 +175,11 @@ void PdfWrapper::DrawTable( unsigned int x, unsigned int y, TableOfCells& t, Tab
 	
 	// count column width
 	table_width = 0;
-	for( unsigned int i=0; i<c.m_columns.size(); ++i )
-		table_width += c.m_columns[ i ].m_width;
+	for( unsigned int i=0; i<c.m_columns.size(); ++i ) {
+		int w, z;
+		PercentToPos( c.m_columns[ i ].m_width, 0, w, z );
+		table_width += w;
+	}
 	table_height = ( 1 + t.Rows() ) * cell_height;
 	
 	// draw lines
@@ -165,10 +189,10 @@ void PdfWrapper::DrawTable( unsigned int x, unsigned int y, TableOfCells& t, Tab
 	int py;
 	for ( unsigned int i = 0; i < 2+t.Rows(); ++i )
 	{
-		py = m_default_page_height - y - i * cell_height;
+		py = m_default_page_height - pixelsy - i * cell_height;
 		
-		HPDF_Page_MoveTo( m_current_page, x, py );
-		HPDF_Page_LineTo( m_current_page, x + table_width, py );
+		HPDF_Page_MoveTo( m_current_page, pixelsx, py );
+		HPDF_Page_LineTo( m_current_page, pixelsx + table_width, py );
 		HPDF_Page_Stroke( m_current_page );
 	}
 	
@@ -178,11 +202,11 @@ void PdfWrapper::DrawTable( unsigned int x, unsigned int y, TableOfCells& t, Tab
 	for ( unsigned int i = 0; i <= c.Columns(); ++i )
 	{
 		if ( c.m_columns[ i ].m_merge_header_cell_to_right ) {
-			HPDF_Page_MoveTo( m_current_page, px, m_default_page_height - y - cell_height );
+			HPDF_Page_MoveTo( m_current_page, px, m_default_page_height - pixelsy - cell_height );
 		} else {
-			HPDF_Page_MoveTo( m_current_page, px, m_default_page_height - y );
+			HPDF_Page_MoveTo( m_current_page, px, m_default_page_height - pixelsy );
 		}
-		HPDF_Page_LineTo( m_current_page, px, m_default_page_height - y - table_height );
+		HPDF_Page_LineTo( m_current_page, px, m_default_page_height - pixelsy - table_height );
 		HPDF_Page_Stroke( m_current_page );
 		
 		// last vertical line
@@ -190,8 +214,8 @@ void PdfWrapper::DrawTable( unsigned int x, unsigned int y, TableOfCells& t, Tab
 			px += c.m_columns[ i ].m_width;
 	}
 	
-	py = m_default_page_height - y - cell_text_top_margin;
-	px = x + cell_text_left_margin;
+	py = m_default_page_height - pixelsy - cell_text_top_margin;
+	px = pixelsx + cell_text_left_margin;
 	// print out header text
 	for ( unsigned int ix = 0; ix < c.m_columns.size(); ++ix ) {
 		
@@ -206,7 +230,7 @@ void PdfWrapper::DrawTable( unsigned int x, unsigned int y, TableOfCells& t, Tab
 	// print out cell text
 	for ( unsigned int iy = 0; iy < t.Rows(); ++iy ) {
 		py -= cell_height;
-		px = x + cell_text_left_margin;
+		px = pixelsx + cell_text_left_margin;
 		for ( unsigned int ix = 0; ix < t.Columns(); ++ix ) {
 			
 			if ( t.Cell( iy, ix ).GetText().empty() )
@@ -217,17 +241,21 @@ void PdfWrapper::DrawTable( unsigned int x, unsigned int y, TableOfCells& t, Tab
 			px += c.m_columns[ ix ].m_width;
 		}
 	}
-	
 }
 
-void PdfWrapper::WriteSingleTextIntoWidth( unsigned int x, unsigned int y,
-	unsigned int width, string text )
+void HPDFWrapper::WriteSingleTextIntoWidth( float x, float y, float width, string text )
 {
+	int px, py;
+	PercentToPos( x, y, px, py );
+	
+	int width_pixels;
+	PercentToPos( width, y, width_pixels, py );
+	
 	HPDF_UINT	len;
 	
 	// measure how many characters will fit
 	len = HPDF_Font_MeasureText ( m_current_font,
-		(const unsigned char*) text.c_str(), text.size(), width, m_current_font_size,
+		(const unsigned char*) text.c_str(), text.size(), width_pixels, m_current_font_size,
 		0, 0, HPDF_FALSE, NULL );
 	if ( len == 0 )
 		throw runtime_error( "WriteSingleTextIntoWidth: HPDF_Font_MeasureText failed." );
@@ -235,7 +263,7 @@ void PdfWrapper::WriteSingleTextIntoWidth( unsigned int x, unsigned int y,
 	text.erase( len );
 	
 	HPDF_Page_BeginText( m_current_page );
-	HPDF_Page_MoveTextPos( m_current_page, x, y - m_font_height_below_line - m_font_height_above_line );
+	HPDF_Page_MoveTextPos( m_current_page, px, py - m_font_height_below_line - m_font_height_above_line );
 	HPDF_Page_ShowText( m_current_page, text.c_str() );
 	HPDF_Page_EndText( m_current_page );
 }

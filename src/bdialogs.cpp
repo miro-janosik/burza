@@ -609,7 +609,7 @@ void BurzaDialogs::ButtonRegisterCalcRepayment( void )
 	}
 
 	try {
-	  PdfWrapper	pdf;
+	  HPDFWrapper	pdf;
 	  pdf.CreatePDF( "/home/mirex/tmp/a.pdf" );
 	  /*
 	  for( unsigned int i=0; i<150; i++ ) {
@@ -1189,7 +1189,7 @@ void BurzaDialogs::CashoutEditSearchEntryChanged( void )
 	pseller = & Centrala::Instancia()->Register()->m_predajcovia[ 0 ];
 	
 	try {
-	PdfWrapper	pdf;
+	HPDFWrapper	pdf;
 	pdf.CreatePDF( "/home/mirex/tmp/a.pdf" );
 	for( unsigned int i=0; i<150; i++ ) {
 		pdf.NewPage( ConvFuncs::FormatCstr( "index %i", i ) );

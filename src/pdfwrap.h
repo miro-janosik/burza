@@ -24,24 +24,35 @@ public:
 	virtual void ClosePDF( void ) = 0;
 	
 	virtual void NewPage( string name ) = 0;
-	virtual void WriteSingleText( unsigned int x, unsigned int y, string text ) = 0;
-	virtual void DrawTable( unsigned int x, unsigned int y, TableOfCells& t, TableColumnSpecs& c ) = 0;
+	virtual void WriteSingleText( float x, float y, string text ) = 0;
+	virtual void DrawTable( float x, float y, TableOfCells& t, TableColumnSpecs& c ) = 0;
 	
+	//! converts position in page size percentage to position of the engine
+	virtual void PercentToPos( float percentx, float percenty, int& posx, int& posy ) = 0;
+	
+	//! converts position from position of the engine to percentage position
+	virtual void PosToPercent( int posx, int posy, float& percentx, float& percenty ) = 0;
 };
 
-class PdfWrapper : public PdfWrapperBase {
+class HPDFWrapper : public PdfWrapperBase {
 public:
-	PdfWrapper();
-	~PdfWrapper();
+	HPDFWrapper();
+	~HPDFWrapper();
 	int CreatePDF( string filename );
 	void ClosePDF( void );
 	
-	void SetCurrentFont( HPDF_Font font, unsigned int size );
+	void SetCurrentFont( HPDF_Font font, float size );
 	void NewPage( string name );
-	void WriteSingleText( unsigned int x, unsigned int y, string text );
-	void WriteSingleTextIntoWidth( unsigned int x, unsigned int y, unsigned int width, string text );
+	void WriteSingleText( float x, float y, string text );
+	void WriteSingleTextIntoWidth( float x, float y, float width, string text );
 	
-	void DrawTable( unsigned int x, unsigned int y, TableOfCells& t, TableColumnSpecs& c );
+	void DrawTable( float x, float y, TableOfCells& t, TableColumnSpecs& c );
+
+	//! converts position in page size percentage to position of the engine
+	virtual void PercentToPos( float percentx, float percenty, int& posx, int& posy );
+	
+	//! converts position from position of the engine to percentage position
+	virtual void PosToPercent( int posx, int posy, float& percentx, float& percenty );
 	
 private:
 	HPDF_Doc m_pdf;
