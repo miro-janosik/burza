@@ -57,10 +57,17 @@ public:
 	int				status;
 
 	ConvFuncs::s_datetime	last_update;
+	SELLER_ID		seller_id;
 } ;
 
 typedef int SELLER_ID;
 typedef int ITEM_ID;
+
+typedef vector<SellerData> SellerDataArray;
+typedef SellerDataArray::iterator SellerDataIterator;
+
+typedef vector<ItemData> ItemDataArray;
+typedef ItemDataArray::iterator ItemDataIterator;
 
 /* Abstract class providing interface functions to access the BURZA data.
   Reason of the interface is that data can be stored either locally in data files
@@ -69,13 +76,13 @@ typedef int ITEM_ID;
 class DataAccessInterface {
   
   //! Get list of sellers data.
-  vector<SellerData> GetSellers( void ) = 0;
+  SellerDataArray GetSellers( void ) = 0;
   
   //! Get single seller data.
   SellerData& GetSeller(SELLER_ID id) = 0;
   
   //! Get seller's items.
-  vector<ItemData> GetItemsForSeller(SELLER_ID id);
+  ItemDataArray GetSellerItems(SELLER_ID id) = 0;
 
   //! Adds new seller, returns ID.
   SELLER_ID AddSeller(SellerData& seller);
@@ -102,6 +109,9 @@ class DataAccessInterface {
   //! Returns true if seller was modified since last local change
   bool IsSellerModified(SELLER_ID id);
 
+  //! Returns items of specified seller
+  ItemDataArray GetSellerItems(SELLER_ID id);
+  
   //! Returns seller data if seller was modified on server since last local change
   //! Returns null otherwise
   SellerData* GetSellerIfModified(SELLER_ID id);
@@ -124,6 +134,15 @@ class DataAccessInterface {
 //! Base class that should be used as base for classes that read and write data.
 class DataStorage : public DataAccessInterface 
 {
+  public:
+
+	//! Get seller's items.
+	ItemDataArray GetSellerItems(SELLER_ID id);
+	
+  protected:
+	ItemDataArray	items;
+	
+	SellerDataArray	sellers;
 };
 
 class DataStorageException : public std::exception {

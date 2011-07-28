@@ -1,5 +1,6 @@
 #include "cacheddatastorage.h"
 #include "dataaccess.h"
+#include <bits/algorithmfwd.h>
 
 using namespace Burza;
 using namespace std;
@@ -49,6 +50,22 @@ void CachedDataStorage::ModifySellerEnd(SELLER_ID id, SellerData& seller)
 		SellerData* s = dataAccess.GetSellerIfModified(id);
 		if (s != NULL) {
 			sellers[ id ] = *s;
+		}
+	}
+}
+
+void CachedDataStorage::RemoveSeller(SELLER_ID id)
+{
+	if (sellers.find(id) == sellers.end()) {
+		throw new WrongSellerIdException();
+	}
+
+	dataAccess.RemoveSeller(id);
+	sellers.erase(id);
+	
+	for( ItemDataIterator it=items.begin(); it != items.end(); ++it ) {
+		if ( it->seller_id == id ) {
+			it = items.erase(it);
 		}
 	}
 }
