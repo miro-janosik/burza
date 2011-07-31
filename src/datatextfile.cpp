@@ -5,7 +5,7 @@ using namespace std;
 
 void DataTextfile::SaveSellerToTxtFile( SellerData& seller, ItemDataArray& items )
 {
-	string oldname = GetSellerFilenameExisting(seller);
+	string oldname = GetSellerFilenameExisting(seller.unique_id);
 	string newname = GetSellerFilenameNew(seller);
 
 	// compare new filename with previous
@@ -52,17 +52,15 @@ void DataTextfile::SaveSellerToTxtFile( SellerData& seller, ItemDataArray& items
 	file.Close();
 }
 
-void Seller::LoadFromTxtFile( SELLER_ID id, SellerData& seller, ItemDataArray& items )
+SELLER_ID Seller::LoadFromTxtFile( string filename, SellerData& seller, ItemDataArray& items )
 {
 	items.clear();
-	
-	string filename = GetSellerFilenameExisting( id );
 	
 	CConvFile	file;
 	file.OpenFile( filename.c_str(), CConvFile::fm_text, CConvFile::fm_read );
 	
 	if ( file.IsOpened() == 0 ) {
-		throw;
+		throw runtime_error;
 	}
 
 	// items cannot have fixed length, because source files are unicode (that means variable char length, either 1 or 2 chars)
@@ -113,39 +111,88 @@ void Seller::LoadFromTxtFile( SELLER_ID id, SellerData& seller, ItemDataArray& i
 	} ;
 	
 	file.Close();
+	
+	return seller.unique_id;
 }
 
-22:31 < mirex> Sho_: how do you do it in 4.2?
-22:32 < Sho_> mirex: there's a page in the config dialog to add new qthelp 
-              files, so now you just need one for the c++ stl
-22:33 < Sho_> http://www.steveire.com/libstdc++-v3.qch might do
-22:34 < Sho_> or 
-https://docs.google.com/leaf?id=0B6w3G_xx1dDnMjYyMjQ1ODctNGZmMy00MzRhLWJlOGEtMDdhOTc0N2EzOTgx&sort=name&layout=list&num=50
+void LoadFromTxtFile( SELLER_ID id, SellerData& seller, ItemDataArray& items )
+{
+	std::string		filename;
+	SellerData		seller;
+	ItemDataArray	items;
+			
+	filename = DataPath;
+	filename += GetSellerFilenameExisting(id);
+	
+	try {
+	  LoadFromTxtFile(filename, seller, items);
+	}
+	catch(...)
+	{
+		throw;
+	}
+}
 
 SellerDataArray DataTextfile::GetSellers( void )
 {
-	std::string		predajca_dir, predajca_pat, predajca_fname;
-			
-	predajca_dir = Centrala::Instancia()->Nastavenia()->m_data_dir_path;
+	std::string		predajca_pat, filename;
+	SellerData		seller;
+	ItemDataArray	seller_items;
+	SELLER_ID		id;
+
+	sellers.clear();
 	
-	predajca_pat = predajca_dir;
+	predajca_pat = DataPath;
 	predajca_pat += "*.txt";
 	
 	bool found;
 	found = ConvFuncsInstance->Find_FirstFile( predajca_pat.c_str() );
 	while( found ) {
-		
 		found = ConvFuncsInstance->Find_NextFile();
+		
+		filename = DataPath;
+		filename += ConvFuncsInstance->Find_CurrentFileName();
+		
+		try {
+		  items.clear();
+		  
+		  id = LoadFromTxtFile( filename, seller, seller_items );
+		}
+		catch(...)
+		{
+			continue;
+		}
+		
+		sellers.push_back(seller);
 	}
 	
+	return sellers;
 }
 
 SellerData& DataTextfile::GetSeller(SELLER_ID id)
 {
-  
+	if (sellers.empty()) {
+		GetSellers();
+	}
+	
+	SellerDataIterator it = sellers.find( id );
+	if ( it == sellers.end() ) {
+		
+		throw WrongSellerIdException();
+	}
+
+	return *it;
 }
-  
+
 ItemDataArray DataTextfile::GetSellerItems(SELLER_ID id)
+{
+	SellerData	seller;
+	ItemDataArray	items;
+	
+	LoadFromTxtFile( id, seller, items );
+	
+	return items;
+}
 
 string DataTextfile::GetSellerFilenameExisting( SELLER_ID id )
 {
@@ -161,7 +208,7 @@ string DataTextfile::GetSellerFilenameExisting( SELLER_ID id )
 		return ConvFuncsInstance->Find_CurrentFileName();
 	}
 	
-	return "";
+	throw WrongSellerIdException;
 }
 
 string DataTextfile::GetSellerFilenameNew( SellerData& seller )
@@ -179,47 +226,96 @@ string DataTextfile::GetSellerFilenameNew( SellerData& seller )
 
 SELLER_ID DataTextfile::AddSeller(SellerData& seller)
 {
-	ItemDataArray	items = GetSellerItems( seller.unique_id );
-  
+	ItemDataArray items;
+	
+	seller.unique_id = GenerateUniqueSellerId();
+	SaveSellerToTxtFile( seller, items );
+	
+	return seller.unique_id;
+}
+
+bool DataTextfile::ModifySellerStart(SELLER_ID id)
+{
+}
+ 
+void DataTextfile::ModifySellerEnd(SELLER_ID id, SellerData& seller)
+{
+	ItemsDataArray items = GetSellerItems(id);
 	SaveSellerToTxtFile( seller, items );
 }
 
-  //! Call when you want to modify seller. Returns false if already being modified.
-  //! In that case wait or cancel modifications.
-  bool DataTextfile::ModifySellerStart(SELLER_ID id);
+void DataTextfile::RemoveSeller(SELLER_ID id)
+{
+	string filename = GetSellerFilenameExisting(id);
+
+	// compare new filename with previous
+	// if different, erase previous file.
+	if ( filename != "" ) {
+		string complete = DataPath;
+		complete += filename;
+		ConvFuncs::DoDeleteFile( complete.c_str() );
+	}
+	
+	SellerDataIterator it = sellers.find( id );
+	if ( it != sellers.end() ) {
+		sellers.erase(it);
+	}
+}
+
+ITEM_ID DataTextfile::AddItem(ItemData& item)
+{
+	SellerData seller = GetSeller(item.seller_id);
+	ItemsDataArray items = GetSellerItems(id);
+	
+	item.unique_id = axy;
+	items.push_back(item);
+	SaveSellerToTxtFile( seller, items );
+}
   
-  //! Call when you want to finish seller modifications.
-  void ModifySellerEnd(SELLER_ID id, SellerData& seller);
+void DataTextfile::ModifyItem(ITEM_ID item_id, ItemData& item)
+{
+	ItemDataIterator it = items.find( item_id );
+	if ( it == items.end() ) {
+		throw new WrongItemIdException();
+	}
+	
+	*it = item;
+	
+	SellerData seller = GetSeller(it->seller_id);
+	ItemsDataArray items = GetSellerItems(it->seller_id);
+	SaveSellerToTxtFile(seller, items);
+}
 
-  //! Removes seller.
-  void RemoveSeller(SELLER_ID id);
+void DataTextfile::RemoveItem(ITEM_ID id)
+{
+	ItemDataIterator it = items.find( item_id );
+	if ( it == items.end() ) {
+		throw new WrongItemIdException();
+	}
+	
+	items.erase(it);
+	
+	SellerData seller = GetSeller(it->seller_id);
+	ItemsDataArray items = GetSellerItems(it->seller_id);
+	SaveSellerToTxtFile(seller, items);
+}
 
-  //! Adds new item.
-  ITEM_ID AddItem(ItemData& item);
-  
-  //! Changes item.
-  void ModifyItem(ITEM_ID item_id, ItemData& item);
+bool DataTextfile::IsSellerModified(SELLER_ID id)
+{
+	return false;
+}
 
-  //! Remove item.
-  void RemoveItem(ITEM_ID id);
+SellerData* DataTextfile::GetSellerIfModified(SELLER_ID id)
+{
+	return NULL;
+}
 
-  //! Returns true if seller was modified since last local change
-  bool IsSellerModified(SELLER_ID id);
+bool DataTextfile::IsItemModified(ITEM_ID id)
+{
+	return false;
+}
 
-  //! Returns seller data if seller was modified on server since last local change
-  //! Returns null otherwise
-  SellerData* GetSellerIfModified(SELLER_ID id);
-
-  //! Returns true if item was modified on server since last local change
-  bool IsItemModified(ITEM_ID id);
-
-  //! Returns item data if item was modified on server since last local change
-  //! Returns null otherwise
-  ItemData* GetItemIfModified(ITEM_ID id);
-
-  //! set name of local machine or program, to be seen on different machines in form
-  //! of "Seller XYZ is being modified by NAME since DATE"
-  void SetLocalName(string& name);
-
-  //! Connect to server
-  bool ConnectDb(string& serverName, string& login, string& password);
+ItemData* DataTextfile::GetItemIfModified(ITEM_ID id)
+{
+	return NULL;
+}

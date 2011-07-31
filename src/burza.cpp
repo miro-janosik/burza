@@ -15,6 +15,7 @@
 #include <assert.h>
 
 #include <libglademm.h>
+
 #include "convfile.h"
 #include "convfncs.h"
 #include "burza.h"
@@ -24,6 +25,7 @@
 // not required here, only for test
 #include "pdfwrap.h"
 #include "table.h"
+#include "datatextfile.h"
 
 using namespace Burza;
 
@@ -116,6 +118,8 @@ void Seller::PridajTovar( int cislo, const char* nazov, double cena, char katego
 	}
 	
 	m_products.push_back( t );
+	
+	
 }
 
 int Seller::VerifikujCisloTovaru( Product& p, int newNumber )
@@ -268,9 +272,43 @@ Seller::t_items_in_categories Seller::GetItemsCategories( void )
 // ==============================================
 // ==============================================
 
+void BurzaRegister::BurzaRegister()
+{
+	m_storage = new DataTextfile();
+}
+
+void BurzaRegister::~BurzaRegister()
+{
+	delete m_storage;
+}
+
 void BurzaRegister::NacitajVsetkychPredajcov( void )
 {
-  xxx
+	SellerDataArray sellers = m_storage->GetSellers();
+	
+	for(SellerDataIterator sc=sellers.begin(), se=sellers.end(); sc != se; ++sc ) {
+		Seller	s;
+		s.m_kod 		= sc->shortcode;
+		s.m_meno 		= sc->name;
+		s.m_poznamka	= sc->note;
+		s.m_kategoria	= sc->category;
+		s.m_unique_id	= sc->unique_id;
+		
+		ItemDataArray items;
+		items = m_storage->GetSellerItems( sc->unique_id );
+		
+		for( ItemDataIterator ic=items.begin(), ie=items.end(); ic != ie; ++ic ) {
+			Product	p;
+			
+			p.m_cena		= ic->price;
+			p.m_cislo		= ic->number;
+			p.m_kategoria	= ic->category;
+			p.m_nazov		= ic->name;
+			p.m_stav		= ic->status;
+			
+			s.m_products.push_back(p);
+		}
+	}
 }
 
 void BurzaRegister::PridajNovehoPredajcu( const char* kod, const char* meno, const char* poznamka )
@@ -282,6 +320,8 @@ void BurzaRegister::PridajNovehoPredajcu( const char* kod, const char* meno, con
 	p.m_poznamka = poznamka;
 	
 	m_predajcovia.push_back( p );
+	
+	m_storage->AddSeller(new SellerData(meno, shortcode_xx, poznamka, category_xx));
 }
 
 BurzaRegister::t_predajcovia::iterator BurzaRegister::NajdiPredajcuPodlaKoduIt( const char* kod )

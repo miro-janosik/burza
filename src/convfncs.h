@@ -257,6 +257,7 @@ public:
 	bool			Find_NextFile( void );
 	//! use functions below to retrieve attributes of found file. Call these only after
 	//! successful calls to Find_FirstFile() or Find_NextFiles()
+	//! returns filename without path.
 	const char*		Find_CurrentFileName( void );
 	int				Find_CurrentIsDir( void );
 	int				Find_CurrentIsReadOnly( void );

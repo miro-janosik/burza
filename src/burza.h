@@ -11,6 +11,8 @@
 #include <string>
 #include <map>
 
+#include "dataaccess.h"
+
 using namespace std;
 
 class CConvFile;
@@ -122,6 +124,11 @@ class BurzaRegister {
 public:
 	
 	NastaveniaProgramu		m_nastavenia;
+	
+	DataStorage		*m_storage;
+	
+	BurzaRegister();
+	~BurzaRegister();
 	
 public:
 	typedef		std::vector< Seller >	t_predajcovia;

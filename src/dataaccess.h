@@ -46,6 +46,9 @@ public:
 	ConvFuncs::s_datetime	last_update;
 	// ID generated through Register::GenerateSellerUniqueCode()
 	unsigned int	unique_id;
+
+public:
+	SellerData(string _name, string _shortcode, string _note, char _category);
 } ;
 
 class ItemData {
@@ -58,6 +61,9 @@ public:
 
 	ConvFuncs::s_datetime	last_update;
 	SELLER_ID		seller_id;
+	
+public:
+	ItemData(string _name, int _number, double _price, char _category, int _status, SELLER_ID _seller_id);
 } ;
 
 typedef int SELLER_ID;
@@ -138,11 +144,23 @@ class DataStorage : public DataAccessInterface
 
 	//! Get seller's items.
 	ItemDataArray GetSellerItems(SELLER_ID id);
+
+	//! set name of local machine or program, to be seen on different machines in form
+	//! of "Seller XYZ is being modified by NAME since DATE"
+	void SetLocalName(string& name)
+	{
+		agent_name = name;
+	}
 	
   protected:
+	//! All loaded items, items of all sellers.
 	ItemDataArray	items;
 	
+	//! All loaded sellers
 	SellerDataArray	sellers;
+	
+	//! name of local program/process/computer
+	string		agent_name;
 };
 
 class DataStorageException : public std::exception {
@@ -168,17 +186,3 @@ class WrongItemIdException : public DataStorageException {
         return "Wrong Item Id";
     }
 };
-
-Program: jeden button - Nastavenia/setup:
-
-	SERVER CONNECTION
-		SERVER_NAME/IP
-		LOGIN
-		PWD
-	Registration key
-		key (correct/incorrect)
-		registered to
-		host id
-		
-ak pri startupe nieje server, tak msg a pouzi lokal db
-
