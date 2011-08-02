@@ -1,3 +1,6 @@
+#ifndef _cacheddatastorage_h_
+#define _cacheddatastorage_h_
+
 #include <vector>
 #include "dataaccess.h"
 
@@ -23,3 +26,5 @@ private:
 } ;
 
 }
+
+#endif

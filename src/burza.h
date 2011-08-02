@@ -155,9 +155,11 @@ public:
 	void PridajNovehoPredajcu( const char* kod, const char* meno, const char* poznamka );
 	void NacitajVsetkychPredajcov( void );
 	
-	t_predajcovia::iterator NajdiPredajcuPodlaKoduIt( const char* kod );
+	// t_predajcovia::iterator NajdiPredajcuPodlaKoduIt( const char* kod );
+	
+	//! returns -1 if not found, or index of seller.
 	int NajdiPredajcuPodlaKoduIndex( const char* kod );
-	Seller* NajdiPredajcuPodlaKoduPtr( const char* kod );
+	SellerData NajdiPredajcuPodlaKodu( const char* kod );
 	ProductCategory* FindProductCategory( char product_category );
 	SellerCategory* FindSellerCategory( char seller_category );
 	double CalcPriceOfProducts( t_sellerProducts& items );

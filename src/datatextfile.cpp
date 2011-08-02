@@ -115,7 +115,7 @@ SELLER_ID Seller::LoadFromTxtFile( string filename, SellerData& seller, ItemData
 	return seller.unique_id;
 }
 
-void LoadFromTxtFile( SELLER_ID id, SellerData& seller, ItemDataArray& items )
+void DatatTextfile::LoadFromTxtFile( SELLER_ID id, SellerData& seller, ItemDataArray& items )
 {
 	std::string		filename;
 	SellerData		seller;
@@ -318,4 +318,20 @@ bool DataTextfile::IsItemModified(ITEM_ID id)
 ItemData* DataTextfile::GetItemIfModified(ITEM_ID id)
 {
 	return NULL;
+}
+
+SellerData& DataTextfile::GetSellerByCode(string& code)
+{
+	if (sellers.empty()) {
+		GetSellers();
+	}
+	
+	SellerDataIterator it = sellers.begin(), ite = sellers.end();
+	for( ; it != ite; ++it ) {
+		if (it->shortcode == code) {
+			return *it;
+		}
+	}
+	
+	throw WrongSellerIdException();
 }

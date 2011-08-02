@@ -272,20 +272,21 @@ Seller::t_items_in_categories Seller::GetItemsCategories( void )
 // ==============================================
 // ==============================================
 
-void BurzaRegister::BurzaRegister()
+BurzaRegister::BurzaRegister()
 {
-	m_storage = new DataTextfile();
+	m_storage = new DataTextfile( Centrala::Instancia()->Nastavenia()->m_data_dir_path );
 }
 
-void BurzaRegister::~BurzaRegister()
+BurzaRegister::~BurzaRegister()
 {
 	delete m_storage;
 }
 
 void BurzaRegister::NacitajVsetkychPredajcov( void )
 {
-	SellerDataArray sellers = m_storage->GetSellers();
+	m_storage->GetSellers();
 	
+	/*
 	for(SellerDataIterator sc=sellers.begin(), se=sellers.end(); sc != se; ++sc ) {
 		Seller	s;
 		s.m_kod 		= sc->shortcode;
@@ -309,10 +310,12 @@ void BurzaRegister::NacitajVsetkychPredajcov( void )
 			s.m_products.push_back(p);
 		}
 	}
+	*/
 }
 
 void BurzaRegister::PridajNovehoPredajcu( const char* kod, const char* meno, const char* poznamka )
 {
+	/*
 	Seller	p;
 
 	p.m_kod = kod;
@@ -320,10 +323,13 @@ void BurzaRegister::PridajNovehoPredajcu( const char* kod, const char* meno, con
 	p.m_poznamka = poznamka;
 	
 	m_predajcovia.push_back( p );
+	*/
 	
-	m_storage->AddSeller(new SellerData(meno, shortcode_xx, poznamka, category_xx));
+	SellerData newseller(meno, kod, poznamka, 'a');
+	m_storage->AddSeller(newseller);
 }
 
+	/*
 BurzaRegister::t_predajcovia::iterator BurzaRegister::NajdiPredajcuPodlaKoduIt( const char* kod )
 {
 	std::vector< Seller >::iterator	it;
@@ -338,10 +344,17 @@ BurzaRegister::t_predajcovia::iterator BurzaRegister::NajdiPredajcuPodlaKoduIt( 
 	}
 	
 	return it;
+	
+	string codeString( kod );
+	SellerData seller = m_storage->GetSellerByCode(codeString);
+	
+	return x;
 }
+	*/
 
 int BurzaRegister::NajdiPredajcuPodlaKoduIndex( const char* kod )
 {
+	/*
 	std::vector< Seller >::iterator	it;
 	int idx;
 	
@@ -352,10 +365,25 @@ int BurzaRegister::NajdiPredajcuPodlaKoduIndex( const char* kod )
 	}
 	
 	return -1;
+	*/
+	//SellerData seller = m_storage->GetSellerByCode(string(kod));
+	SellerDataArray sellers = m_storage->GetSellers();
+	
+	SellerDataIterator it = sellers.begin(), ite = sellers.end();
+	int index = 0;
+	
+	for( ; it != ite; ++it, ++index ) {
+		if ( it->shortcode == kod ) {
+			return index;
+		}
+	}
+	
+	return -1;
 }
 
-Seller* BurzaRegister::NajdiPredajcuPodlaKoduPtr( const char* kod )
+SellerData BurzaRegister::NajdiPredajcuPodlaKodu( const char* kod )
 {
+	/*
 	std::vector< Seller >::iterator	it;
 	
 	for( it = m_predajcovia.begin(); it != m_predajcovia.end(); it++ ) {
@@ -365,6 +393,15 @@ Seller* BurzaRegister::NajdiPredajcuPodlaKoduPtr( const char* kod )
 	}
 	
 	return NULL;
+	
+	NajdiPredajcuPodlaKoduPtr => NajdiPredajcuPodlaKodu
+	
+	*/
+	
+	string codeString(kod);
+	SellerData seller = m_storage->GetSellerByCode(codeString);
+	
+	return seller;
 }
 
 ProductCategory* BurzaRegister::FindProductCategory( char category )
@@ -493,54 +530,47 @@ void BurzaRegister::GenerateSellerUniqueCode( Seller& seller, std::string try_th
 
 */
 
-void BurzaRegister::FinishCheckout( BurzaRegister::t_sellerProducts& items )
+void BurzaRegister::FinishCheckout( ItemDataArray& items )
 {
 	double sum = CalcPriceOfProducts( items );
 	
 	// mark items in register as sold
-	BurzaRegister::t_sellerProducts::iterator it, ite;
-	
-	int pidx;
-	Product* p;
-	Seller* s;
+	ItemDataIterator it, ite;
+	SellerData seller;
+	ItemData item;
 	
 	for( it = items.begin(), ite = items.end(); it != ite; ++it ) {
-		s = NajdiPredajcuPodlaKoduPtr( it->sellerCode.c_str() );
-		if ( s == NULL ) {
+	  
+		try {
+			seller = m_storage->NajdiPredajcuPodlaKodu( it->sellerCode );
+		}
+		catch(WrongSellerIdException ex) {
 			throw runtime_error( "BurzaRegister::FinishCheckout: Seller not found" );
 		}
-		pidx = s->NajdiTovarIndex( it->productNumber );
-		if ( pidx == -1 ) {
+		
+		try {
+			item = m_storage->GetItem(it->unique_id);
+		}
+		catch(WrongItemIdException ex) {
 			throw runtime_error( "BurzaRegister::FinishCheckout: Item not found" );
 		}
-		sum = s->m_products[ pidx ].m_cena;
+		sum = item->cena;
 	}
-	
 }
 
 void BurzaRegister::PrintRecipeeAtEndOfCheckout( BurzaRegister::t_sellerProducts& items, PdfWrapperBase& pdf )
 {
 }
 
-double BurzaRegister::CalcPriceOfProducts( BurzaRegister::t_sellerProducts& items )
+double BurzaRegister::CalcPriceOfProducts( ItemDataArray& items )
 {
-	BurzaRegister::t_sellerProducts::iterator it, ite;
-	
+	ItemDataIterator it, ite;
+	SellerData seller;
+	ItemData item;
 	double sum = 0;
-	int pidx;
-	Product* p;
-	Seller* s;
 	
 	for( it = items.begin(), ite = items.end(); it != ite; ++it ) {
-		s = NajdiPredajcuPodlaKoduPtr( it->sellerCode.c_str() );
-		if ( s == NULL ) {
-			throw runtime_error( "BurzaRegister::CalcPriceOfProducts: Seller not found" );
-		}
-		pidx = s->NajdiTovarIndex( it->productNumber );
-		if ( pidx == -1 ) {
-			throw runtime_error( "BurzaRegister::CalcPriceOfProducts: Item not found" );
-		}
-		sum = s->m_products[ pidx ].m_cena;
+		sum += it->price;
 	}
 	
 	return sum;

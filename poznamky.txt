@@ -1,28 +1,4 @@
-TODO:
-* vyznac farebne policka ktore potrebuju upravit alebo boli automaticky upravene (inou farbou)
-* pri vyuctovani tovaru - zobraz ucet v PDF, uloz ho na disk (casom do DB, aspon udaje)
-	- zapis vsetko potrebne do pdf
-	- uloz do konkretneho miesta na disku
-* vyuctovanie predajcu do PDF - co bolo predane, kolko mu dat penazi atd.
-	- zapis meno do PDF, tovar do PDF, vyznac tovar ktory nebol predany ani vrateny (samostatne stlpce predane/vratene/nenajdene)
-	- 
-
-MAJOR
-po pridani uzivatela - combo prehod; otvor pridaj tovar
-tovar edit - nazov edit je maly; stav default = skladom
-po pridani tovaru zobraz predajcu a jeho tovar nevidno nic.
-po pridani tovaru - znova pridavaj tovar
-suma = fix konverzia 5,5 na 5.5
-predajca kombo - smerom dolu.
-
-MINOR
-zobraz tovar - column 1 align left, 2 stretch, 3,4,5 right.
-edit tovar = title - zmen tovar - pridaj tovar
-edit tovar - presun cislo navrch, kategoria pod to, a focus na nazov.
-edit tovar - cislo - je kontrolovane ci je valid? iba compare s ostatnymi itemmi, ak existuje, tak new.
-
 Zimná kombinéza bledomodrá s rukavičkami a papučkami, 3-6 mes., v predu bledý macko
-
 
 
 * using LibXL
@@ -31,12 +7,6 @@ Zimná kombinéza bledomodrá s rukavičkami a papučkami, 3-6 mes., v predu ble
 tel. cislo
 samostatny harok na kociky
 tlacitko uprav tovar
-vytlac doklad = poplatok, prebrany tovar
-clen-dobrovolnik checkboxy v pokladni
-tlacitko=vytlac predajcov harok na tlaciaren = zoznam
-stavy - zvyrazni farebne
-pokladna - pridaj stlpec 'kod'
-nastroj najdi veci podla nazvu
 
 vysledny harok:
 predane: cisla
