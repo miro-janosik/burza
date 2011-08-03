@@ -27,30 +27,6 @@ namespace Burza {
 	
 	class PdfWrapperBase;
 	
-	enum e_product_status {
-		caka_na_prijatie,
-		sklad,
-		predane,
-		vratene,
-		dar,
-		dohladat,
-		nedefinovane,
-		pocet_stavov
-	} ;
-	
-class Product {
-	
-public:
-	int					m_cislo;
-	std::string		m_nazov;
-	double				m_cena;
-	char					m_kategoria;
-	e_product_status	m_stav;
-	
-	Product();
-	void Reset( void );
-} ;
-
 class SellerCategory {
 public:
 	char			m_category;
@@ -76,7 +52,7 @@ public:
 	std::string		m_data_dir_path;
 } ;
 
-class Seller {
+class SellerXXX {
 public:
 	std::string		m_kod;
 	std::string		m_meno;
@@ -162,10 +138,11 @@ public:
 	SellerData NajdiPredajcuPodlaKodu( const char* kod );
 	ProductCategory* FindProductCategory( char product_category );
 	SellerCategory* FindSellerCategory( char seller_category );
-	double CalcPriceOfProducts( t_sellerProducts& items );
+	
+	double CalcPriceOfProducts( ItemDataArray& items );
 	
 	//! marks products as sold
-	void FinishCheckout( t_sellerProducts& items );
+	void FinishCheckout( ItemDataArray& items );
 	
 	//! creates checkout receipt
 	void PrintRecipeeAtEndOfCheckout( BurzaRegister::t_sellerProducts& items, PdfWrapperBase& pdf );

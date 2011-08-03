@@ -2,7 +2,21 @@
 
 using namespace Burza;
 
-SellerData::SellerData(string _name, string _shortcode, string _note, char _category);
+SellerData::SellerData()
+{
+	name = "";
+	shortcode = "";
+	note = "";
+	category = -1;
+  
+	ConvFuncs::GetDateTime();
+	last_update = ConvFuncs::datetime;
+	
+	// left unset untill it will be stored to DB
+	id = -1;
+}
+
+SellerData::SellerData(string _name, string _shortcode, string _note, int _category);
 {
 	name = _name;
 	shortcode = _shortcode;
@@ -12,10 +26,21 @@ SellerData::SellerData(string _name, string _shortcode, string _note, char _cate
 	ConvFuncs::GetDateTime();
 	last_update = ConvFuncs::datetime;
 	
-	unique_id = xx;
+	id = -1;
 }
 
-ItemData::ItemData(string _name, int _number, double _price, char _category, int _status, SELLER_ID _seller_id)
+ItemData::ItemData()
+{
+	name = "";
+	number = -1;
+	price = -1.0;
+	category = -1;
+	status = ItemStatus::not_in_stock_yet;
+	seller_id = -1;
+	id = -1;
+}
+
+ItemData::ItemData(string _name, int _number, double _price, int _category, int _status, SELLER_ID _seller_id)
 {
 	name = _name;
 	number = _number;
@@ -23,6 +48,7 @@ ItemData::ItemData(string _name, int _number, double _price, char _category, int
 	category = _category;
 	status = _status;
 	seller_id = _seller_id;
+	id = -1;
 }
 
 ItemDataArray DataTextfile::GetSellerItems(SELLER_ID id)
@@ -38,3 +64,37 @@ ItemDataArray DataTextfile::GetSellerItems(SELLER_ID id)
 	return result;
 }
 
+ItemData* DataAccessInterface::FindItemByNumber( ItemDataArray& list, int number )
+{
+	for( ItemDataIterator itemit = list.begin(), itemend = list.end(); 
+	  itemit != itemend; ++itemit ) {
+		 if (itemit->number == number )
+			return & *itemit;
+	}
+	
+	return NULL;
+}
+
+int DataAccessInterface::FindSellerIndexByCode( SellerDataArray& list, string code )
+{
+	for( SellerDataIterator it = list.begin(), ite = list.end(), int index = 0; 
+	  it != ite; 
+	  ++it, ++index ) {
+		 if (it->shortcode == code )
+			return index;
+	}
+	
+	return -1;
+}
+
+void DataAccessInterface::AddItems( ItemDataArray& items )
+{
+	ITEM_ID	id;
+	
+	for( ItemDataIterator itemit = list.begin(), itemend = list.end(); 
+	  itemit != itemend; ++itemit ) {
+		
+		id = AddItem(*itemit);
+		itemit->id = id;
+	}
+}

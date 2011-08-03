@@ -28,12 +28,19 @@ class DataTextfile : public DataStorage
 	bool IsItemModified(ITEM_ID id);
 	ItemData* GetItemIfModified(ITEM_ID id);
 	SellerData& GetSellerByCode(string& code);
+	ItemData GetSellerItem(SELLER_ID id, int item_number);
+	ItemData GetItem(ITEM_ID id);
+	SELLER_ID GetNewSellerId( void );
+	ITEM_ID GetNewItemId( void );
+	
+	//! Seller has filled ID from the text file.
+	//! Loaded items have filled seller_id, but not their own ID.
+	SELLER_ID LoadFromTxtFile( string filename, SellerData& seller, ItemDataArray& items );
 	
   private:
 	//! class helper functions
   
 	void SaveSellerToTxtFile( SellerData& seller, ItemDataArray& items );
-	SELLER_ID LoadFromTxtFile( string filename, SellerData& seller, ItemDataArray& items );
 	void LoadFromTxtFile( SELLER_ID id, SellerData& seller, ItemDataArray& items );
 	string GetSellerFilenameExisting( SELLER_ID id );
 	string GetSellerFilenameNew( SellerData& seller );

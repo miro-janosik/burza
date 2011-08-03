@@ -12,6 +12,7 @@
 #include "excelwrap.h"
 #include "pdfwrap.h"
 #include "recipees.h"
+#include "datatextfile.h"
 
 using namespace Burza;
 using namespace BurzaExcel;
@@ -464,7 +465,6 @@ void BurzaDialogs::VyplnPredajcovDoKomb( void )
 void BurzaDialogs::ButtonRegisterImportSeller( void )
 {
 	ExcelFileWrapper	x;
-	Seller seller;
 	Gtk::FileChooserDialog dialog("Select importer file", Gtk::FILE_CHOOSER_ACTION_OPEN );
 
 	dialog.set_transient_for( *m_pWndRegister );
@@ -490,11 +490,16 @@ void BurzaDialogs::ButtonRegisterImportSeller( void )
 		return;
 	}
 	
-	string s = dialog.get_filename();
+	string filename = dialog.get_filename();
 	// s += "data/harok-burza.xls";
 	
+	SellerData seller;
+	ItemDataArray items;
+	
 	try {
-		seller = x.ReadSeller( s );
+		DataTextfile	textStorage;
+		
+		textStorage.LoadFromTxtFile(filename, seller, items );
 	}
 	catch( runtime_error& e ) {
 		DisplayErrorMessageBox( string( "Error importing file." ) + e.what(), "Error importing file." );
@@ -502,16 +507,24 @@ void BurzaDialogs::ButtonRegisterImportSeller( void )
 	}
 	
 	BurzaRegister	*reg = Centrala::Instancia()->Register();
-	BurzaRegister::t_predajcovia::iterator	it;	
-	it = reg->NajdiPredajcuPodlaKoduIt( seller.m_kod.c_str() );
-	if ( it != reg->m_predajcovia.end() ) {
+	
+	bool sellerExists = true;
+	try {
+		reg->m_storage->GetSellerByCode( seller.shortcode );
+	}
+	catch( WrongSellerIdException ) {
+		sellerExists = false;
+	}
+	
+	if ( sellerExists ) {
 		DisplayErrorMessageBox( 
 			ConvFuncs::FormatCstr( _( "Error seller with that code already exists. Erase previous '%s' seller." ),
-				seller.m_kod.c_str() ) );
+				seller.shortcode.c_str() ) );
 		return;
 	}
 	
-	reg->m_predajcovia.push_back(seller );
+	reg->m_storage->AddSeller( seller );
+	reg->m_storage->AddItems( items );
 }
 
 void BurzaDialogs::ButtonRegisterAddSeller( void )
@@ -761,10 +774,10 @@ void BurzaDialogs::ButtonCashoutAddItem( void )
 	row[ m_ItemsColumn.m_predajca_idx ] = m_CashoutVybranyPredajcaIdx;
 	row[ m_ItemsColumn.m_Product_idx ] = m_CashoutVybranyTovarIdx;
 	
-	Burza::BurzaRegister::SellerProduct	sp;
-	sp.sellerCode = m_pCashoutVybranyPredajca->m_kod;
-	sp.productNumber = m_pCashoutVybranyTovar->m_cislo;
-	m_shoppingCart.push_back( sp );
+	Burza::ItemData	item;
+	item.seller_id = m_pCashoutVybranyPredajca->id;
+	item.number = m_pCashoutVybranyTovar->number;
+	m_shoppingCart.push_back( item );
 	
 	CheckoutCartChanged();
 }
@@ -797,7 +810,7 @@ void BurzaDialogs::ButtonCashoutFinished( void )
 void BurzaDialogs::ButtonCashoutRemoveItem( void )
 {
 	vector<unsigned int> listOfItems;
-	vector<BurzaRegister::SellerProduct> listOfProducts;
+	ItemDataArray listOfProducts;
 	
 	// get selected items into list
 	GetSelectedItemNumbers( m_CashoutItemsSelection, listOfItems );
@@ -810,13 +823,7 @@ void BurzaDialogs::ButtonCashoutRemoveItem( void )
 	// remove items
 	for(int i=0; i<listOfProducts.size(); ++i ) {
 		
-		for( int p=0; p<m_shoppingCart.size(); ++p ) {
-			
-			if ( m_shoppingCart[ p ] == listOfProducts[ i ] ) {
-				m_shoppingCart.erase( m_shoppingCart.begin() + p );
-				break;
-			}
-		}
+		m_shoppingCart.erase( listOfProducts[ i ] );
 	}
 	
 	CheckoutCartChanged();

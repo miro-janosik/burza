@@ -5,7 +5,7 @@ using namespace std;
 
 void DataTextfile::SaveSellerToTxtFile( SellerData& seller, ItemDataArray& items )
 {
-	string oldname = GetSellerFilenameExisting(seller.unique_id);
+	string oldname = GetSellerFilenameExisting(seller.id);
 	string newname = GetSellerFilenameNew(seller);
 
 	// compare new filename with previous
@@ -27,7 +27,7 @@ void DataTextfile::SaveSellerToTxtFile( SellerData& seller, ItemDataArray& items
 	ReplaceCharactersInString( seller.name, file_field_delimiters, '_' );
 	ReplaceCharactersInString( seller.note, file_field_delimiters, '_' );
 	
-	file.Print( "%i", seller.unique_id );
+	file.Print( "%i", seller.id );
 	file.Write( "*" );
 	file.Write( seller.shortcode.c_str() );
 	file.Write( "*" );
@@ -73,13 +73,10 @@ SELLER_ID Seller::LoadFromTxtFile( string filename, SellerData& seller, ItemData
 	const char* cp, *linep;
 	
 	file.gets( linebuffer, linebuffer_len );
-	seller.unique_id = atoi( ConvFuncsInstance->StrItem( linebuffer, 0, file_field_delimiters ) );
+	seller.id = atoi( ConvFuncsInstance->StrItem( linebuffer, 0, file_field_delimiters ) );
 	seller.shortcode = ConvFuncsInstance->StrItem( linebuffer, 1, file_field_delimiters );
 	seller.name = ConvFuncsInstance->StrItem( linebuffer, 2, file_field_delimiters );
 	seller.note = ConvFuncsInstance->StrItem( linebuffer, 3, file_field_delimiters );
-	
-	seller.category = 0;
-	seller.last_update = 0;
 	
 	while( 1 ) {
 		if ( file.Eof() )
@@ -112,7 +109,7 @@ SELLER_ID Seller::LoadFromTxtFile( string filename, SellerData& seller, ItemData
 	
 	file.Close();
 	
-	return seller.unique_id;
+	return seller.id;
 }
 
 void DatatTextfile::LoadFromTxtFile( SELLER_ID id, SellerData& seller, ItemDataArray& items )
@@ -194,6 +191,26 @@ ItemDataArray DataTextfile::GetSellerItems(SELLER_ID id)
 	return items;
 }
 
+ItemData DataTextfile::GetSellerItem(SELLER_ID id, int item_number)
+{
+	SellerData	seller;
+	ItemDataArray	items;
+	
+	LoadFromTxtFile( id, seller, items );
+	
+	ItemData* item = FindItemByNumber( items, item_number );
+	if ( item == NULL ) {
+		throw new WrongItemNumberException();
+	}
+	
+	return *item;
+}
+
+ItemData DataTextfile::GetItem(ITEM_ID id)
+{
+	throw NotImplementedException();
+}
+
 string DataTextfile::GetSellerFilenameExisting( SELLER_ID id )
 {
 	string predajca_pat;
@@ -219,7 +236,7 @@ string DataTextfile::GetSellerFilenameNew( SellerData& seller )
 	
 	filename = DataPath;
 	filename += ConvFuncs::FormatStdStr( "%i-%s-%s.txt", 
-		seller.unique_id, seller.shortcode.c_str(), seller.name.c_str() );
+		seller.id, seller.shortcode.c_str(), seller.name.c_str() );
 	
 	return filename;
 }
@@ -228,10 +245,10 @@ SELLER_ID DataTextfile::AddSeller(SellerData& seller)
 {
 	ItemDataArray items;
 	
-	seller.unique_id = GenerateUniqueSellerId();
+	seller.id = GetNewSellerId();
 	SaveSellerToTxtFile( seller, items );
 	
-	return seller.unique_id;
+	return seller.id;
 }
 
 bool DataTextfile::ModifySellerStart(SELLER_ID id)
@@ -267,7 +284,7 @@ ITEM_ID DataTextfile::AddItem(ItemData& item)
 	SellerData seller = GetSeller(item.seller_id);
 	ItemsDataArray items = GetSellerItems(id);
 	
-	item.unique_id = axy;
+	item.id = GetNewItemId();
 	items.push_back(item);
 	SaveSellerToTxtFile( seller, items );
 }
@@ -334,4 +351,46 @@ SellerData& DataTextfile::GetSellerByCode(string& code)
 	}
 	
 	throw WrongSellerIdException();
+}
+
+SELLER_ID DataTextfile::GetNewSellerId( void )
+{
+	if (sellers.empty()) {
+		GetSellers();
+	}
+	
+	SELLER_ID biggestId = 0;
+	
+	SellerDataIterator it = sellers.begin(), ite = sellers.end();
+	for( ; it != ite; ++it ) {
+		if (it->id > biggestId) {
+			biggestId = it->id;
+		}
+	}
+	
+	return biggestId + 1;
+}
+
+ITEM_ID DataTextfile::GetNewItemId( void )
+{
+	if (sellers.empty()) {
+		GetSellers();
+	}
+	
+	ITEM_ID biggestId = 0;
+	
+	SellerDataIterator it = sellers.begin(), ite = sellers.end();
+	for( ; it != ite; ++it ) {
+
+		ItemDataArray items = GetSellerItems(it->id);
+		ItemDataIterator itemit = items.begin(), itemite = items.end();
+	  
+		for( ; itemit != itemite; ++itemit ) {
+			if (itemit->id > biggestId) {
+				biggestId = itemit->id;
+			}
+		}
+	}
+	
+	return biggestId + 1;
 }

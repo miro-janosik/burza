@@ -354,50 +354,14 @@ BurzaRegister::t_predajcovia::iterator BurzaRegister::NajdiPredajcuPodlaKoduIt( 
 
 int BurzaRegister::NajdiPredajcuPodlaKoduIndex( const char* kod )
 {
-	/*
-	std::vector< Seller >::iterator	it;
-	int idx;
-	
-	for( idx = 0, it = m_predajcovia.begin(); it != m_predajcovia.end(); it++, idx++ ) {
-		if ( stricmp( it->m_kod.c_str(), kod ) == 0 ) {
-			return idx;
-		}
-	}
-	
-	return -1;
-	*/
-	//SellerData seller = m_storage->GetSellerByCode(string(kod));
 	SellerDataArray sellers = m_storage->GetSellers();
+	string codeString(kod);
 	
-	SellerDataIterator it = sellers.begin(), ite = sellers.end();
-	int index = 0;
-	
-	for( ; it != ite; ++it, ++index ) {
-		if ( it->shortcode == kod ) {
-			return index;
-		}
-	}
-	
-	return -1;
+	return DataAccessInterface::FindSellerIndexByCode( sellers, codeString );
 }
 
 SellerData BurzaRegister::NajdiPredajcuPodlaKodu( const char* kod )
 {
-	/*
-	std::vector< Seller >::iterator	it;
-	
-	for( it = m_predajcovia.begin(); it != m_predajcovia.end(); it++ ) {
-		if ( stricmp( it->m_kod.c_str(), kod ) == 0 ) {
-			return &(*it);
-		}
-	}
-	
-	return NULL;
-	
-	NajdiPredajcuPodlaKoduPtr => NajdiPredajcuPodlaKodu
-	
-	*/
-	
 	string codeString(kod);
 	SellerData seller = m_storage->GetSellerByCode(codeString);
 	
@@ -482,13 +446,15 @@ void BurzaRegister::GenerateSellerUniqueCode( Seller& seller, std::string try_th
 	
 	// run through all the sellers to see if its unique
 	// if its not, generate first that is.
-	t_predajcovia::iterator it;
+	int sellerIndex;
 	int tries = 0;
+	SellerDataArray	sellers = m_storage->GetSellers();
+	
 	while( true ) {
 		
 		ConvFuncs::StdStringToUpper( try_this_code );
-		it = NajdiPredajcuPodlaKoduIt( try_this_code.c_str() );
-		if ( it == m_predajcovia.end() )
+		sellerIndex = DataAccessInterface::FindSellerIndexByCode( sellers, try_this_code );
+		if ( sellerIndex == -1 )
 			break;
 		
 		// inc characters, AB => AC, AZ => BA
@@ -542,19 +508,21 @@ void BurzaRegister::FinishCheckout( ItemDataArray& items )
 	for( it = items.begin(), ite = items.end(); it != ite; ++it ) {
 	  
 		try {
-			seller = m_storage->NajdiPredajcuPodlaKodu( it->sellerCode );
+			seller = m_storage->GetSeller( it->seller_id );
 		}
 		catch(WrongSellerIdException ex) {
 			throw runtime_error( "BurzaRegister::FinishCheckout: Seller not found" );
 		}
 		
 		try {
-			item = m_storage->GetItem(it->unique_id);
+			item = m_storage->GetItem(it->id);
 		}
 		catch(WrongItemIdException ex) {
 			throw runtime_error( "BurzaRegister::FinishCheckout: Item not found" );
 		}
-		sum = item->cena;
+		
+		item.status = sold;
+		m_storage->ModifyItem(item.id, item);
 	}
 }
 
@@ -565,8 +533,6 @@ void BurzaRegister::PrintRecipeeAtEndOfCheckout( BurzaRegister::t_sellerProducts
 double BurzaRegister::CalcPriceOfProducts( ItemDataArray& items )
 {
 	ItemDataIterator it, ite;
-	SellerData seller;
-	ItemData item;
 	double sum = 0;
 	
 	for( it = items.begin(), ite = items.end(); it != ite; ++it ) {

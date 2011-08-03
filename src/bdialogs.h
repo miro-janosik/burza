@@ -11,6 +11,7 @@
 #include <libglademm.h>
 
 #include "burza.h"
+#include "dataaccess.h"
 
 using namespace std;
 
@@ -177,14 +178,14 @@ public:
 	class ItemsColumns : public Gtk::TreeModel::ColumnRecord {
 	public:
 		ItemsColumns()
-			{ add(m_cislo); add(m_nazov); add(m_cena); add(m_kategoria); add(m_stav); add( m_predajca_idx ); add( m_Product_idx ); }
-		Gtk::TreeModelColumn<std::string> m_cislo;
-		Gtk::TreeModelColumn<std::string> m_nazov;
-		Gtk::TreeModelColumn<std::string> m_cena;
-		Gtk::TreeModelColumn<std::string> m_kategoria;
-		Gtk::TreeModelColumn<std::string> m_stav;
-		Gtk::TreeModelColumn<int> m_predajca_idx;
-		Gtk::TreeModelColumn<int> m_Product_idx;
+			{ add(m_number); add(m_name); add(m_price); add(m_category); add(m_state); add( m_seller_id ); add( m_item_id ); }
+		Gtk::TreeModelColumn<std::string> m_number;
+		Gtk::TreeModelColumn<std::string> m_name;
+		Gtk::TreeModelColumn<std::string> m_price;
+		Gtk::TreeModelColumn<std::string> m_category;
+		Gtk::TreeModelColumn<std::string> m_state;
+		Gtk::TreeModelColumn<int> m_seller_id;
+		Gtk::TreeModelColumn<int> m_item_id;
 	};
 	
 	ItemsColumns	m_ItemsColumn;
@@ -215,7 +216,7 @@ public:
 	edit_action	m_sellerEditAction;
 	
 	// == Checkout ==
-	Burza::BurzaRegister::t_sellerProducts		m_shoppingCart;
+	Burza::ItemDataArray		m_shoppingCart;
 	
 } ;
 
