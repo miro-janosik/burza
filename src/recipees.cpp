@@ -137,3 +137,46 @@ void Recipees::PrintRecipeeAtEndOfCheckout( BurzaRegister::t_sellerProducts& ite
 		throw runtime_error( errorMessage );
 	}
 }
+
+void ::PrintProductsToPDF( PdfWrapperBase& pdf, SellerData& seller )
+{
+	string str;
+	
+	str = seller.shortcode;
+	str += " - ";
+	str += seller.name;
+	
+	StringEncoding::UTF8toISO8859_2( str );
+	pdf.WriteSingleText( 10, 10, str.c_str() );
+	
+	TableOfCells	table;
+	TableColumnSpecs columns;
+	
+	columns.AddColumn( "#", 40 );
+	columns.AddColumn( _("nazov"), 200 );
+	columns.AddColumn( _("cena"), 60 );
+	columns.AddColumn( _("kat"), 40 );
+	columns.AddColumn( _("stav"), 90 );
+	
+	BurzaRegister* reg = Centrala::Instancia()->Register();	
+	
+	unsigned int i, c;
+	c = 5 + ( rand() % 70 );
+	table.Resize( c, 5 );
+	
+	for( unsigned int j=0; j<c; ++j ) {
+		
+		i = j % m_products.size();
+		
+		table.Cell( j, 0 ) = ConvFuncs::FormatStdStr( "%i", m_products[ i ].m_cislo );
+		str = m_products[ i ].m_nazov;
+		StringEncoding::UTF8toISO8859_2( str );
+		table.Cell( j, 1 ) = str;
+		table.Cell( j, 2 ) = ConvFuncs::FormatStdStr( "%0.2f", m_products[ i ].m_cena );
+		table.Cell( j, 3 ) = ConvFuncs::FormatStdStr( "%c", m_products[ i ].m_kategoria );
+		table.Cell( j, 4 ) = reg->Stav2String( m_products[ i ].m_stav );
+	}
+	
+	pdf.DrawTable( 50, 50, table, columns );
+}
+

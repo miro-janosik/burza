@@ -3,6 +3,24 @@
 using namespace Burza;
 using namespace std;
 
+char DataTextfile::file_field_delimiters[] = "|*\r\n";
+
+char DataTextfile::m_znak_stavu_v_subore[status_count] = "ospvdnu";
+string DataTextfile::m_string_stavu[status_count] = {
+  "Nezaradene",
+  "Skladom",
+  "Predane",
+  "Vratene",
+  "Dar",
+  "Dohladat",
+  "Nedefinovane",
+};
+
+DataTextfile::DataTextfile( string datapath )
+{
+	DataPath = datapath;
+}	
+
 void DataTextfile::SaveSellerToTxtFile( SellerData& seller, ItemDataArray& items )
 {
 	string oldname = GetSellerFilenameExisting(seller.id);
@@ -394,3 +412,29 @@ ITEM_ID DataTextfile::GetNewItemId( void )
 	
 	return biggestId + 1;
 }
+
+char DataTextfile::Stav2Char( ItemStatus stav )
+{
+	if (( stav < 0 ) || ( stav >= status_count ))
+		return '?';
+	
+	return m_znak_stavu_v_subore[ stav ];
+}
+
+const char* DataTextfile::Stav2String( ItemStatus stav )
+{
+	if (( stav < 0 ) || ( stav >= pocet_stavov ))
+		return "?";
+	
+	return m_string_stavu[ stav ].c_str();
+}
+
+ItemStatus DataTextfile::Char2Stav( char c )
+{
+	for( int i=0; i < pocet_stavov; ++i )
+		if ( m_znak_stavu_v_subore[ i ] == c )
+			return (Burza::ItemStatus) i;
+	
+	return undefined;
+}
+

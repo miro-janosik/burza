@@ -260,7 +260,7 @@ enum ItemStatus {
 	given_as_gift,
 	lost,
 	undefined,
-	status_number
+	status_count
 } ;
 
 }; // namespace Burza

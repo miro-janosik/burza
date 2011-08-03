@@ -71,30 +71,7 @@ int main2( int argc, char **argv )
 // ==============================================
 // ==============================================
 
-Product::Product()
-{
-	Reset();
-}
-
-void Product::Reset( void )
-{
-	m_cislo = -1;
-	m_nazov = "?";
-	m_cena = 0.0;
-	m_kategoria = ' ';
-	m_stav = caka_na_prijatie;
-}
-
-char Seller::file_field_delimiters[] = "|*\r\n";
-
-Seller::Seller()
-{
-	m_kod = "";
-	m_meno = "?";
-	m_poznamka = "";
-	m_unique_id = Centrala::Instancia()->Register()->GenerateSellerUniqueId();
-}
-
+/*
 void Seller::PridajTovar( int cislo, const char* nazov, double cena, char kategoria, e_product_status stav )
 {
 	Product	t;
@@ -177,48 +154,7 @@ void Seller::ReplaceCharactersInString( std::string& str, const char* from, char
 		std::replace( str.begin(), str.end(), from[ i ], to );
 	}
 }
-
-void Seller::PrintProductsToPDF( PdfWrapperBase& pdf )
-{
-	string str;
-	
-	str = m_kod;
-	str += " - ";
-	str += m_meno;
-	
-	StringEncoding::UTF8toISO8859_2( str );
-	pdf.WriteSingleText( 10, 10, str.c_str() );
-	
-	TableOfCells	table;
-	TableColumnSpecs columns;
-	
-	columns.AddColumn( "#", 40 );
-	columns.AddColumn( _("nazov"), 200 );
-	columns.AddColumn( _("cena"), 60 );
-	columns.AddColumn( _("kat"), 40 );
-	columns.AddColumn( _("stav"), 90 );
-	
-	BurzaRegister* reg = Centrala::Instancia()->Register();	
-	
-	unsigned int i, c;
-	c = 5 + ( rand() % 70 );
-	table.Resize( c, 5 );
-	
-	for( unsigned int j=0; j<c; ++j ) {
-		
-		i = j % m_products.size();
-		
-		table.Cell( j, 0 ) = ConvFuncs::FormatStdStr( "%i", m_products[ i ].m_cislo );
-		str = m_products[ i ].m_nazov;
-		StringEncoding::UTF8toISO8859_2( str );
-		table.Cell( j, 1 ) = str;
-		table.Cell( j, 2 ) = ConvFuncs::FormatStdStr( "%0.2f", m_products[ i ].m_cena );
-		table.Cell( j, 3 ) = ConvFuncs::FormatStdStr( "%c", m_products[ i ].m_kategoria );
-		table.Cell( j, 4 ) = reg->Stav2String( m_products[ i ].m_stav );
-	}
-	
-	pdf.DrawTable( 50, 50, table, columns );
-}
+*/
 
 double Seller::CalculateFee( void )
 {
@@ -388,34 +324,6 @@ SellerCategory* BurzaRegister::FindSellerCategory( char seller_category )
 // ==============================================
 // ==============================================
 
-char BurzaRegister::Stav2Char( e_product_status stav )
-{
-	if (( stav < 0 ) || ( stav >= pocet_stavov ))
-		return '?';
-	
-	return Centrala::Instancia()->Nastavenia()->m_znak_stavu_v_subore[ stav ];
-}
-
-const char* BurzaRegister::Stav2String( e_product_status stav )
-{
-	if (( stav < 0 ) || ( stav >= pocet_stavov ))
-		return "?";
-	
-	return Centrala::Instancia()->Nastavenia()->m_string_stavu[ stav ].c_str();
-}
-
-e_product_status BurzaRegister::Char2Stav( char c )
-{
-	int i;
-	NastaveniaProgramu	*n = & Centrala::Instancia()->m_nastavenia;
-	
-	for( i=0; i < pocet_stavov; ++i )
-		if ( n->m_znak_stavu_v_subore[ i ] == c )
-			return (Burza::e_product_status) i;
-	
-	return nedefinovane;
-}
-
 unsigned int BurzaRegister::GenerateSellerUniqueId( void )
 {
 	unsigned int max = 0;
@@ -427,12 +335,12 @@ unsigned int BurzaRegister::GenerateSellerUniqueId( void )
 	return max+1;
 }
 
-void BurzaRegister::GenerateSellerUniqueCode( Seller& seller, std::string try_this_code )
+void BurzaRegister::GenerateSellerUniqueCode( SellerData& seller, std::string try_this_code )
 {
 	// if its empty try to generate it from name
 	if ( try_this_code.empty() ) {
 		std::vector<std::string> tokens;
-		ConvFuncs::Tokenize( seller.m_meno, tokens );
+		ConvFuncs::Tokenize( seller.name, tokens );
 		
 		for( int i=0; i<tokens.size(); ++i ) {
 			try_this_code += tokens[ i ][ 0 ];
@@ -477,7 +385,7 @@ void BurzaRegister::GenerateSellerUniqueCode( Seller& seller, std::string try_th
 		}
 	}
 	
-	seller.m_kod = try_this_code;
+	seller.shortcode = try_this_code;
 }
 
 /*
@@ -547,18 +455,6 @@ double BurzaRegister::CalcPriceOfProducts( ItemDataArray& items )
 
 NastaveniaProgramu::NastaveniaProgramu()
 {
-	m_znak_stavu_v_subore[ sklad ] = 's';
-	m_znak_stavu_v_subore[ predane ] = 'p';
-	m_znak_stavu_v_subore[ vratene ] = 'v';
-	m_znak_stavu_v_subore[ dar ] = 'd';
-	m_znak_stavu_v_subore[ dohladat ] = 'n';
-	
-	m_string_stavu[ sklad ] = "Skladom";
-	m_string_stavu[ predane ] = "Predane";
-	m_string_stavu[ vratene ] = "Vratene";
-	m_string_stavu[ dar ] = "Dar";
-	m_string_stavu[ dohladat ] = "Dohladat";
-	
 	m_data_dir_path = ConvFuncsInstance->GetPathFromPathFilename(
 		ConvFuncsInstance->GetExecutableFilePathName() );
 	m_data_dir_path += "data/";

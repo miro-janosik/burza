@@ -935,18 +935,18 @@ bool BurzaDialogs::DisplayYesNoMessageBox( string message, string title )
 	return ( res == Gtk::RESPONSE_YES );
 }
 
-void BurzaDialogs::StartDialogEditProduct( Product* product, Seller* seller )
+void BurzaDialogs::StartDialogEditProduct( ItemData& product, SellerData& seller )
 {
-	m_pItemeditName->set_text( product->m_nazov );
-	m_pItemeditNumber->set_text( ConvFuncs::FormatCstr( "%i", product->m_cislo ) );
-	m_pItemeditPrice->set_text( ConvFuncs::FormatCstr( "%0.2f", product->m_cena ) );
-	m_pItemeditCategory->set_text( ConvFuncs::FormatCstr( "%c", product->m_kategoria ) );
+	m_pItemeditName->set_text( product.m_nazov );
+	m_pItemeditNumber->set_text( ConvFuncs::FormatCstr( "%i", product.m_cislo ) );
+	m_pItemeditPrice->set_text( ConvFuncs::FormatCstr( "%0.2f", product.m_cena ) );
+	m_pItemeditCategory->set_text( ConvFuncs::FormatCstr( "%c", product.m_kategoria ) );
 	
 	m_pItemeditStatusCombo->clear();
 	
 	for( int i = 0; i < pocet_stavov; ++i ) {
 		m_pItemeditStatusCombo->append_text( 
-			mp_register->Stav2String( (e_product_status) i ) );
+			mp_register->Stav2String( (ItemStatus) i ) );
 	}
 	m_pItemeditStatusCombo->set_active( product->m_stav );
 	
@@ -1065,11 +1065,11 @@ void BurzaDialogs::ComboItemEditStatusChanged( void )
 {
 }
 
-void BurzaDialogs::StartDialogEditSeller( Seller* seller )
+void BurzaDialogs::StartDialogEditSeller( SellerData& seller )
 {
-	m_pSellerEditName->set_text( seller->m_meno );
-	m_pSellerEditCode->set_text( seller->m_kod );
-	m_pSellerEditNote->set_text( seller->m_poznamka );
+	m_pSellerEditName->set_text( seller.name );
+	m_pSellerEditCode->set_text( seller.shortcode );
+	m_pSellerEditNote->set_text( seller.note );
 	
 	assert( m_sellerEdited == NULL );
 	m_sellerEdited = seller;
@@ -1135,11 +1135,11 @@ bool BurzaDialogs::ButtonSellerEditClose( GdkEventAny* )
 	return true; 
 }
 
-void BurzaDialogs::SellerModified( Seller* seller )
+void BurzaDialogs::SellerModified( SellerData& seller )
 {
 	seller->Save();
 	VyplnPredajcovDoKomb();
-	RegisterZobrazPredajcu( seller->m_kod.c_str() );
+	RegisterZobrazPredajcu( seller.shortcode.c_str() );
 }
 
 void BurzaDialogs::CashoutEditLookupSellerChanged( void )

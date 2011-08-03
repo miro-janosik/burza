@@ -8,7 +8,7 @@ namespace Burza {
 class DataTextfile : public DataStorage
 {
   public:
-	DataTextfile( string datapath ) { DataPath = datapath; }
+	DataTextfile( string datapath );
   
   public:
 	//! Data functions
@@ -33,10 +33,15 @@ class DataTextfile : public DataStorage
 	SELLER_ID GetNewSellerId( void );
 	ITEM_ID GetNewItemId( void );
 	
+  public:
 	//! Seller has filled ID from the text file.
 	//! Loaded items have filled seller_id, but not their own ID.
 	SELLER_ID LoadFromTxtFile( string filename, SellerData& seller, ItemDataArray& items );
 	
+	static char Stav2Char( ItemStatus stav );
+	static const char* Stav2String( ItemStatus stav );
+	static ItemStatus Char2Stav( char c );
+		
   private:
 	//! class helper functions
   
@@ -47,8 +52,13 @@ class DataTextfile : public DataStorage
 	
   private:
 	//! class data
-	
+
+
 	string	DataPath;
+	
+	static char file_field_delimiters[];
+	static char	m_znak_stavu_v_subore[ status_count ];
+	static string m_string_stavu[ status_count ];
 };
 
 /*

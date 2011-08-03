@@ -16,8 +16,8 @@
 using namespace std;
 
 namespace Burza {
-class Seller;
-class Product;
+// class Seller;
+// class Product;
 class BurzaRegister;
 };
 
@@ -53,9 +53,9 @@ public:
 	//! returns true if Yes is pressed, false otherwise (you can expect that either No or 'x' was pressed.
 	bool DisplayYesNoMessageBox( string message, string title );
 	
-	void StartDialogEditProduct( Burza::Product* product, Burza::Seller* seller );
-	void StartDialogEditSeller( Burza::Seller* seller );
-	void SellerModified( Burza::Seller* seller );
+	void StartDialogEditProduct( Burza::ItemData& product, Burza::SellerData& seller );
+	void StartDialogEditSeller( Burza::SellerData& seller );
+	void SellerModified( Burza::SellerData& seller );
 	
 public:
 	
@@ -75,7 +75,7 @@ public:
 	void RegisterGetSelectedItemNumbers( vector<unsigned int>& listOfItems );
 	
 	//! returns currently displayed seller in Register window, or NULL if none selected.
-	Burza::Seller* RegisterGetSelectedSeller( void );
+	Burza::SellerData* RegisterGetSelectedSeller( void );
 	
 	// Goes through selector's selected items in the list and returns array of indexes of selected items in the list.
 	static void GetSelectedItemNumbers( Glib::RefPtr<Gtk::TreeSelection>& selector, vector<unsigned int>& listOfItems );
@@ -191,21 +191,21 @@ public:
 	ItemsColumns	m_ItemsColumn;
 	
 	// Seller, ktory je vybrany v Pokladnicnom okne v kombo-boxe.
-	Burza::Seller		*m_pCashoutVybranyPredajca;
-	Burza::Product		*m_pCashoutVybranyTovar;
+	Burza::SellerData		*m_pCashoutVybranyPredajca;
+	Burza::ItemData		*m_pCashoutVybranyTovar;
 	int		m_CashoutVybranyPredajcaIdx;
 	int		m_CashoutVybranyTovarIdx;
 	
 	float		m_cashout_sum;
 	
 	// Register
-	Burza::Seller		*m_pRegisterVybranyPredajca;
+	Burza::SellerData*		m_pRegisterVybranyPredajca;
 	
 	// If user is editing some item, its pointer should be here, so it can be saved after modified.
 	// edited product
-	Burza::Product* m_productEdited;
+	Burza::ItemData* m_productEdited;
 	// edited seller
-	Burza::Seller* m_sellerEdited;
+	Burza::SellerData* m_sellerEdited;
 	
 	enum edit_action {
 		ea_add,

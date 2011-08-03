@@ -44,14 +44,13 @@ public:
 	NastaveniaProgramu();
 	
 public:
-	char	m_znak_stavu_v_subore[ pocet_stavov ];
-	std::string		m_string_stavu[ pocet_stavov ];
 	
 	std::string		m_string_mena; 
 	
 	std::string		m_data_dir_path;
 } ;
 
+/*
 class SellerXXX {
 public:
 	std::string		m_kod;
@@ -92,6 +91,7 @@ public:
 	
 	static char file_field_delimiters[];
 } ;
+*/
 
 // ==============================================
 // ==============================================
@@ -107,12 +107,12 @@ public:
 	~BurzaRegister();
 	
 public:
-	typedef		std::vector< Seller >	t_predajcovia;
+	// typedef		std::vector< Seller >	t_predajcovia;
 	typedef		std::map< char, ProductCategory >	t_productCategories;
 	typedef		std::map< char, SellerCategory >	t_sellerCategories;
 	
 	
-	t_predajcovia	m_predajcovia;
+	SellerDataArray	m_predajcovia;
 	t_productCategories	m_productCategories;
 	t_sellerCategories	m_sellerCategories;
 	
@@ -126,7 +126,7 @@ public:
 		}
 	} ;
 	
-	typedef std::vector< SellerProduct > t_sellerProducts;
+	// typedef std::vector< SellerProduct > t_sellerProducts;
 	
 	void PridajNovehoPredajcu( const char* kod, const char* meno, const char* poznamka );
 	void NacitajVsetkychPredajcov( void );
@@ -145,16 +145,12 @@ public:
 	void FinishCheckout( ItemDataArray& items );
 	
 	//! creates checkout receipt
-	void PrintRecipeeAtEndOfCheckout( BurzaRegister::t_sellerProducts& items, PdfWrapperBase& pdf );
+	void PrintRecipeeAtEndOfCheckout( ItemDataArray& items, PdfWrapperBase& pdf );
 	
 public:
-	char Stav2Char( e_product_status stav );
-	const char* Stav2String( e_product_status stav );
-	e_product_status Char2Stav( char c );
-	
 	
 	unsigned int GenerateSellerUniqueId( void );
-	void GenerateSellerUniqueCode( Seller& seller, std::string try_this_code );
+	void GenerateSellerUniqueCode( SellerData& seller, std::string try_this_code );
 } ;
 
 // ==============================================
