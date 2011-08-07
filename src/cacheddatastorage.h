@@ -8,7 +8,10 @@ using namespace std;
 
 namespace Burza {
 
-class CachedDataStorage : DataAccessInterface( DataStorage& storage ) {
+class CachedDataStorage : DataStorage {
+  public:
+	CachedDataStorage( DataStorage& storage );
+	
 
 	vector<SellerData> GetSellers( void );
 

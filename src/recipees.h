@@ -9,11 +9,11 @@ namespace Burza {
 class Recipees
 {
 public:
-  void PrintSellerStatus( PdfWrapperBase& pdf, Seller& seller );
+  void PrintSellerStatus( PdfWrapperBase& pdf, SellerData& seller );
 
   void AddProgramPageFooter( PdfWrapperBase& pdf );
 
-  void PrintRecipeeAtEndOfCheckout( BurzaRegister::t_sellerProducts& items, PdfWrapperBase& pdf );
+  void PrintRecipeeAtEndOfCheckout( ItemDataArray& items, PdfWrapperBase& pdf );
   
 };
 

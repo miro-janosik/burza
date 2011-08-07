@@ -34,7 +34,7 @@ Centrala* Centrala::m_instance = NULL;
 //int _tmain(int argc, _TCHAR* argv[])
 int main2( int argc, char **argv )
 {
-	Centrala		*pcentrala = Centrala::Instancia();
+	Centrala		*pcentrala = Centrala::Instance();
 	
 	ConvFuncs::SingletonInstanceCreate();
 	
@@ -45,11 +45,11 @@ int main2( int argc, char **argv )
 	
 	// ============
 	
-	pcentrala->Dialogy()->NahrajDialogy();
+	Centrala::Dialogs().NahrajDialogy();
 	
-	pcentrala->Register()->NacitajVsetkychPredajcov();
-	pcentrala->Dialogy()->VyplnPredajcovDoKomb();
-	pcentrala->Dialogy()->RegisterZobrazPredajcuCezIndex( 0 );
+	Centrala::Register().NacitajVsetkychPredajcov();
+	Centrala::Dialogs().VyplnPredajcovDoKomb();
+	Centrala::Dialogs().RegisterZobrazPredajcuCezIndex( 0 );
 
 	//Gtk::Main::run( * pcentrala->Dialogy()->m_pWndRegister );
 	Gtk::Main::run();
@@ -156,52 +156,21 @@ void Seller::ReplaceCharactersInString( std::string& str, const char* from, char
 }
 */
 
-double Seller::CalculateFee( void )
+double BurzaRegister::CalculateFee( SellerData& seller, ItemDataArray& items )
 {
 	double fee = 0;
-	t_items_in_categories itemCategories;
-	t_items_in_categories::iterator icit;
-	ProductCategory*	cat;
+	ItemCategoryArray	itemCategories;
+	ItemCategoryIterator icit;
 	
-	itemCategories = GetItemsCategories();
+	itemCategories = m_storage->GetItemsCategories( items );
 	for( icit = itemCategories.begin(); icit != itemCategories.end(); ++icit ) {
 		
-		double itemFee;
-		
-		cat = Centrala::Instancia()->Register()->FindProductCategory( icit->first );
-		if ( cat == NULL )
-			itemFee = -100.0;
-		else
-			itemFee = cat->m_fee_per_item;
-		
-		fee += itemFee * icit->second;
+		fee += icit->fee_per_item;
 	}
 	
-	SellerCategory* scat;
-	scat = Centrala::Instancia()->Register()->FindSellerCategory( m_kategoria );
-	if ( scat == NULL )
-		fee -= 10000;
-	else
-		fee += scat->m_fee_per_sale;
-}
-
-Seller::t_items_in_categories Seller::GetItemsCategories( void )
-{
-	t_items_in_categories res;
-	t_items_in_categories::iterator it;
+	SellerCategory scat = m_storage->GetSellerCategory(seller.category);
 	
-	for( unsigned int i=0; i<m_products.size(); ++i ) {
-		
-		it = res.find( m_products[ i ].m_kategoria );
-		
-		if ( it == res.end() )
-			res[ m_products[ i ].m_kategoria ] = 1;
-		else
-			it->second++;
-		
-	}
-	
-	return res;
+	fee += scat.seller_fee;
 }
 
 // ==============================================
@@ -210,7 +179,10 @@ Seller::t_items_in_categories Seller::GetItemsCategories( void )
 
 BurzaRegister::BurzaRegister()
 {
-	m_storage = new DataTextfile( Centrala::Instancia()->Nastavenia()->m_data_dir_path );
+	m_storage = new DataTextfile( Centrala::Settings().m_data_dir_path );
+	//TODO: dispose dataStorage in destructor somehow.
+//	DataTextfile dataStorage = new DataTextfile( Centrala::Instancia()->Nastavenia()->m_data_dir_path );
+//	m_storage = new CachedDataStorage(*dataStorage);
 }
 
 BurzaRegister::~BurzaRegister()
@@ -304,36 +276,9 @@ SellerData BurzaRegister::NajdiPredajcuPodlaKodu( const char* kod )
 	return seller;
 }
 
-ProductCategory* BurzaRegister::FindProductCategory( char category )
-{
-	t_productCategories::iterator it = m_productCategories.find( category );
-	if ( it == m_productCategories.end() )
-		return NULL;
-	return & it->second;
-}
-
-SellerCategory* BurzaRegister::FindSellerCategory( char seller_category )
-{
-	t_sellerCategories::iterator it = m_sellerCategories.find( seller_category );
-	if ( it == m_sellerCategories.end() )
-		return NULL;
-	return & it->second;
-}
-
 // ==============================================
 // ==============================================
 // ==============================================
-
-unsigned int BurzaRegister::GenerateSellerUniqueId( void )
-{
-	unsigned int max = 0;
-	for( int i=0; i<m_predajcovia.size(); ++i ) {
-		if ( m_predajcovia[ i ].m_unique_id > max )
-			max = m_predajcovia[ i ].m_unique_id;
-	}
-	
-	return max+1;
-}
 
 void BurzaRegister::GenerateSellerUniqueCode( SellerData& seller, std::string try_this_code )
 {
@@ -410,32 +355,30 @@ void BurzaRegister::FinishCheckout( ItemDataArray& items )
 	
 	// mark items in register as sold
 	ItemDataIterator it, ite;
-	SellerData seller;
-	ItemData item;
 	
 	for( it = items.begin(), ite = items.end(); it != ite; ++it ) {
-	  
+
+		/*
+		SellerData seller;
 		try {
 			seller = m_storage->GetSeller( it->seller_id );
 		}
-		catch(WrongSellerIdException ex) {
+		catch(WrongSellerException ex) {
 			throw runtime_error( "BurzaRegister::FinishCheckout: Seller not found" );
 		}
+		*/
 		
+		ItemData item;
 		try {
 			item = m_storage->GetItem(it->id);
 		}
-		catch(WrongItemIdException ex) {
+		catch(WrongItemException ex) {
 			throw runtime_error( "BurzaRegister::FinishCheckout: Item not found" );
 		}
 		
 		item.status = sold;
 		m_storage->ModifyItem(item.id, item);
 	}
-}
-
-void BurzaRegister::PrintRecipeeAtEndOfCheckout( BurzaRegister::t_sellerProducts& items, PdfWrapperBase& pdf )
-{
 }
 
 double BurzaRegister::CalcPriceOfProducts( ItemDataArray& items )
@@ -474,7 +417,7 @@ Centrala::~Centrala()
 	delete mp_dialogs;
 }
 
-Centrala* Centrala::Instancia( void )
+Centrala* Centrala::Instance( void )
 {
 	if ( m_instance == NULL ) {
 		m_instance = new Centrala;
@@ -492,9 +435,4 @@ void Centrala::Zmaz( void )
 		delete m_instance;
 		m_instance = NULL;
 	}
-}
-
-BurzaDialogs* Centrala::Dialogy( void )
-{
-	return mp_dialogs;
 }

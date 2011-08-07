@@ -2,6 +2,11 @@
 
 using namespace Burza;
 
+const SELLER_ID SELLER_ID_NONE = -1;
+const ITEM_ID ITEM_ID_NONE = -1;
+const SELLER_CATEGORY_ID SELLER_CATEGORY_ID_NONE = -1;
+const ITEM_CATEGORY_ID ITEM_CATEGORY_ID_NONE = -1;
+
 SellerData::SellerData()
 {
 	name = "";
@@ -40,18 +45,18 @@ ItemData::ItemData()
 	id = -1;
 }
 
-ItemData::ItemData(string _name, int _number, double _price, int _category, int _status, SELLER_ID _seller_id)
+ItemData::ItemData(string _name, int _number, double _price, int _category, int _status)
 {
 	name = _name;
 	number = _number;
 	price = _price;
 	category = _category;
 	status = _status;
-	seller_id = _seller_id;
+	seller_id = -1;
 	id = -1;
 }
 
-ItemDataArray DataTextfile::GetSellerItems(SELLER_ID id)
+ItemDataArray DataAccessInterface::GetSellerItems(SELLER_ID id)
 {
 	ItemDataArray	result;
   
@@ -98,3 +103,40 @@ void DataAccessInterface::AddItems( ItemDataArray& items )
 		itemit->id = id;
 	}
 }
+
+ItemDataArray& DataAccessInterface::GetItems(vector<ITEM_ID> ids)
+{
+	ItemDataArray items;
+  
+	for( int i=0; i<ids.size(); ++i ) {
+		items.push_back( GetItem( ids[ i ] ) );
+	}
+	
+	return items;
+}
+
+const char* DataAccessInterface::ItemStatus2String( ItemStatus status )
+{
+	if (( status < 0 ) || ( status >= pocet_stavov ))
+		return "?";
+	
+	return m_string_stavu[ status ].c_str();
+}
+
+char DataAccessInterface::ItemStatus2Char( ItemStatus status )
+{
+	if (( status < 0 ) || ( status >= ItemStatusCount ))
+		return '?';
+	
+	return m_znak_stavu_v_subore[ status ];
+}
+
+ItemStatus DataAccessInterface::Char2ItemStatus( char c )
+{
+	for( int i=0; i < pocet_stavov; ++i )
+		if ( m_znak_stavu_v_subore[ i ] == c )
+			return (Burza::ItemStatus) i;
+	
+	return undefined;
+}
+

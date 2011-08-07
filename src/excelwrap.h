@@ -38,7 +38,7 @@ private:
 	void ReadSheetIntoTable( string filename ) throw( runtime_error );
 	
 public:
-	Seller ReadSeller( string filename ) throw( runtime_error );
+	void ReadSeller( string filename, SellerData& seller, ItemDataArray& items ) throw( runtime_error );
 	
 };
 

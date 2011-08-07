@@ -53,38 +53,53 @@ typedef int ITEM_ID;
 typedef int SELLER_CATEGORY_ID;
 typedef int ITEM_CATEGORY_ID;
 
-class SellerData {
-public:
-	std::string		name;
-	std::string		shortcode;
-	std::string		note;
-	int				category;
+static const SELLER_ID SELLER_ID_NONE = -1;
+static const ITEM_ID ITEM_ID_NONE = -1;
+static const SELLER_CATEGORY_ID SELLER_CATEGORY_ID_NONE = -1;
+static const ITEM_CATEGORY_ID ITEM_CATEGORY_ID_NONE = -1;
+
+struct SellerData {
+	std::string				name;
+	std::string				shortcode;
+	std::string				note;
+	SELLER_CATEGORY_ID		category;
 
 	ConvFuncs::s_datetime	last_update;
 	// ID generated through Register::GenerateSellerUniqueCode()
-	SELLER_ID		id;
+	SELLER_ID				id;
 
 public:
 	SellerData();
 	SellerData(string _name, string _shortcode, string _note, int _category);
 } ;
 
-class ItemData {
-public:
-	std::string		name;
-	int				number;
-	double			price;
-	int				category;
-	int				status;
+struct ItemData {
+	std::string				name;
+	int						number;
+	double					price;
+	ITEM_CATEGORY_ID		category;
+	int						status;
 
-	ITEM_ID			id;
+	ITEM_ID					id;
 	ConvFuncs::s_datetime	last_update;
-	SELLER_ID		seller_id;
+	SELLER_ID				seller_id;
 	
 public:
 	ItemData();
-	ItemData(string _name, int _number, double _price, int _category, int _status, SELLER_ID _seller_id);
+	ItemData(string _name, int _number, double _price, int _category, int _status);
 } ;
+
+struct SellerCategory {
+	SELLER_CATEGORY_ID	id;
+	char				letter;
+	double				seller_fee;
+};
+
+struct ItemCategory {
+	ITEM_CATEGORY_ID	id;
+	char				letter;
+	double				fee_per_item;
+};
 
 typedef vector<SellerData> SellerDataArray;
 typedef SellerDataArray::iterator SellerDataIterator;
@@ -92,12 +107,20 @@ typedef SellerDataArray::iterator SellerDataIterator;
 typedef vector<ItemData> ItemDataArray;
 typedef ItemDataArray::iterator ItemDataIterator;
 
+typedef vector<SellerCategory> SellerCategoryArray;
+typedef SellerCategoryArray::iterator SellerCategoryIterator;
+
+typedef vector<ItemCategory> ItemCategoryArray;
+typedef ItemCategoryArray::iterator ItemCategoryIterator;
+
 /* Abstract class providing interface functions to access the BURZA data.
   Reason of the interface is that data can be stored either locally in data files
   or on a Db server.
 */
 class DataAccessInterface {
   public:  
+  //! Data functions
+	
   //! Get list of sellers data.
   virtual SellerDataArray GetSellers( void ) = 0;
   
@@ -134,7 +157,7 @@ class DataAccessInterface {
   virtual void RemoveSeller(SELLER_ID id);
 
   //! Adds new item.
-  virtual ITEM_ID AddItem(ItemData& item);
+  virtual ITEM_ID AddItem(ItemData& item, SELLER_ID id);
   
   //! Changes item.
   virtual void ModifyItem(ITEM_ID item_id, ItemData& item);
@@ -146,6 +169,25 @@ class DataAccessInterface {
   //! Get item.
   //! Throws WrongItemIdException if no such item is present.
   virtual ItemData GetItem(ITEM_ID id) = 0;
+
+  //! Get multiple items
+  //! Throws WrongItemIdException if no such item is present.
+  virtual ItemDataArray& GetItems(vector<ITEM_ID> ids);
+  
+  // ==== categories ====
+  ItemCategory GetItemCategory(ITEM_CATEGORY_ID id);
+  ItemCategory GetItemCategoryByLetter(char letter);
+
+  ItemCategoryArray GetItemsCategories(vector<ITEM_CATEGORY_ID>& ids);
+  ItemCategoryArray GetItemsCategoriesByLetter(vector<char>& letters);
+
+  SellerCategory GetSellerCategory(SELLER_CATEGORY_ID id);
+  SellerCategory GetSellerCategoryByLetter(char letter);
+
+  SellerCategoryArray GetSellersCategories(vector<SELLER_CATEGORY_ID>& ids);
+  SellerCategoryArray GetSellersCategoriesByLetter(vector<char>& letters);
+
+  // ==== modified time ====
   
   //! Returns true if seller was modified since last local change
   //! Throws WrongSellerIdException if no such seller is present.
@@ -165,6 +207,8 @@ class DataAccessInterface {
   //! Throws WrongItemIdException if no such item is present.
   virtual ItemData* GetItemIfModified(ITEM_ID id);
 
+  // ==== network identification and connection ====
+  
   //! set name of local machine or program, to be seen on different machines in form
   //! of "Seller XYZ is being modified by NAME since DATE"
   virtual void SetLocalName(string& name);
@@ -173,6 +217,7 @@ class DataAccessInterface {
   virtual bool ConnectDb(string& serverName, string& login, string& password);
   
 public:
+  // ==== helper functions ====
 	
   //! looks for item in the item array. Returns NULL if such item not found in the array
   static ItemData* FindItemByNumber( ItemDataArray& list, int number );
@@ -187,7 +232,18 @@ public:
   virtual ITEM_ID GetNewItemId( void ) = 0;
   
   //! Calls AddItem on multiple items. Sets item id's
-  virtual void AddItems( ItemDataArray& items );
+  virtual void AddItems( ItemDataArray& items, SELLER_ID id );
+  
+  //! returns array of exactly the same size as array in parameter.
+  //! returned array contains category for items in the same order as items in parameter.
+  virtual ItemCategoryArray GetItemsCategories( ItemDataArray& items );
+  
+  //! returns string representing 'item status'
+  static const char* ItemStatus2String( ItemStatus status );
+  
+  //! converts status to short character and back.
+  static char ItemStatus2Char( ItemStatus status );
+  static ItemStatus Char2ItemStatus( char c );
 };
 
 //! Base class that should be used as base for classes that read and write data.
@@ -228,21 +284,33 @@ class NotConnectedException : public DataStorageException {
     }
 };
 
-class WrongSellerIdException : public DataStorageException {
+class WrongSellerException : public DataStorageException {
     virtual const char* what() const throw() {
-        return "Wrong Seller Id";
+        return "Wrong Seller";
     }
 };
 
-class WrongItemIdException : public DataStorageException {
+class WrongItemException : public DataStorageException {
     virtual const char* what() const throw() {
-        return "Wrong Item Id";
+        return "Wrong Item";
     }
 };
 
-class WrongItemNumberException : public DataStorageException {
+class WrongSellerCategoryException : public DataStorageException {
     virtual const char* what() const throw() {
-        return "Wrong Item number";
+        return "Wrong Item category";
+    }
+};
+
+class WrongItemCategoryException : public DataStorageException {
+    virtual const char* what() const throw() {
+        return "Wrong Item category";
+    }
+};
+
+class ServerException : public DataStorageException {
+    virtual const char* what() const throw() {
+        return "Server or network problems";
     }
 };
 
@@ -260,7 +328,7 @@ enum ItemStatus {
 	given_as_gift,
 	lost,
 	undefined,
-	status_count
+	ItemStatusCount
 } ;
 
 }; // namespace Burza

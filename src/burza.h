@@ -27,18 +27,6 @@ namespace Burza {
 	
 	class PdfWrapperBase;
 	
-class SellerCategory {
-public:
-	char			m_category;
-	double		m_fee_per_sale;
-};
-
-class ProductCategory {
-public:
-	char			m_category;
-	double		m_fee_per_item;
-};
-
 class NastaveniaProgramu {
 public:
 	NastaveniaProgramu();
@@ -87,7 +75,6 @@ public:
 	// key: category character; value: number of items of that category
 	typedef std::map< char, int > t_items_in_categories;
 	
-	t_items_in_categories GetItemsCategories( void );
 	
 	static char file_field_delimiters[];
 } ;
@@ -107,12 +94,14 @@ public:
 	~BurzaRegister();
 	
 public:
+	
+	SellerDataArray	m_predajcovia;
+
+	/* shouldn't be used anymore
 	// typedef		std::vector< Seller >	t_predajcovia;
 	typedef		std::map< char, ProductCategory >	t_productCategories;
 	typedef		std::map< char, SellerCategory >	t_sellerCategories;
-	
-	
-	SellerDataArray	m_predajcovia;
+
 	t_productCategories	m_productCategories;
 	t_sellerCategories	m_sellerCategories;
 	
@@ -125,6 +114,7 @@ public:
 			return (( sellerCode == other.sellerCode ) && ( productNumber == other.productNumber ));
 		}
 	} ;
+	*/
 	
 	// typedef std::vector< SellerProduct > t_sellerProducts;
 	
@@ -136,7 +126,7 @@ public:
 	//! returns -1 if not found, or index of seller.
 	int NajdiPredajcuPodlaKoduIndex( const char* kod );
 	SellerData NajdiPredajcuPodlaKodu( const char* kod );
-	ProductCategory* FindProductCategory( char product_category );
+	ItemCategory* FindProductCategory( char product_category );
 	SellerCategory* FindSellerCategory( char seller_category );
 	
 	double CalcPriceOfProducts( ItemDataArray& items );
@@ -144,13 +134,17 @@ public:
 	//! marks products as sold
 	void FinishCheckout( ItemDataArray& items );
 	
-	//! creates checkout receipt
-	void PrintRecipeeAtEndOfCheckout( ItemDataArray& items, PdfWrapperBase& pdf );
-	
 public:
 	
 	unsigned int GenerateSellerUniqueId( void );
 	void GenerateSellerUniqueCode( SellerData& seller, std::string try_this_code );
+
+	double CalculateFee( SellerData& seller, ItemDataArray& items );
+
+  private:
+	ItemCategory	temporaryItemCategory;
+	SellerCategory	temporarySellerCategory;
+	
 } ;
 
 // ==============================================
@@ -163,18 +157,19 @@ private:
 	static Centrala	*m_instance;
 public:
 	// vytvorenie a ziskanie instancie
-	static Centrala* Instancia( void );
+	static Centrala* Instance( void );
 	// zmazanie instancie
 	static void Zmaz( void );
 public:
 	
-	NastaveniaProgramu*	Nastavenia( void ) { return & m_nastavenia; }
-	BurzaDialogs*	Dialogy( void );
-	BurzaRegister* Register( void ) { return & m_register; }
+	static NastaveniaProgramu&	Settings( void ) { return Instance()->m_settings; }
+	static BurzaDialogs& Dialogs( void ) { return * Instance()->mp_dialogs; }
+	static BurzaRegister& Register( void ) { return Instance()->m_register; }
+	static DataStorage& Storage( void ) { return * Instance()->m_register.m_storage; }
 	
-	NastaveniaProgramu		m_nastavenia;
-	BurzaDialogs					*mp_dialogs;
-	BurzaRegister					m_register;
+	NastaveniaProgramu		m_settings;
+	BurzaDialogs			*mp_dialogs;
+	BurzaRegister			m_register;
 } ;
 	
 	

@@ -93,7 +93,7 @@ void ExcelFileWrapper::ReadSheetIntoTable( string filename ) throw( runtime_erro
 	
 }
 
-Seller ExcelFileWrapper::ReadSeller( string filename ) throw( runtime_error )
+void ExcelFileWrapper::ReadSeller( string filename, SellerData& seller, ItemDataArray& items ) throw( runtime_error )
 {
 	string error_str;
 	error_str = "Could not read seller from file '";
@@ -113,13 +113,10 @@ Seller ExcelFileWrapper::ReadSeller( string filename ) throw( runtime_error )
 		throw runtime_error( error_str );
 	}
 	
-	Seller seller;
-	Product product;
-	
 	// Read seller info
-	seller.m_meno = m_sheet.Cell( 3, 2 ).GetText();
-	seller.m_kod = m_sheet.Cell( 4, 2 ).GetText();
-	seller.m_poznamka = m_sheet.Cell( 5, 2 ).GetText();
+	seller.name = m_sheet.Cell( 3, 2 ).GetText();
+	seller.shortcode = m_sheet.Cell( 4, 2 ).GetText();
+	seller.note = m_sheet.Cell( 5, 2 ).GetText();
 	
 	// read stock
 	int num;
@@ -130,8 +127,6 @@ Seller ExcelFileWrapper::ReadSeller( string filename ) throw( runtime_error )
 		if (( m_sheet.Cell( row, 1 ) == "" ) || ( m_sheet.Cell( row, 2 ) == "" )) {
 			break;
 		}
-		
-		product.Reset();
 		
 		s = m_sheet.Cell( row, 1 );
 		num = atoi( s.c_str() );
@@ -149,12 +144,10 @@ Seller ExcelFileWrapper::ReadSeller( string filename ) throw( runtime_error )
 			s += ")";
 		}
 		
-		seller.PridajTovar( num, s.c_str(),  atof( m_sheet.Cell( row, 3 ).GetText().c_str() ), 'a', caka_na_prijatie );
+		items.push_back(ItemData( s, num, atof( m_sheet.Cell( row, 3 ).GetText().c_str() ), 0, not_in_stock_yet ));
 		
 		row++;
 	} ;
-	
-	return seller;
 }
 
 

@@ -9,17 +9,15 @@
 #include <gtkmm.h>
 #include <gtkmm/main.h>
 #include <libglademm.h>
+#include <set>
 
 #include "burza.h"
 #include "dataaccess.h"
 
 using namespace std;
+using namespace Burza;
 
-namespace Burza {
-// class Seller;
-// class Product;
-class BurzaRegister;
-};
+class Burza::BurzaRegister;
 
 // ComboBoxText is class derived from ComboBox, I have to provide special constructor
 // so I can load it up from glade
@@ -41,11 +39,12 @@ public:
 	// vyplni komba v Registri aj Pokladni
 	void VyplnPredajcovDoKomb( void );
 	
+	void RegisterZobrazPredajcu( SellerData& seller );
 	void RegisterZobrazPredajcu( const char* kod );
 	void RegisterZobrazPredajcuCezIndex( unsigned int idx );
 	
 	void PokladnaVyplnTovarDoKomba( void );
-	void PokladnaZmenaPredajcu( void );
+	void CashoutSellerChanged( void );
 	
 	// Displays message box with message. Function returns only after you click OK on the box.
 	void DisplayErrorMessageBox( string msg, string msg_title = "" );
@@ -53,8 +52,8 @@ public:
 	//! returns true if Yes is pressed, false otherwise (you can expect that either No or 'x' was pressed.
 	bool DisplayYesNoMessageBox( string message, string title );
 	
-	void StartDialogEditProduct( Burza::ItemData& product, Burza::SellerData& seller );
-	void StartDialogEditSeller( Burza::SellerData& seller );
+	void StartDialogEditProduct( ITEM_ID item );
+	void StartDialogEditSeller( SELLER_ID id );
 	void SellerModified( Burza::SellerData& seller );
 	
 public:
@@ -72,10 +71,7 @@ public:
 	void ComboRegisterChangedSeller( void );
 	void TreeSelectChangedItem( void );
 	
-	void RegisterGetSelectedItemNumbers( vector<unsigned int>& listOfItems );
-	
-	//! returns currently displayed seller in Register window, or NULL if none selected.
-	Burza::SellerData* RegisterGetSelectedSeller( void );
+	void RegisterGetSelectedItemIds( vector<Burza::ITEM_ID>& listOfIds );
 	
 	// Goes through selector's selected items in the list and returns array of indexes of selected items in the list.
 	static void GetSelectedItemNumbers( Glib::RefPtr<Gtk::TreeSelection>& selector, vector<unsigned int>& listOfItems );
@@ -188,24 +184,34 @@ public:
 		Gtk::TreeModelColumn<int> m_item_id;
 	};
 	
+	// == unknown ==
+	
 	ItemsColumns	m_ItemsColumn;
 	
-	// Seller, ktory je vybrany v Pokladnicnom okne v kombo-boxe.
-	Burza::SellerData		*m_pCashoutVybranyPredajca;
-	Burza::ItemData		*m_pCashoutVybranyTovar;
-	int		m_CashoutVybranyPredajcaIdx;
-	int		m_CashoutVybranyTovarIdx;
+	// === register + cashout ===
 	
-	float		m_cashout_sum;
+	//! sellers displayed in the program, in combo boxes:
+	//! m_pComboSeller, m_pCashoutComboLookupSeller
+	//! non-sorted array so it is alignable to visual lists.
+	SellerDataArray m_DisplayedSellers;
+	
+	// === register ===
+
+	//! items displayed in the register item list.
+	ItemDataArray m_RegisterDisplayedItems;
 	
 	// Register
-	Burza::SellerData*		m_pRegisterVybranyPredajca;
+	SELLER_ID		m_SelectedSellerId;
+	
+	bool 	RegisterAnySelectedSeller( void );
+	SellerData 	RegisterGetSelectedSeller( void );
+	SELLER_ID	RegisterGetSelectedSellerId( void );
 	
 	// If user is editing some item, its pointer should be here, so it can be saved after modified.
 	// edited product
-	Burza::ItemData* m_productEdited;
+	Burza::ItemData		m_EditedItem;
 	// edited seller
-	Burza::SellerData* m_sellerEdited;
+	Burza::SellerData	m_EditedSeller;
 	
 	enum edit_action {
 		ea_add,
@@ -215,8 +221,40 @@ public:
 	edit_action	m_productEditAction;
 	edit_action	m_sellerEditAction;
 	
-	// == Checkout ==
-	Burza::ItemDataArray		m_shoppingCart;
+
+	// === cashout ===
+
+	float		m_cashout_sum;
+
+	//! items displayed in the cashout
+	ItemDataArray m_CashoutDisplayedItems;
+	
+	// Seller, ktory je vybrany v Pokladnicnom okne v kombo-boxe.
+	SELLER_ID		m_CashoutSelectedSellerId;
+	ITEM_ID			m_CashoutSelectedItemId;
+	
+	bool 	CashoutAnySelectedSeller( void ) 
+		{ return m_CashoutSelectedSellerId != SELLER_ID_NONE; }
+		
+	SellerData 	CashoutGetSelectedSeller( void );
+	
+	SELLER_ID	CashoutGetSelectedSellerId( void )
+		{ return m_CashoutSelectedSellerId; }
+
+
+	bool 	CashoutAnySelectedItem( void ) 
+		{ return m_CashoutSelectedItemId != ITEM_ID_NONE; }
+		
+	ItemData 	CashoutGetSelectedItem( void );
+	
+	ITEM_ID	CashoutGetSelectedItemId( void )
+		{ return m_CashoutSelectedItemId; }
+
+	typedef vector<ITEM_ID>		ShoppingCartArray;
+	typedef ShoppingCartArray::iterator ShoppingCartIterator;
+	
+	//! array of items; array is non-sorted so it can be assigned to visual list.
+	ShoppingCartArray			m_shoppingCart;
 	
 } ;
 

@@ -5,8 +5,8 @@ using namespace std;
 
 char DataTextfile::file_field_delimiters[] = "|*\r\n";
 
-char DataTextfile::m_znak_stavu_v_subore[status_count] = "ospvdnu";
-string DataTextfile::m_string_stavu[status_count] = {
+char DataTextfile::m_znak_stavu_v_subore[ ItemStatusCount ] = "ospvdnu";
+string DataTextfile::m_string_stavu[ ItemStatusCount ] = {
   "Nezaradene",
   "Skladom",
   "Predane",
@@ -413,28 +413,19 @@ ITEM_ID DataTextfile::GetNewItemId( void )
 	return biggestId + 1;
 }
 
-char DataTextfile::Stav2Char( ItemStatus stav )
+ItemCategoryArray DataTextfile::GetItemsCategories( ItemCategoryArray& items )
 {
-	if (( stav < 0 ) || ( stav >= status_count ))
-		return '?';
+	for( unsigned int i=0; i<items.size(); ++i ) {
+		
+		it = res.find( m_products[ i ].m_kategoria );
+		
+		if ( it == res.end() )
+			res[ m_products[ i ].m_kategoria ] = 1;
+		else
+			it->second++;
+		
+	}
 	
-	return m_znak_stavu_v_subore[ stav ];
-}
-
-const char* DataTextfile::Stav2String( ItemStatus stav )
-{
-	if (( stav < 0 ) || ( stav >= pocet_stavov ))
-		return "?";
-	
-	return m_string_stavu[ stav ].c_str();
-}
-
-ItemStatus DataTextfile::Char2Stav( char c )
-{
-	for( int i=0; i < pocet_stavov; ++i )
-		if ( m_znak_stavu_v_subore[ i ] == c )
-			return (Burza::ItemStatus) i;
-	
-	return undefined;
+	return res;
 }
 
