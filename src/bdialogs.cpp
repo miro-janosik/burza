@@ -32,14 +32,12 @@ BurzaDialogs::BurzaDialogs()
 	
 	m_SelectedSellerId = SELLER_ID_NONE;
 	
-	m_pCashoutVybranyPredajca = NULL;
-	m_CashoutVybranyPredajcaIdx = -1;
-	m_pCashoutVybranyTovar = NULL;
-	m_CashoutVybranyTovarIdx = -1;
+	m_CashoutSelectedSellerId = SELLER_ID_NONE;
+	m_CashoutSelectedItemId = ITEM_ID_NONE;
 	
 	m_cashout_sum = 0.0;
-	
-	m_sellerEdited = NULL;
+
+	m_EditedSeller = SELLER_ID_NONE;
 	
 	ConvFuncs::SingletonInstanceCreate();
 }
@@ -398,20 +396,20 @@ int BurzaDialogs::NahrajDialogy( void )
 	
 }
 
-void BurzaDialogs::RegisterZobrazPredajcu( const char* kod )
+void BurzaDialogs::RegisterDisplaySeller( const char* kod )
 {
 	SellerData seller;
 	
 	try {
 		string codeString(kod);
 		seller = Centrala::Storage().GetSellerByCode(codeString);
-		RegisterZobrazPredajcu(seller);
+		RegisterDisplaySeller(seller);
 	}
 	catch(WrongSellerException) {
 	}
 }
 
-void BurzaDialogs::RegisterZobrazPredajcuCezIndex( unsigned int idx )
+void BurzaDialogs::RegisterDisplaySellerByIndex( unsigned int idx )
 {
 	SellerDataArray	sellers = Centrala::Storage().GetSellers();
 
@@ -421,10 +419,10 @@ void BurzaDialogs::RegisterZobrazPredajcuCezIndex( unsigned int idx )
 		return;
 	}
 
-	RegisterZobrazPredajcu(sellers[ idx ]);
+	RegisterDisplaySeller(sellers[ idx ]);
 }
 
-void BurzaDialogs::RegisterZobrazPredajcu(SellerData& seller)
+void BurzaDialogs::RegisterDisplaySeller(SellerData& seller)
 {
 	m_SelectedSellerId = seller.id;
 	
@@ -465,7 +463,7 @@ void BurzaDialogs::RegisterZobrazPredajcu(SellerData& seller)
 	// i = m_pComboSeller->get_active_row_number();
 }
 
-void BurzaDialogs::VyplnPredajcovDoKomb( void )
+void BurzaDialogs::FillSellerCombos( void )
 {
 	m_DisplayedSellers = Centrala::Storage().GetSellers();
 	std::string		str;
@@ -549,15 +547,13 @@ void BurzaDialogs::ButtonRegisterImportSeller( void )
 
 void BurzaDialogs::ButtonRegisterAddSeller( void )
 {
-	SELLER_ID sellerid = ::Storage().AddSeller(SellerData(_("Nový predajca"), "", "", 0));
-	
-	m_sellerEditAction = ea_add;
-	StartDialogEditSeller( sellerid );
+	// m_sellerEditAction = ea_add;
+	StartDialogEditSeller( SELLER_ID_NONE );
 }
 
 void BurzaDialogs::ButtonRegisterUpdateSeller( void )
 {
-	m_sellerEditAction = ea_modify;
+	// m_sellerEditAction = ea_modify;
 	if ( RegisterAnySelectedSeller() )
 		StartDialogEditSeller( GetSelectedSellerId() );
 }
@@ -567,10 +563,7 @@ void BurzaDialogs::ButtonRegisterAddItem( void )
 	if ( !RegisterAnySelectedSeller() )
 		return;
 	
-	ITEM_ID newitemid = Centrala::Storage().AddItem( ItemData("", -1, 0.0, 0, not_in_stock_yet), m_SelectedSellerId );
-	
-	m_productEditAction = ea_add;
-	StartDialogEditProduct( newitemid );
+	StartDialogEditProduct( ITEM_ID_NONE );
 }
 
 void BurzaDialogs::ButtonRegisterModifyItem( void )
@@ -584,7 +577,6 @@ void BurzaDialogs::ButtonRegisterModifyItem( void )
 	if ( listOfItems.size() != 1 )
 		return;
 	
-	m_productEditAction = ea_modify;
 	StartDialogEditProduct( listOfItems[0] );
 }
 
@@ -608,7 +600,8 @@ void BurzaDialogs::ButtonRegisterRemoveItem( void )
 		Centrala::Storage().RemoveItem( productIdsToDelete[ i ] );
 	}
 	
-	RegisterZobrazPredajcu( m_SelectedSellerId );
+	SellerData seller = Centrala::Storage().GetSeller( m_SelectedSellerId );
+	RegisterDisplaySeller( seller );
 }
 
 void BurzaDialogs::ButtonRegisterCalcFee( void )
@@ -669,7 +662,7 @@ void BurzaDialogs::ButtonSwitchToCashout( void )
 	m_pCashoutComboSearch->clear();
 	m_pCashoutComboSearchEntry->set_text( "" );
 
-	VyplnPredajcovDoKomb();
+	FillSellerCombos();
 	
 	// set focus chaing = set order of tab-stops on items. Weird, but has to be done in the code.
 	// Default tab-order
@@ -698,7 +691,7 @@ void BurzaDialogs::ButtonSwitchToRegister( void )
 	m_pWndCashOut->hide();
 	m_pWndRegister->maximize();
 	
-	VyplnPredajcovDoKomb();
+	FillSellerCombos();
 	m_pLabelFee->set_text( "" );
 }
 
@@ -714,7 +707,7 @@ void BurzaDialogs::ComboRegisterChangedSeller( void )
 		return;
 	}
 	
-	RegisterZobrazPredajcuCezIndex( i );
+	RegisterDisplaySellerByIndex( i );
 }
 
 void BurzaDialogs::TreeSelectChangedItem( void )
@@ -953,14 +946,16 @@ void BurzaDialogs::StartDialogEditProduct( ITEM_ID itemid )
 {
 	ItemData item;
 	
-	try {
-		item = Centrala::Storage().GetItem( itemid );
+	if ( itemid != ITEM_ID_NONE ) {
+		try {
+			item = Centrala::Storage().GetItem( itemid );
+		}
+		catch(WrongItemException)
+		{
+			throw runtime_error( "BurzaDialogs::ButtonRegisterModifyItem item not in list" );
+		}
 	}
-	catch(WrongItemException)
-	{
-		throw runtime_error( "BurzaDialogs::ButtonRegisterModifyItem item not in list" );
-	}
-	
+
 	ItemCategory cat = Centrala::Storage().GetItemCategory( item.category );
 	
 	m_pItemeditName->set_text( item.name );
@@ -981,9 +976,11 @@ void BurzaDialogs::StartDialogEditProduct( ITEM_ID itemid )
 
 void BurzaDialogs::ButtonItemEditOk( void )
 {
-	assert( m_EditedItem.id != ITEM_ID_NONE );
+	if (( m_productEditAction == ea_modify ) && ( m_EditedItem.id == ITEM_ID_NONE )) {
+		assert(false);
+	}
 	
-	// validate
+// validate
 	bool validate_needed = false;
 	string str;
 	
@@ -1039,44 +1036,38 @@ void BurzaDialogs::ButtonItemEditOk( void )
 	if ( m_pItemeditCategory->get_text().empty() )
 		m_EditedItem.category = ITEM_CATEGORY_ID_NONE;
 	else
-	  asdfasdf asdfasdfads
-		m_productEdited->m_kategoria = m_pItemeditCategory->get_text().c_str()[0];
+		m_EditedItem.category = ITEM_CATEGORY_ID_NONE;
 	
 	int i = m_pItemeditStatusCombo->get_active_row_number();
 	if ( i != -1 ) {
-		m_productEdited->m_stav = (e_product_status) i;
+		m_EditedItem.status = (ItemStatus) i;
 	}
-	
-	SellerModified( m_sellerEdited );
-	
-	Seller* sellerThatWasModified = m_sellerEdited;
-	m_productEdited = NULL;
-	m_sellerEdited = NULL;
 
-	// add new item in row.
-	if ( m_productEditAction == ea_add ) {
+	// add new item, or modify edited item
+	int action = ( m_EditedItem.id == ITEM_ID_NONE ) ? ea_add : ea_modify;
+	
+	switch ( action ) {
+	case ea_add:
+		m_EditedItem.id = Centrala::Storage().AddItem(m_EditedItem, m_EditedSeller.id);
+		break;
 		
-		sellerThatWasModified->PridajTovar( -1, "", 0.0, 'a', caka_na_prijatie );
-		Product* p = & m_pRegisterVybranyPredajca->m_products[ 
-			m_pRegisterVybranyPredajca->m_products.size() - 1 ];
-		
-		m_productEditAction = ea_add;
-		StartDialogEditProduct( p, sellerThatWasModified );
+	case ea_modify:
+		Centrala::Storage().ModifyItem(m_EditedItem.id, m_EditedItem);
+		break;
 	}
 	
-	SellerData seller = Centrala::Storage().GetSeller( m_EditedItem.id );
+	RegisterDisplaySeller( m_EditedSeller );
+	
+	// after adding new item - start adding another one.
+	StartDialogEditProduct( ITEM_ID_NONE );
 }
 
 void BurzaDialogs::ButtonItemEditCancel( void )
 {
-	if ( m_productEditAction == ea_add )
-		m_sellerEdited->m_products.erase( m_sellerEdited->m_products.end() -1 );
-	
 	m_pWndItem->hide();
 	m_productEdited = NULL;
 	m_sellerEdited = NULL;
 }
-
 
 bool BurzaDialogs::ButtonItemEditClose( GdkEventAny* )
 {
@@ -1090,65 +1081,66 @@ void BurzaDialogs::ComboItemEditStatusChanged( void )
 
 void BurzaDialogs::StartDialogEditSeller( SELLER_ID id )
 {
+	SellerData seller; 
+	
+	if ( id != SELLER_ID_NONE ) {
+		seller = Centrala::Storage().GetSeller( id );
+		Centrala::Storage().ModifySellerStart( id );
+	} else {
+		seller.name = _( "Nový predajca" );
+	}
+	
 	m_pSellerEditName->set_text( seller.name );
 	m_pSellerEditCode->set_text( seller.shortcode );
 	m_pSellerEditNote->set_text( seller.note );
 	
-	assert( m_sellerEdited == NULL );
-	m_sellerEdited = seller;
+	m_EditedSeller = seller;
 	m_pWndSeller->show();
 }
 
 void BurzaDialogs::ButtonSellerEditOk( void )
 {
-	assert( m_sellerEdited != NULL );
-	
 	// validate
 	string str;
 	
 	if ( m_pSellerEditName->get_text().empty() ) {
-		m_pSellerEditName->set_text( _( "Seller" ) );
+		m_pSellerEditName->set_text( _( "Nový predajca" ) );
 		return;
 	}
 	
-	string sellerOriginalCode = m_sellerEdited->m_kod;
+	string sellerOriginalCode = m_EditedSeller.shortcode;
 	str = m_pSellerEditCode->get_text();
 	// check new code and set it to seller
-	mp_register->GenerateSellerUniqueCode( *m_sellerEdited, str );
-	if ( m_sellerEdited->m_kod != str ) {
-		m_pSellerEditCode->set_text( m_sellerEdited->m_kod );
-		m_sellerEdited->m_kod = sellerOriginalCode;
+	mp_register->GenerateSellerUniqueCode( m_EditedSeller, str );
+	if ( m_EditedSeller.shortcode != str ) {
+		m_pSellerEditCode->set_text( m_EditedSeller.shortcode );
+		m_EditedSeller.shortcode = sellerOriginalCode;
 		return;
 	}
 	
-	m_sellerEdited->m_meno = m_pSellerEditName->get_text();
-	m_sellerEdited->m_poznamka = m_pSellerEditNote->get_text();
+	m_EditedSeller.name = m_pSellerEditName->get_text();
+	m_EditedSeller.note = m_pSellerEditNote->get_text();
 	
 	m_pWndSeller->hide();
 	
-	SellerModified( m_sellerEdited );
-	Seller* sellerThatWasModified = m_sellerEdited;
-	m_sellerEdited = NULL;
+	int action = m_EditedSeller.id == SELLER_ID_NONE ? ea_add : ea_modify;
+	if ( action == ea_add ) {
+		m_EditedSeller.id = Centrala::Storage().AddSeller( m_EditedSeller );
+	} else {
+		Centrala::Storage().ModifySellerEnd( m_EditedSeller.id, m_EditedSeller );
+	}
 	
-	if ( m_sellerEditAction == ea_add ) {
-		
-		sellerThatWasModified->PridajTovar( -1, "", 0.0, 'a', caka_na_prijatie );
-		Product* p = & m_pRegisterVybranyPredajca->m_products[ 
-			m_pRegisterVybranyPredajca->m_products.size() - 1 ];
-		
-		m_productEditAction = ea_add;
-		
-		StartDialogEditProduct( p, sellerThatWasModified );
+	SellerModified( m_EditedSeller );
+	
+	// start adding items right away !
+	if ( action == ea_add ) {
+		// uses m_EditedSeller
+		StartDialogEditProduct( ITEM_ID_NONE );
 	}
 }
 
 void BurzaDialogs::ButtonSellerEditCancel( void )
 {
-	if ( m_sellerEditAction == ea_add )
-		Centrala::Instancia()->Register()->m_predajcovia.erase( 
-			Centrala::Instancia()->Register()->m_predajcovia.end() -1 );
-	
-	m_sellerEdited = NULL;
 	m_pWndSeller->hide();
 }
 
@@ -1160,18 +1152,17 @@ bool BurzaDialogs::ButtonSellerEditClose( GdkEventAny* )
 
 void BurzaDialogs::SellerModified( SellerData& seller )
 {
-	seller->Save();
-	VyplnPredajcovDoKomb();
-	RegisterZobrazPredajcu( seller.shortcode.c_str() );
+	FillSellerCombos();
+	RegisterDisplaySeller( seller.shortcode.c_str() );
 }
 
 void BurzaDialogs::CashoutEditLookupSellerChanged( void )
 {
 	string str = m_pCashoutEntryLookupSeller->get_text();
-	CashoutZobrazPredajcu( str.c_str() );
+	CashoutDisplaySeller( str.c_str() );
 }
 
-void BurzaDialogs::CashoutZobrazPredajcu( const char* kod )
+void BurzaDialogs::CashoutDisplaySeller( const char* shortcode )
 {
 	int idx = mp_register->NajdiPredajcuPodlaKoduIndex( kod );
 	
@@ -1179,10 +1170,10 @@ void BurzaDialogs::CashoutZobrazPredajcu( const char* kod )
 	
 	if ( idx == -1 ) {
 		m_pCashoutComboLookupSeller->set_active( -1 );
-		m_pCashoutVybranyPredajca = NULL;
+		m_CashoutSelectedSellerId = SELLER_ID_NONE;
 	} else {
 		m_pCashoutComboLookupSeller->set_active( idx );
-		m_pCashoutVybranyPredajca = & mp_register->m_predajcovia[ idx ];
+		m_CashoutSelectedSellerId = m_DisplayedSellers[ idx ].id;
 	}
 	
 	CashoutSellerChanged();
@@ -1190,12 +1181,21 @@ void BurzaDialogs::CashoutZobrazPredajcu( const char* kod )
 
 void BurzaDialogs::CashoutEditLookupItemChanged( void )
 {
-	if ( m_pCashoutVybranyPredajca == NULL )
+	if ( m_CashoutSelectedSellerId == SELLER_ID_NONE )
 		return;
 	
 	// set it into combo
 	int num = atoi( m_pCashoutEntryLookupItem->get_text().c_str() );
-	int idx = m_pCashoutVybranyPredajca->NajdiTovarIndex( num );
+	
+	for( int idx = 0; idx < m_CashoutDisplayedItems.size(); ++idx ) {
+		if ( m_CashoutDisplayedItems[ idx ].number == num )
+			break;
+	}
+	
+	if ( idx >= m_CashoutDisplayedItems.size() ) {
+		idx = -1;
+	}
+	
 	m_pCashoutComboLookupItem->set_active( idx );
 	// and let combo to do the work.
 	CashoutComboLookupItemChanged();
@@ -1210,29 +1210,3 @@ void BurzaDialogs::CashoutEditSearchChanged( void )
 void BurzaDialogs::CashoutEditSearchEntryChanged( void )
 {
 }
-
-
-/*
-	BurzaRegister::t_predajcovia::iterator	it;
-	Seller *pseller;
-	//it = Centrala::Instancia()->Register()->NajdiPredajcuPodlaKoduIt( "mj" );
-	pseller = & Centrala::Instancia()->Register()->m_predajcovia[ 0 ];
-	
-	try {
-	HPDFWrapper	pdf;
-	pdf.CreatePDF( "/home/mirex/tmp/a.pdf" );
-	for( unsigned int i=0; i<150; i++ ) {
-		pdf.NewPage( ConvFuncs::FormatCstr( "index %i", i ) );
-		pseller->PrintProductsToPDF( pdf );
-	}
-	pdf.ClosePDF();
-	
-	} catch( runtime_error& e ) {
-		DisplayErrorMessageBox( "PDF error", e.what() );
-	} catch( out_of_range& e ) {
-		DisplayErrorMessageBox( "PDF out of range error", e.what() );
-	} catch( ... ) {
-		DisplayErrorMessageBox( "PDF error" );
-	}
-	
-*/

@@ -37,7 +37,7 @@ public:
 	int NahrajDialogy( void );
 	
 	// vyplni komba v Registri aj Pokladni
-	void VyplnPredajcovDoKomb( void );
+	void FillSellerCombos( void );
 	
 	void RegisterZobrazPredajcu( SellerData& seller );
 	void RegisterZobrazPredajcu( const char* kod );
@@ -92,7 +92,7 @@ public:
 	void CashoutSelectedItemChanged( void );
 	
 	// "cash-out" helper functions
-	void CashoutZobrazPredajcu( const char* kod );
+	void CashoutDisplaySeller( const char* shortcode );
 	void CheckoutCartChanged( void );
 	
 	// "item properties dialog functions
@@ -218,8 +218,8 @@ public:
 		ea_modify,
 	} ;
 	// what is going on with edited item
-	edit_action	m_productEditAction;
-	edit_action	m_sellerEditAction;
+	// edit_action	m_productEditAction;
+	// edit_action	m_sellerEditAction;
 	
 
 	// === cashout ===

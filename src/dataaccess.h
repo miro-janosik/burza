@@ -113,6 +113,17 @@ typedef SellerCategoryArray::iterator SellerCategoryIterator;
 typedef vector<ItemCategory> ItemCategoryArray;
 typedef ItemCategoryArray::iterator ItemCategoryIterator;
 
+enum ItemStatus {
+	not_in_stock_yet = 0,
+	on_stock,
+	sold,
+	returned,
+	given_as_gift,
+	lost,
+	undefined,
+	ItemStatusCount
+} ;
+
 /* Abstract class providing interface functions to access the BURZA data.
   Reason of the interface is that data can be stored either locally in data files
   or on a Db server.
@@ -319,17 +330,6 @@ class NotImplementedException : public DataStorageException {
         return "Functionality not implemented";
     }
 };
-
-enum ItemStatus {
-	not_in_stock_yet = 0,
-	on_stock,
-	sold,
-	returned,
-	given_as_gift,
-	lost,
-	undefined,
-	ItemStatusCount
-} ;
 
 }; // namespace Burza
 

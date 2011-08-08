@@ -48,7 +48,7 @@ int main2( int argc, char **argv )
 	Centrala::Dialogs().NahrajDialogy();
 	
 	Centrala::Register().NacitajVsetkychPredajcov();
-	Centrala::Dialogs().VyplnPredajcovDoKomb();
+	Centrala::Dialogs().FillSellerCombos();
 	Centrala::Dialogs().RegisterZobrazPredajcuCezIndex( 0 );
 
 	//Gtk::Main::run( * pcentrala->Dialogy()->m_pWndRegister );
