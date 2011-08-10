@@ -73,12 +73,23 @@ public:
 	SellerData(string _name, string _shortcode, string _note, int _category);
 } ;
 
+enum ItemStatus {
+	not_in_stock_yet = 0,
+	on_stock,
+	sold,
+	returned,
+	given_as_gift,
+	lost,
+	undefined,
+	ItemStatusCount
+} ;
+
 struct ItemData {
 	std::string				name;
 	int						number;
 	double					price;
 	ITEM_CATEGORY_ID		category;
-	int						status;
+	ItemStatus				status;
 
 	ITEM_ID					id;
 	ConvFuncs::s_datetime	last_update;
@@ -112,17 +123,6 @@ typedef SellerCategoryArray::iterator SellerCategoryIterator;
 
 typedef vector<ItemCategory> ItemCategoryArray;
 typedef ItemCategoryArray::iterator ItemCategoryIterator;
-
-enum ItemStatus {
-	not_in_stock_yet = 0,
-	on_stock,
-	sold,
-	returned,
-	given_as_gift,
-	lost,
-	undefined,
-	ItemStatusCount
-} ;
 
 /* Abstract class providing interface functions to access the BURZA data.
   Reason of the interface is that data can be stored either locally in data files

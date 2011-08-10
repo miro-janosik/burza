@@ -9,7 +9,7 @@ namespace Burza {
 class Recipees
 {
 public:
-  void PrintSellerStatus( PdfWrapperBase& pdf, SellerData& seller );
+  void PrintSellerStatus( PdfWrapperBase& pdf, SELLER_ID id );
 
   void AddProgramPageFooter( PdfWrapperBase& pdf );
 

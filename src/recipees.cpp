@@ -11,13 +11,13 @@ using namespace Burza;
 using namespace BurzaTable;
 using namespace std;
 
-void Recipees::PrintSellerStatus( PdfWrapperBase& pdf, Seller& seller )
+void Recipees::PrintSellerStatus( PdfWrapperBase& pdf, SellerData& seller )
 {
-	pdf.NewPage( ConvFuncs::FormatStdStr( _("Predávajúci %s"), seller.m_meno.c_str() ) );
+	pdf.NewPage( ConvFuncs::FormatStdStr( _("Predávajúci %s"), seller.name.c_str() ) );
 	AddProgramPageFooter( pdf );
 	pdf.WriteSingleText( 10, 20, ConvFuncs::FormatStdStr(_("Predávajúci %s - %s"), 
-		seller.m_meno.c_str(), seller.m_kod.c_str() ));
-	pdf.WriteSingleText( 10, 40, ConvFuncs::FormatStdStr(_("Poznámka %s"), seller.m_poznamka.c_str() ));
+		seller.name.c_str(), seller.shortcode.c_str() ));
+	pdf.WriteSingleText( 10, 40, ConvFuncs::FormatStdStr(_("Poznámka %s"), seller.note.c_str() ));
 	pdf.WriteSingleText( 10, 40, ConvFuncs::FormatStdStr(_("Stav dňa %s"), ConvFuncsInstance->CurDateTimeString() ));
 
 	TableOfCells	items;
@@ -28,18 +28,20 @@ void Recipees::PrintSellerStatus( PdfWrapperBase& pdf, Seller& seller )
 	columns.AddColumn( _("názov"), 200 );
 	columns.AddColumn( _("cena"), 60 );
 	
-	items.Resize(seller.m_products.size(), columns.m_columns.size());
+	ItemDataArray sellerItems = Centrala::Storage().GetSellerItems( seller.id );
 	
-	for(int i=0; i<seller.m_products.size(); ++i ) {
-		items.Cell(i, 0) = seller.m_products[ i ].m_nazov;
+	items.Resize(sellerItems.size(), columns.m_columns.size());
+	
+	for(int i=0; i<sellerItems.size(); ++i ) {
+		items.Cell(i, 0) = sellerItems[ i ].name;
 		
 		items.Cell( i, 0 ) = ConvFuncs::FormatStdStr( "%i", i + 1 );
 		
-		str = seller.m_products[ i ].m_nazov;
+		str = sellerItems[ i ].name;
 		StringEncoding::UTF8toISO8859_2( str );
 		items.Cell( i, 1 ) = str;
 
-		items.Cell( i, 2 ) = ConvFuncs::FormatStdStr( "%0.2f", seller.m_products[ i ].m_cena );
+		items.Cell( i, 2 ) = ConvFuncs::FormatStdStr( "%0.2f", sellerItems[ i ].price );
 	}
 
 	pdf.DrawTable( 10, 60, items, columns );
@@ -59,7 +61,7 @@ void Recipees::AddProgramPageFooter( PdfWrapperBase& pdf )
 		"Demo - zdarma"));
 }
 
-void Recipees::PrintRecipeeAtEndOfCheckout( BurzaRegister::t_sellerProducts& items, PdfWrapperBase& pdf )
+void Recipees::PrintRecipeeAtEndOfCheckout( ItemDataArray& items, PdfWrapperBase& pdf )
 {
 	string errorMessage;
 	
@@ -90,32 +92,30 @@ void Recipees::PrintRecipeeAtEndOfCheckout( BurzaRegister::t_sellerProducts& ite
 		
 		table.Resize( items.size(), 4 );
 		
-		Seller* s;
+		SellerData seller;
 		int pidx;
 		string str;
 		BurzaRegister	*pregister = Centrala::Instancia()->Register();
 		
-		BurzaRegister::t_sellerProducts::iterator it, ite;
+		ItemDataIterator it, ite;
 		for( it = items.begin(), ite = items.end(), index = 0; 
 				it != ite; ++it, ++index ) {
 			
-			s = pregister->NajdiPredajcuPodlaKoduPtr( it->sellerCode.c_str() );
-			if ( s == NULL ) {
+			try {
+				seller = Centrala::Storage().GetSeller( it->seller_id );
+			}
+			catch(WrongSellerException) {
 				throw runtime_error( "BurzaRegister::FinishCheckout: Seller not found" );
 			}
-			pidx = s->NajdiTovarIndex( it->productNumber );
-			if ( pidx == -1 ) {
-				throw runtime_error( "BurzaRegister::FinishCheckout: Item not found" );
-			}
-			
+
 			table.Cell( index, 0 ) = ConvFuncs::FormatStdStr( "%i", index + 1 );
-			str = ConvFuncs::FormatStdStr( "%s-%i", it->sellerCode.c_str(), it->productNumber );
+			str = ConvFuncs::FormatStdStr( "%s-%i", seller.shortcode.c_str(), it->number );
 			StringEncoding::UTF8toISO8859_2( str );
 			table.Cell( index, 1 ) = str;
-			str = s->m_products[ pidx ].m_nazov;
+			str = it->name;
 			StringEncoding::UTF8toISO8859_2( str );
 			table.Cell( index, 2 ) = str;
-			table.Cell( index, 3 ) = ConvFuncs::FormatStdStr( "%0.2f", s->m_products[ pidx ].m_cena );
+			table.Cell( index, 3 ) = ConvFuncs::FormatStdStr( "%0.2f", it->price );
 		}
 		
 		pdf.DrawTable( 50, 50, table, columns );
@@ -158,23 +158,26 @@ void ::PrintProductsToPDF( PdfWrapperBase& pdf, SellerData& seller )
 	columns.AddColumn( _("kat"), 40 );
 	columns.AddColumn( _("stav"), 90 );
 	
-	BurzaRegister* reg = Centrala::Instancia()->Register();	
+	BurzaRegister* reg = & Centrala::Register();	
 	
 	unsigned int i, c;
 	c = 5 + ( rand() % 70 );
 	table.Resize( c, 5 );
 	
+	ItemDataArray items = Centrala::Storage().GetSellerItems( seller.id );
+	
 	for( unsigned int j=0; j<c; ++j ) {
 		
-		i = j % m_products.size();
+		i = j % items.size();
 		
-		table.Cell( j, 0 ) = ConvFuncs::FormatStdStr( "%i", m_products[ i ].m_cislo );
-		str = m_products[ i ].m_nazov;
+		table.Cell( j, 0 ) = ConvFuncs::FormatStdStr( "%i", items[ i ].number );
+		str = items[ i ].name;
 		StringEncoding::UTF8toISO8859_2( str );
 		table.Cell( j, 1 ) = str;
-		table.Cell( j, 2 ) = ConvFuncs::FormatStdStr( "%0.2f", m_products[ i ].m_cena );
-		table.Cell( j, 3 ) = ConvFuncs::FormatStdStr( "%c", m_products[ i ].m_kategoria );
-		table.Cell( j, 4 ) = reg->Stav2String( m_products[ i ].m_stav );
+		table.Cell( j, 2 ) = ConvFuncs::FormatStdStr( "%0.2f", items[ i ].price );
+		table.Cell( j, 3 ) = ConvFuncs::FormatStdStr( "%c",
+			Centrala::Storage().GetItemCategory( items[ i ].category ).letter );
+		table.Cell( j, 4 ) = DataAccessInterface::ItemStatus2String( items[ i ].status );
 	}
 	
 	pdf.DrawTable( 50, 50, table, columns );

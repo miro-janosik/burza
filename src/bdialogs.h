@@ -38,10 +38,11 @@ public:
 	
 	// vyplni komba v Registri aj Pokladni
 	void FillSellerCombos( void );
+	void ReloadSellers( void );
 	
-	void RegisterZobrazPredajcu( SellerData& seller );
-	void RegisterZobrazPredajcu( const char* kod );
-	void RegisterZobrazPredajcuCezIndex( unsigned int idx );
+	void RegisterDisplaySeller( SellerData& seller );
+	void RegisterDisplaySeller( const char* kod );
+	void RegisterDisplaySellerByIndex( unsigned int idx );
 	
 	void PokladnaVyplnTovarDoKomba( void );
 	void CashoutSellerChanged( void );

@@ -47,9 +47,9 @@ int main2( int argc, char **argv )
 	
 	Centrala::Dialogs().NahrajDialogy();
 	
-	Centrala::Register().NacitajVsetkychPredajcov();
+	// Centrala::Register().NacitajVsetkychPredajcov();
 	Centrala::Dialogs().FillSellerCombos();
-	Centrala::Dialogs().RegisterZobrazPredajcuCezIndex( 0 );
+	Centrala::Dialogs().RegisterDisplaySellerByIndex( 0 );
 
 	//Gtk::Main::run( * pcentrala->Dialogy()->m_pWndRegister );
 	Gtk::Main::run();
@@ -97,31 +97,6 @@ void Seller::PridajTovar( int cislo, const char* nazov, double cena, char katego
 	m_products.push_back( t );
 	
 	
-}
-
-int Seller::VerifikujCisloTovaru( Product& p, int newNumber )
-{
-	int max = 0;
-	bool valid = true;
-	for( int i=0; i<m_products.size(); ++i ) {
-		
-		if ( max < m_products[ i ].m_cislo )
-			max = m_products[ i ].m_cislo;
-		
-		if (( newNumber == m_products[ i ].m_cislo ) && ( &m_products[ i ] != &p )) {
-			valid = false;
-		}
-	}
-	
-	if ( newNumber == -1 )
-		valid = false;
-	
-	if ( ! valid ) {
-		newNumber = max + 1;
-	}
-	
-	p.m_cislo = newNumber;
-	return newNumber;
 }
 
 void Seller::ZmazTovar( int cislo )
@@ -190,11 +165,12 @@ BurzaRegister::~BurzaRegister()
 	delete m_storage;
 }
 
+
+	/*
 void BurzaRegister::NacitajVsetkychPredajcov( void )
 {
 	m_storage->GetSellers();
 	
-	/*
 	for(SellerDataIterator sc=sellers.begin(), se=sellers.end(); sc != se; ++sc ) {
 		Seller	s;
 		s.m_kod 		= sc->shortcode;
@@ -218,8 +194,8 @@ void BurzaRegister::NacitajVsetkychPredajcov( void )
 			s.m_products.push_back(p);
 		}
 	}
-	*/
 }
+	*/
 
 void BurzaRegister::PridajNovehoPredajcu( const char* kod, const char* meno, const char* poznamka )
 {
@@ -393,6 +369,34 @@ double BurzaRegister::CalcPriceOfProducts( ItemDataArray& items )
 	return sum;
 }
 
+int BurzaRegister::VerifyItemNumber( ItemData& item, int newNumber )
+{
+	int max = 0;
+	bool valid = true;
+	
+	ItemDataArray items = Centrala::Storage().GetSellerItems( item.seller_id );
+	
+	for( int i=0; i<items.size(); ++i ) {
+		
+		if (( newNumber == items[ i ].number ) && ( items[ i ].id != item.id )) {
+			valid = false;
+		}
+
+		if ( max < items[ i ].number ) {
+			max = items[ i ].number;
+		}
+	}
+	
+	if ( newNumber == -1 )
+		valid = false;
+	
+	if ( ! valid ) {
+		newNumber = max + 1;
+	}
+	
+	return newNumber;
+}
+
 // ==============================================
 // ==============================================
 
@@ -436,3 +440,4 @@ void Centrala::Zmaz( void )
 		m_instance = NULL;
 	}
 }
+

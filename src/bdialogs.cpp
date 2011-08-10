@@ -37,8 +37,6 @@ BurzaDialogs::BurzaDialogs()
 	
 	m_cashout_sum = 0.0;
 
-	m_EditedSeller = SELLER_ID_NONE;
-	
 	ConvFuncs::SingletonInstanceCreate();
 }
 
@@ -431,7 +429,6 @@ void BurzaDialogs::RegisterDisplaySeller(SellerData& seller)
 	// fill items
 	ItemDataArray	items = Centrala::Storage().GetSellerItems(seller.id);
 	ItemCategoryArray	categories = Centrala::Storage().GetItemsCategories(items);
-
 	Gtk::TreeModel::Row row;
 	
 	m_RegisterItemsListModel->clear();
@@ -444,7 +441,8 @@ void BurzaDialogs::RegisterDisplaySeller(SellerData& seller)
 		row[ m_ItemsColumn.m_name ] = items[i].name;
 		row[ m_ItemsColumn.m_price ] = ConvFuncsInstance->FormatCstr( "%0.2f", items[i].price );
 		row[ m_ItemsColumn.m_category ] = ConvFuncsInstance->FormatCstr( "%c", categories[i].letter );
-		row[ m_ItemsColumn.m_state ] = ConvFuncsInstance->FormatCstr( "%s", DataAccessInterface::Stav2String( items[i].status ) );
+		row[ m_ItemsColumn.m_state ] = ConvFuncsInstance->FormatCstr( "%s", 
+			DataAccessInterface::ItemStatus2String( items[i].status ) );
 	}
 	
 	SellerDataArray sellers = Centrala::Storage().GetSellers();
@@ -461,6 +459,11 @@ void BurzaDialogs::RegisterDisplaySeller(SellerData& seller)
 	}
 	m_pComboSeller->set_active( idx );
 	// i = m_pComboSeller->get_active_row_number();
+}
+
+void BurzaDialogs::ReloadSellers( void )
+{
+	FillSellerCombos();
 }
 
 void BurzaDialogs::FillSellerCombos( void )
@@ -555,7 +558,7 @@ void BurzaDialogs::ButtonRegisterUpdateSeller( void )
 {
 	// m_sellerEditAction = ea_modify;
 	if ( RegisterAnySelectedSeller() )
-		StartDialogEditSeller( GetSelectedSellerId() );
+		StartDialogEditSeller( RegisterGetSelectedSellerId() );
 }
 
 void BurzaDialogs::ButtonRegisterAddItem( void )
@@ -611,7 +614,9 @@ void BurzaDialogs::ButtonRegisterCalcFee( void )
 	
 	ItemDataArray items = Centrala::Storage().GetSellerItems( m_SelectedSellerId );
 	
-	double fee = Centrala::Register().CalculateFee( m_SelectedSellerId, items );
+	double fee = Centrala::Register().CalculateFee( 
+		Centrala::Storage().GetSeller( m_SelectedSellerId ), 
+		items );
 	
 	m_pLabelFee->set_text( ConvFuncs::FormatStdStr( "%0.2f %s", fee, 
 		Centrala::Settings().m_string_mena.c_str() ) );
@@ -734,7 +739,7 @@ void BurzaDialogs::GetSelectedItemNumbers( Glib::RefPtr<Gtk::TreeSelection>& sel
 void BurzaDialogs::RegisterGetSelectedItemIds( vector<ITEM_ID>& listOfIds )
 {
 	if ( !RegisterAnySelectedSeller() ) {
-		throw runtime_error();
+		throw runtime_error("RegisterGetSelectedItemIds cannot work without selected seller");
 	}
   
 	listOfIds.clear();
@@ -760,7 +765,13 @@ void BurzaDialogs::ButtonCashoutAddItem( void )
 	if ( ! CashoutAnySelectedItem() )
 		return;
 	
-	ShoppingCartIterator it = m_shoppingCart.find( CashoutGetSelectedItemId() );
+	ShoppingCartIterator it;
+	
+	for( it = m_shoppingCart.begin(); it != m_shoppingCart.end(); ++it ) {
+		if ( *it == CashoutGetSelectedItemId() )
+			break;
+	}
+
 	if ( it != m_shoppingCart.end() ) {
 		return;
 	}
@@ -768,6 +779,7 @@ void BurzaDialogs::ButtonCashoutAddItem( void )
 	// ked nieje, tak pridaj
 	ItemData item = CashoutGetSelectedItem();
 	ItemCategory itemcat = Centrala::Storage().GetItemCategory( item.category );
+	Gtk::TreeModel::Row row;
 	
 	row = * (m_CashoutItemsListModel->append());
 	
@@ -780,7 +792,7 @@ void BurzaDialogs::ButtonCashoutAddItem( void )
 	row[ m_ItemsColumn.m_seller_id ] = item.seller_id;
 	row[ m_ItemsColumn.m_item_id ] = item.id;
 	
-	m_shoppingCart.insert( item.id );
+	m_shoppingCart.push_back( item.id );
 	
 	CheckoutCartChanged();
 }
@@ -813,27 +825,22 @@ void BurzaDialogs::ButtonCashoutFinished( void )
 
 void BurzaDialogs::ButtonCashoutRemoveItem( void )
 {
-	vector<unsigned int> listOfItems;
-	ItemDataArray listOfProducts;
+	vector<unsigned int> itemIndexes;
 	
 	// get selected items into list
-	GetSelectedItemNumbers( m_CashoutItemsSelection, listOfItems );
-	
-	// get items into list
-	for(int i=0; i<listOfItems.size(); ++i ) {
-		listOfProducts.push_back( m_shoppingCart[ listOfItems[ i ] ] );
-	}
+	GetSelectedItemNumbers( m_CashoutItemsSelection, itemIndexes );
 	
 	// sort indexes of the items from biggest index to smallest, so they 
 	// are removed correctly from the visual list
-	std::sort(listOfItems.begin(), listOfItems.end());
-	std::reverse(listOfItems.begin(), listOfItems.end());
+	std::sort(itemIndexes.begin(), itemIndexes.end());
+	std::reverse(itemIndexes.begin(), itemIndexes.end());
 	
 	// remove items
-	for(int i=0; i<listOfProducts.size(); ++i ) {
+	for(int i=0; i<itemIndexes.size(); ++i ) {
 		
-		m_CashoutItemsListModel->erase( listOfItems[ i ] );
-		m_shoppingCart.erase( listOfProducts[ i ] );
+		Gtk::TreeModel::iterator it = m_CashoutItemsListModel->children()[ itemIndexes[ i ] ];
+		m_CashoutItemsListModel->erase( it );
+		m_shoppingCart.erase( m_shoppingCart.begin() + itemIndexes[ i ] );
 	}
 	
 	CheckoutCartChanged();
@@ -853,7 +860,7 @@ void BurzaDialogs::CashoutComboLookupSellerChanged( void )
 		return;
 	}
 	
-	m_CashoutSelectedSellerId = m_DisplayedSellers[ i ];
+	m_CashoutSelectedSellerId = m_DisplayedSellers[ i ].id;
 	CashoutSellerChanged();
 }
 
@@ -964,9 +971,9 @@ void BurzaDialogs::StartDialogEditProduct( ITEM_ID itemid )
 	m_pItemeditCategory->set_text( ConvFuncs::FormatCstr( "%c", cat.letter ) );
 	
 	m_pItemeditStatusCombo->clear();
-	for( ItemStatus i = not_in_stock_yet; i < ItemStatusCount; ++i ) {
+	for( int i = not_in_stock_yet; i < ItemStatusCount; ++i ) {
 		m_pItemeditStatusCombo->append_text( 
-			DataAccessInterface::ItemStatus2String( i ) );
+			DataAccessInterface::ItemStatus2String( (ItemStatus)i ) );
 	}
 	m_pItemeditStatusCombo->set_active( item.status );
 	
@@ -976,11 +983,7 @@ void BurzaDialogs::StartDialogEditProduct( ITEM_ID itemid )
 
 void BurzaDialogs::ButtonItemEditOk( void )
 {
-	if (( m_productEditAction == ea_modify ) && ( m_EditedItem.id == ITEM_ID_NONE )) {
-		assert(false);
-	}
-	
-// validate
+	// validate
 	bool validate_needed = false;
 	string str;
 	
@@ -1017,7 +1020,7 @@ void BurzaDialogs::ButtonItemEditOk( void )
 	str = m_pItemeditNumber->get_text();
 	int num = atoi( str.c_str() );
 	
-	num = Centrala::Register().VerifyItemNumber( m_EditedItem.id, num );
+	num = Centrala::Register().VerifyItemNumber( m_EditedItem, num );
 	string str2 = ConvFuncs::FormatStdStr( "%i", num );
 	if ( str != str2 ) {
 		m_pItemeditNumber->set_text( str2 );
@@ -1065,8 +1068,8 @@ void BurzaDialogs::ButtonItemEditOk( void )
 void BurzaDialogs::ButtonItemEditCancel( void )
 {
 	m_pWndItem->hide();
-	m_productEdited = NULL;
-	m_sellerEdited = NULL;
+	m_EditedItem.id = ITEM_ID_NONE;
+	m_EditedSeller.id = SELLER_ID_NONE;
 }
 
 bool BurzaDialogs::ButtonItemEditClose( GdkEventAny* )
@@ -1164,7 +1167,7 @@ void BurzaDialogs::CashoutEditLookupSellerChanged( void )
 
 void BurzaDialogs::CashoutDisplaySeller( const char* shortcode )
 {
-	int idx = mp_register->NajdiPredajcuPodlaKoduIndex( kod );
+	int idx = mp_register->NajdiPredajcuPodlaKoduIndex( shortcode );
 	
 	m_pCashoutComboLookupItem->clear();
 	
@@ -1186,8 +1189,9 @@ void BurzaDialogs::CashoutEditLookupItemChanged( void )
 	
 	// set it into combo
 	int num = atoi( m_pCashoutEntryLookupItem->get_text().c_str() );
+	int idx;
 	
-	for( int idx = 0; idx < m_CashoutDisplayedItems.size(); ++idx ) {
+	for( idx = 0; idx < m_CashoutDisplayedItems.size(); ++idx ) {
 		if ( m_CashoutDisplayedItems[ idx ].number == num )
 			break;
 	}

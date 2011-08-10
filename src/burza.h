@@ -119,7 +119,7 @@ public:
 	// typedef std::vector< SellerProduct > t_sellerProducts;
 	
 	void PridajNovehoPredajcu( const char* kod, const char* meno, const char* poznamka );
-	void NacitajVsetkychPredajcov( void );
+	// void NacitajVsetkychPredajcov( void );
 	
 	// t_predajcovia::iterator NajdiPredajcuPodlaKoduIt( const char* kod );
 	
@@ -139,6 +139,10 @@ public:
 	unsigned int GenerateSellerUniqueId( void );
 	void GenerateSellerUniqueCode( SellerData& seller, std::string try_this_code );
 
+	//! Returns valid number for item. Looks through seller item numbers, and if other item
+	//! has the same number, new item number is calculated.
+	int VerifyItemNumber( ItemData& item, int newNumber );
+	
 	double CalculateFee( SellerData& seller, ItemDataArray& items );
 
   private:
