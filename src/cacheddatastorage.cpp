@@ -5,6 +5,7 @@
 using namespace Burza;
 using namespace std;
 
+/*
 vector<SellerData> CachedDataStorage::GetSellers( void )
 {
 	sellers.clear();
@@ -69,3 +70,4 @@ void CachedDataStorage::RemoveSeller(SELLER_ID id)
 		}
 	}
 }
+*/

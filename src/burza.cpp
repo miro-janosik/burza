@@ -122,13 +122,6 @@ int Seller::NajdiTovarIndex( int cislo )
 	return -1;
 }
 
-void Seller::ReplaceCharactersInString( std::string& str, const char* from, char to )
-{
-	unsigned int len = strlen( from );
-	for( unsigned int i=0; i<len; i++ ) {
-		std::replace( str.begin(), str.end(), from[ i ], to );
-	}
-}
 */
 
 double BurzaRegister::CalculateFee( SellerData& seller, ItemDataArray& items )

@@ -6,13 +6,16 @@
 #include "pdfwrap.h"
 #include "convfncs.h"
 #include "stringencoding.h"
+#include "translate.h"
 
 using namespace Burza;
 using namespace BurzaTable;
 using namespace std;
 
-void Recipees::PrintSellerStatus( PdfWrapperBase& pdf, SellerData& seller )
+void Recipees::PrintSellerStatus( PdfWrapperBase& pdf, SELLER_ID id )
 {
+	SellerData seller = Centrala::Storage().GetSeller( id );
+	
 	pdf.NewPage( ConvFuncs::FormatStdStr( _("Predávajúci %s"), seller.name.c_str() ) );
 	AddProgramPageFooter( pdf );
 	pdf.WriteSingleText( 10, 20, ConvFuncs::FormatStdStr(_("Predávajúci %s - %s"), 
@@ -95,7 +98,7 @@ void Recipees::PrintRecipeeAtEndOfCheckout( ItemDataArray& items, PdfWrapperBase
 		SellerData seller;
 		int pidx;
 		string str;
-		BurzaRegister	*pregister = Centrala::Instancia()->Register();
+		BurzaRegister	*pregister = & Centrala::Register();
 		
 		ItemDataIterator it, ite;
 		for( it = items.begin(), ite = items.end(), index = 0; 
@@ -138,7 +141,7 @@ void Recipees::PrintRecipeeAtEndOfCheckout( ItemDataArray& items, PdfWrapperBase
 	}
 }
 
-void ::PrintProductsToPDF( PdfWrapperBase& pdf, SellerData& seller )
+void Recipees::PrintProductsToPDF( PdfWrapperBase& pdf, SellerData& seller )
 {
 	string str;
 	

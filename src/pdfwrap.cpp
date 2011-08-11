@@ -198,7 +198,7 @@ void HPDFWrapper::DrawTable( float fx, float fy, TableOfCells& t, TableColumnSpe
 	
 	// vertical lines
 	// do not draw header line, if it is merged with line to right
-	int px = x;
+	int px = fx;
 	for ( unsigned int i = 0; i <= c.Columns(); ++i )
 	{
 		if ( c.m_columns[ i ].m_merge_header_cell_to_right ) {

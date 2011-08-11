@@ -18,9 +18,6 @@ using namespace std;
 class CConvFile;
 class BurzaDialogs;
 
-// translate i18n macro
-#define _( text ) ( text )
-
 int main2( int argc, char **argv );
 
 namespace Burza {

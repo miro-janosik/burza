@@ -13,6 +13,7 @@
 #include "pdfwrap.h"
 #include "recipees.h"
 #include "datatextfile.h"
+#include "translate.h"
 
 using namespace Burza;
 using namespace BurzaExcel;
@@ -63,6 +64,11 @@ SELLER_ID BurzaDialogs::RegisterGetSelectedSellerId( void )
 SellerData BurzaDialogs::CashoutGetSelectedSeller( void )
 { 
 	return Centrala::Storage().GetSeller( m_CashoutSelectedSellerId );
+}
+
+ItemData BurzaDialogs::CashoutGetSelectedItem( void )
+{
+	return Centrala::Storage().GetItem( m_CashoutSelectedItemId );
 }
 
 int BurzaDialogs::NahrajDialogy( void )

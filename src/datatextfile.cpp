@@ -1,24 +1,30 @@
+#include <stdexcept>
+#include <string.h>
+#include <algorithm>
 #include "datatextfile.h"
+#include "translate.h"
+#include "burza.h"
 
 using namespace Burza;
 using namespace std;
 
 char DataTextfile::file_field_delimiters[] = "|*\r\n";
 
-char DataTextfile::m_znak_stavu_v_subore[ ItemStatusCount ] = "ospvdnu";
-string DataTextfile::m_string_stavu[ ItemStatusCount ] = {
-  "Nezaradene",
-  "Skladom",
-  "Predane",
-  "Vratene",
-  "Dar",
-  "Dohladat",
-  "Nedefinovane",
-};
-
 DataTextfile::DataTextfile( string datapath )
 {
 	DataPath = datapath;
+	
+	ItemCategory	cat;
+	
+	cat.id = 1;
+	cat.letter = 'a';
+	cat.fee_per_item = 1.0;
+	m_ItemCategories.push_back(cat);
+
+	cat.id = 2;
+	cat.letter = 'b';
+	cat.fee_per_item = 4.0;
+	m_ItemCategories.push_back(cat);
 }	
 
 void DataTextfile::SaveSellerToTxtFile( SellerData& seller, ItemDataArray& items )
@@ -64,13 +70,13 @@ void DataTextfile::SaveSellerToTxtFile( SellerData& seller, ItemDataArray& items
 			items[ i ].number, items[ i ].name.c_str(), items[ i ].price );
 		file.Print( "*%c*%c\n",
 			items[ i ].category,
-			Centrala::Instancia()->Register()->Stav2Char( items[ i ].status ) );
+			ItemStatus2Char( items[ i ].status ) );
 	}
 	
 	file.Close();
 }
 
-SELLER_ID Seller::LoadFromTxtFile( string filename, SellerData& seller, ItemDataArray& items )
+SELLER_ID DataTextfile::LoadFromTxtFile( string filename, SellerData& seller, ItemDataArray& items )
 {
 	items.clear();
 	
@@ -78,7 +84,7 @@ SELLER_ID Seller::LoadFromTxtFile( string filename, SellerData& seller, ItemData
 	file.OpenFile( filename.c_str(), CConvFile::fm_text, CConvFile::fm_read );
 	
 	if ( file.IsOpened() == 0 ) {
-		throw runtime_error;
+		throw runtime_error("DataTextfile::LoadFromTxtFile() File not opened.");
 	}
 
 	// items cannot have fixed length, because source files are unicode (that means variable char length, either 1 or 2 chars)
@@ -118,10 +124,10 @@ SELLER_ID Seller::LoadFromTxtFile( string filename, SellerData& seller, ItemData
 		
 		item.price = atof( ConvFuncsInstance->StrItem( linep, 0, file_field_delimiters ) );
 		item.category = * ConvFuncsInstance->StrItem( linep, 1, file_field_delimiters );
-		item.status = Centrala::Instancia()->Register()->Char2Stav( ( * ConvFuncsInstance->StrItem( linep, 2, file_field_delimiters ) ) );
+		item.status = Char2ItemStatus( ( * ConvFuncsInstance->StrItem( linep, 2, file_field_delimiters ) ) );
 		
-		item.last_update = 0;
-		item.seller_id = id;
+		item.last_update = GetCurrentTime();
+		item.seller_id = GetNewSellerId();
 		items.push_back(item);
 	} ;
 	
@@ -130,11 +136,9 @@ SELLER_ID Seller::LoadFromTxtFile( string filename, SellerData& seller, ItemData
 	return seller.id;
 }
 
-void DatatTextfile::LoadFromTxtFile( SELLER_ID id, SellerData& seller, ItemDataArray& items )
+void DataTextfile::LoadFromTxtFile( SELLER_ID id, SellerData& seller, ItemDataArray& items )
 {
 	std::string		filename;
-	SellerData		seller;
-	ItemDataArray	items;
 			
 	filename = DataPath;
 	filename += GetSellerFilenameExisting(id);
@@ -190,13 +194,11 @@ SellerData& DataTextfile::GetSeller(SELLER_ID id)
 		GetSellers();
 	}
 	
-	SellerDataIterator it = sellers.find( id );
-	if ( it == sellers.end() ) {
-		
-		throw WrongSellerIdException();
-	}
-
-	return *it;
+	for( int i=0; i < sellers.size(); ++i )
+		if ( sellers[ i ].id == id )
+			return sellers[ i ];
+	
+	throw WrongSellerException();
 }
 
 ItemDataArray DataTextfile::GetSellerItems(SELLER_ID id)
@@ -218,7 +220,7 @@ ItemData DataTextfile::GetSellerItem(SELLER_ID id, int item_number)
 	
 	ItemData* item = FindItemByNumber( items, item_number );
 	if ( item == NULL ) {
-		throw new WrongItemNumberException();
+		throw new WrongItemException();
 	}
 	
 	return *item;
@@ -243,7 +245,7 @@ string DataTextfile::GetSellerFilenameExisting( SELLER_ID id )
 		return ConvFuncsInstance->Find_CurrentFileName();
 	}
 	
-	throw WrongSellerIdException;
+	throw WrongSellerException();
 }
 
 string DataTextfile::GetSellerFilenameNew( SellerData& seller )
@@ -252,7 +254,7 @@ string DataTextfile::GetSellerFilenameNew( SellerData& seller )
 	// Only seller id is unique, as short code could be changed.
 	// so I have to look for file starting with seller id.
 	
-	filename = DataPath;
+	string filename = DataPath;
 	filename += ConvFuncs::FormatStdStr( "%i-%s-%s.txt", 
 		seller.id, seller.shortcode.c_str(), seller.name.c_str() );
 	
@@ -275,7 +277,7 @@ bool DataTextfile::ModifySellerStart(SELLER_ID id)
  
 void DataTextfile::ModifySellerEnd(SELLER_ID id, SellerData& seller)
 {
-	ItemsDataArray items = GetSellerItems(id);
+	ItemDataArray items = GetSellerItems(id);
 	SaveSellerToTxtFile( seller, items );
 }
 
@@ -291,47 +293,51 @@ void DataTextfile::RemoveSeller(SELLER_ID id)
 		ConvFuncs::DoDeleteFile( complete.c_str() );
 	}
 	
-	SellerDataIterator it = sellers.find( id );
-	if ( it != sellers.end() ) {
-		sellers.erase(it);
+	for( int i=0; i < sellers.size(); ++i ) {
+		if ( sellers[ i ].id == id ) {
+			sellers.begin() + i;
+			break;
+		}
 	}
 }
 
-ITEM_ID DataTextfile::AddItem(ItemData& item)
+ITEM_ID DataTextfile::AddItem(ItemData& item, SELLER_ID sellerId)
 {
-	SellerData seller = GetSeller(item.seller_id);
-	ItemsDataArray items = GetSellerItems(id);
+	SellerData seller = GetSeller(sellerId);
+	ItemDataArray items = GetSellerItems(sellerId);
 	
 	item.id = GetNewItemId();
 	items.push_back(item);
 	SaveSellerToTxtFile( seller, items );
 }
-  
+
 void DataTextfile::ModifyItem(ITEM_ID item_id, ItemData& item)
 {
-	ItemDataIterator it = items.find( item_id );
-	if ( it == items.end() ) {
-		throw new WrongItemIdException();
+	SellerData seller = GetSeller(item.seller_id);
+	ItemDataArray items = GetSellerItems(item.seller_id);
+
+	int idx = GetItemIndex( item_id );
+	if ( idx == -1 ) {
+		throw new WrongItemException();
 	}
 	
-	*it = item;
+	items[ idx ] = item;
 	
-	SellerData seller = GetSeller(it->seller_id);
-	ItemsDataArray items = GetSellerItems(it->seller_id);
 	SaveSellerToTxtFile(seller, items);
 }
 
 void DataTextfile::RemoveItem(ITEM_ID id)
 {
-	ItemDataIterator it = items.find( item_id );
-	if ( it == items.end() ) {
-		throw new WrongItemIdException();
+	SELLER_ID seller_id = GetItem( id ).seller_id;
+	int idx = GetItemIndex( id );
+	if ( idx == -1 ) {
+		throw new WrongItemException();
 	}
 	
-	items.erase(it);
+	items.erase( items.begin() + idx );
 	
-	SellerData seller = GetSeller(it->seller_id);
-	ItemsDataArray items = GetSellerItems(it->seller_id);
+	SellerData seller = GetSeller(seller_id);
+	ItemDataArray items = GetSellerItems(seller_id);
 	SaveSellerToTxtFile(seller, items);
 }
 
@@ -368,7 +374,7 @@ SellerData& DataTextfile::GetSellerByCode(string& code)
 		}
 	}
 	
-	throw WrongSellerIdException();
+	throw WrongSellerException();
 }
 
 SELLER_ID DataTextfile::GetNewSellerId( void )
@@ -413,19 +419,72 @@ ITEM_ID DataTextfile::GetNewItemId( void )
 	return biggestId + 1;
 }
 
-ItemCategoryArray DataTextfile::GetItemsCategories( ItemCategoryArray& items )
+ItemCategoryArray DataTextfile::GetItemsCategories( ItemDataArray& items )
 {
+	ItemCategory	cat;
+	ItemCategoryArray	res;
+	
 	for( unsigned int i=0; i<items.size(); ++i ) {
 		
-		it = res.find( m_products[ i ].m_kategoria );
-		
-		if ( it == res.end() )
-			res[ m_products[ i ].m_kategoria ] = 1;
-		else
-			it->second++;
-		
+		cat = GetItemCategory( items[ i ].category );
+		res.push_back(cat);
 	}
 	
 	return res;
 }
 
+ItemCategory DataTextfile::GetItemCategory(ITEM_CATEGORY_ID id)
+{
+	for( int i=0; i < m_ItemCategories.size(); ++i ) {
+		if ( m_ItemCategories[ i ].id == id ) {
+			return m_ItemCategories[ i ];
+		}
+	}
+	
+	throw WrongItemCategoryException();
+}
+
+void DataTextfile::ReplaceCharactersInString( std::string& str, const char* from, char to )
+{
+	unsigned int len = strlen( from );
+	for( unsigned int i=0; i<len; i++ ) {
+		std::replace( str.begin(), str.end(), from[ i ], to );
+	}
+}
+
+// ItemCategory DataTextfile::GetItemCategoryByLetter(char letter)
+// ItemCategoryArray DataTextfile::GetItemsCategories(vector<ITEM_CATEGORY_ID>& ids);
+// ItemCategoryArray DataTextfile::GetItemsCategoriesByLetter(vector<char>& letters);
+
+SellerCategory DataTextfile::GetSellerCategory(SELLER_CATEGORY_ID id)
+{
+	for( int i=0; i < m_SellerCategories.size(); ++i ) {
+		if ( m_SellerCategories[ i ].id == id ) {
+			return m_SellerCategories[ i ];
+		}
+	}
+	
+	throw WrongSellerCategoryException();
+}
+
+// SellerCategory DataTextfile::GetSellerCategoryByLetter(char letter);
+// SellerCategoryArray DataTextfile::GetSellersCategories(vector<SELLER_CATEGORY_ID>& ids);
+//SellerCategoryArray DataTextfile::GetSellersCategoriesByLetter(vector<char>& letters);
+
+int DataTextfile::GetItemIndex( ITEM_ID id )
+{
+	for( int i=0; i<items.size(); ++i )
+		if ( items[ i ].id == id )
+			return i;
+	
+	return -1;
+}
+
+int DataTextfile::GetSellerIndex( SELLER_ID id )
+{
+	for( int i=0; i<sellers.size(); ++i )
+		if ( sellers[ i ].id == id )
+			return i;
+	
+	return -1;
+}

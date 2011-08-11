@@ -14,6 +14,8 @@ public:
   void AddProgramPageFooter( PdfWrapperBase& pdf );
 
   void PrintRecipeeAtEndOfCheckout( ItemDataArray& items, PdfWrapperBase& pdf );
+
+  void PrintProductsToPDF( PdfWrapperBase& pdf, SellerData& seller );
   
 };
 

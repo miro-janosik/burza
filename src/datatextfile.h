@@ -20,7 +20,7 @@ class DataTextfile : public DataStorage
 	bool ModifySellerStart(SELLER_ID id);
 	void ModifySellerEnd(SELLER_ID id, SellerData& seller);
 	void RemoveSeller(SELLER_ID id);
-	ITEM_ID AddItem(ItemData& item);
+	ITEM_ID AddItem(ItemData& item, SELLER_ID id);
 	void ModifyItem(ITEM_ID item_id, ItemData& item);
 	void RemoveItem(ITEM_ID id);
 	bool IsSellerModified(SELLER_ID id);
@@ -33,9 +33,12 @@ class DataTextfile : public DataStorage
 	SELLER_ID GetNewSellerId( void );
 	ITEM_ID GetNewItemId( void );
 	
+	SellerCategory GetSellerCategory(SELLER_CATEGORY_ID id);
+	ItemCategory GetItemCategory(ITEM_CATEGORY_ID id);
+	
   public:
 	//! helper functions
-	ItemCategoryArray GetItemsCategories( ItemCategoryArray& items );
+	ItemCategoryArray GetItemsCategories( ItemDataArray& items );
 	
 	
   public:
@@ -50,6 +53,9 @@ class DataTextfile : public DataStorage
 	void LoadFromTxtFile( SELLER_ID id, SellerData& seller, ItemDataArray& items );
 	string GetSellerFilenameExisting( SELLER_ID id );
 	string GetSellerFilenameNew( SellerData& seller );
+	void ReplaceCharactersInString( std::string& str, const char* from, char to );
+	int GetSellerIndex( SELLER_ID id );
+	int GetItemIndex( ITEM_ID id );
 	
   private:
 	//! class data
@@ -58,8 +64,9 @@ class DataTextfile : public DataStorage
 	string	DataPath;
 	
 	static char file_field_delimiters[];
-	static char	m_znak_stavu_v_subore[ ItemStatusCount ];
-	static string m_string_stavu[ ItemStatusCount ];
+
+	ItemCategoryArray	m_ItemCategories;
+	SellerCategoryArray m_SellerCategories;
 };
 
 /*
