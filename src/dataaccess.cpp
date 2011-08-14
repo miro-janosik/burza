@@ -173,3 +173,39 @@ ItemCategoryArray DataAccessInterface::GetItemsCategories( ItemDataArray& items 
 	
 	return GetItemsCategories( ids );
 }
+
+ItemCategory DataAccessInterface::GetItemCategory(ITEM_CATEGORY_ID id)
+{
+	vector<ITEM_CATEGORY_ID> ids; 
+	ids.push_back( id );
+	
+	ItemCategoryArray categories = GetItemsCategories( ids );
+	return categories[ 0 ];
+}
+
+ItemCategory DataAccessInterface::GetItemCategoryByLetter(char letter)
+{
+	vector<char> letters;
+	letters.push_back( letter );
+	
+	ItemCategoryArray categories = GetItemsCategoriesByLetter( letters );
+	return categories[ 0 ];
+}
+
+SellerCategory DataAccessInterface::GetSellerCategory(SELLER_CATEGORY_ID id)
+{
+	vector<SELLER_CATEGORY_ID> ids;
+	ids.push_back( id );
+	
+	SellerCategoryArray categories = GetSellersCategories( ids );
+	return categories[ 0 ];
+}
+
+SellerCategory DataAccessInterface::GetSellerCategoryByLetter(char letter)
+{
+	vector<char> letters;
+	letters.push_back( letter );
+	
+	SellerCategoryArray categories = GetSellersCategoriesByLetter( letters );
+	return categories[ 0 ];
+}

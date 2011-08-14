@@ -8,7 +8,7 @@ namespace Burza {
 class DataTextfile : public DataStorage
 {
   public:
-	DataTextfile( string datapath );
+	DataTextfile( string& datapath );
   
   public:
 	//! Data functions
@@ -33,13 +33,12 @@ class DataTextfile : public DataStorage
 	SELLER_ID GetNewSellerId( void );
 	ITEM_ID GetNewItemId( void );
 	
-	SellerCategory GetSellerCategory(SELLER_CATEGORY_ID id);
-	ItemCategory GetItemCategory(ITEM_CATEGORY_ID id);
-	
-  public:
-	//! helper functions
-	ItemCategoryArray GetItemsCategories( ItemDataArray& items );
-	
+	ItemCategoryArray GetItemsCategories( void );
+	SellerCategoryArray GetSellersCategories( void );
+	ItemCategoryArray GetItemsCategories(vector<ITEM_CATEGORY_ID>& ids);
+	ItemCategoryArray GetItemsCategoriesByLetter(vector<char>& letters);
+	SellerCategoryArray GetSellersCategories(vector<SELLER_CATEGORY_ID>& ids);
+	SellerCategoryArray GetSellersCategoriesByLetter(vector<char>& letters);	
 	
   public:
 	//! Seller has filled ID from the text file.

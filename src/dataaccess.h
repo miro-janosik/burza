@@ -124,49 +124,59 @@ typedef SellerCategoryArray::iterator SellerCategoryIterator;
 typedef vector<ItemCategory> ItemCategoryArray;
 typedef ItemCategoryArray::iterator ItemCategoryIterator;
 
+typedef vector<char> CategoryLetterArray;
+
 class DataStorageException : public std::exception {
+public:
     virtual const char* what() const throw() {
         return "DataStorageException";
     }
 };
 
 class NotConnectedException : public DataStorageException {
+public:
     virtual const char* what() const throw() {
         return "Not Connected to Data";
     }
 };
 
 class WrongSellerException : public DataStorageException {
+public:
     virtual const char* what() const throw() {
         return "Wrong Seller";
     }
 };
 
 class WrongItemException : public DataStorageException {
+public:
     virtual const char* what() const throw() {
         return "Wrong Item";
     }
 };
 
 class WrongSellerCategoryException : public DataStorageException {
+public:
     virtual const char* what() const throw() {
         return "Wrong Item category";
     }
 };
 
 class WrongItemCategoryException : public DataStorageException {
+public:
     virtual const char* what() const throw() {
         return "Wrong Item category";
     }
 };
 
 class ServerException : public DataStorageException {
+public:
     virtual const char* what() const throw() {
         return "Server or network problems";
     }
 };
 
 class NotImplementedException : public DataStorageException {
+public:
     virtual const char* what() const throw() {
         return "Functionality not implemented";
     }
@@ -234,16 +244,22 @@ class DataAccessInterface {
   virtual ItemDataArray& GetItems(vector<ITEM_ID> ids);
   
   // ==== categories ====
-  virtual ItemCategory GetItemCategory(ITEM_CATEGORY_ID id) = 0;
-  virtual ItemCategory GetItemCategoryByLetter(char letter) { throw NotImplementedException(); }
+  //! Get all item categories
+  virtual ItemCategoryArray GetItemsCategories( void ) = 0;
 
+  //! Get all seller categories5
+  virtual SellerCategoryArray GetSellersCategories( void ) = 0;
+
+  virtual ItemCategory GetItemCategory(ITEM_CATEGORY_ID id);
   virtual ItemCategoryArray GetItemsCategories(vector<ITEM_CATEGORY_ID>& ids) { throw NotImplementedException(); }
+
+  virtual ItemCategory GetItemCategoryByLetter(char letter);
   virtual ItemCategoryArray GetItemsCategoriesByLetter(vector<char>& letters) { throw NotImplementedException(); }
 
-  virtual SellerCategory GetSellerCategory(SELLER_CATEGORY_ID id) = 0;
-  virtual SellerCategory GetSellerCategoryByLetter(char letter) { throw NotImplementedException(); }
-
+  virtual SellerCategory GetSellerCategory(SELLER_CATEGORY_ID id);
   virtual SellerCategoryArray GetSellersCategories(vector<SELLER_CATEGORY_ID>& ids) { throw NotImplementedException(); }
+
+  virtual SellerCategory GetSellerCategoryByLetter(char letter);
   virtual SellerCategoryArray GetSellersCategoriesByLetter(vector<char>& letters) { throw NotImplementedException(); }
 
   // ==== modified time ====
@@ -315,7 +331,7 @@ private:
 //! Base class that should be used as base for classes that read and write data.
 class DataStorage : public DataAccessInterface 
 {
-  public:
+public:
 
 	//! Get seller's items.
 	virtual ItemDataArray GetSellerItems(SELLER_ID id) = 0;
@@ -327,7 +343,7 @@ class DataStorage : public DataAccessInterface
 		agent_name = name;
 	}
 	
-  protected:
+protected:
 	//! All loaded items, items of all sellers.
 	ItemDataArray	items;
 	

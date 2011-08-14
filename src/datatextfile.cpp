@@ -1,6 +1,7 @@
 #include <stdexcept>
 #include <string.h>
 #include <algorithm>
+#include <assert.h>
 #include "datatextfile.h"
 #include "translate.h"
 #include "burza.h"
@@ -10,7 +11,7 @@ using namespace std;
 
 char DataTextfile::file_field_delimiters[] = "|*\r\n";
 
-DataTextfile::DataTextfile( string datapath )
+DataTextfile::DataTextfile( string& datapath )
 {
 	DataPath = datapath;
 	
@@ -25,7 +26,14 @@ DataTextfile::DataTextfile( string datapath )
 	cat.letter = 'b';
 	cat.fee_per_item = 4.0;
 	m_ItemCategories.push_back(cat);
-}	
+	
+	SellerCategory scat;
+	
+	scat.id = 4;
+	scat.letter = 'a';
+	scat.seller_fee = 1.0;
+	m_SellerCategories.push_back(scat);
+}
 
 void DataTextfile::SaveSellerToTxtFile( SellerData& seller, ItemDataArray& items )
 {
@@ -66,10 +74,12 @@ void DataTextfile::SaveSellerToTxtFile( SellerData& seller, ItemDataArray& items
 		
 		ReplaceCharactersInString( items[ i ].name, file_field_delimiters, '_' );
 		
+		ItemCategory cat = GetItemCategory( items[ i ].category );
+		
 		file.Print( "%i*%s*%0.1f",
 			items[ i ].number, items[ i ].name.c_str(), items[ i ].price );
 		file.Print( "*%c*%c\n",
-			items[ i ].category,
+			cat.letter,
 			ItemStatus2Char( items[ i ].status ) );
 	}
 	
@@ -97,6 +107,7 @@ SELLER_ID DataTextfile::LoadFromTxtFile( string filename, SellerData& seller, It
 	const char* cp, *linep;
 	
 	file.gets( linebuffer, linebuffer_len );
+	// GetNewSellerId();
 	seller.id = atoi( ConvFuncsInstance->StrItem( linebuffer, 0, file_field_delimiters ) );
 	seller.shortcode = ConvFuncsInstance->StrItem( linebuffer, 1, file_field_delimiters );
 	seller.name = ConvFuncsInstance->StrItem( linebuffer, 2, file_field_delimiters );
@@ -123,11 +134,12 @@ SELLER_ID DataTextfile::LoadFromTxtFile( string filename, SellerData& seller, It
 		linep += strpos;
 		
 		item.price = atof( ConvFuncsInstance->StrItem( linep, 0, file_field_delimiters ) );
-		item.category = * ConvFuncsInstance->StrItem( linep, 1, file_field_delimiters );
+		char* cat = ConvFuncsInstance->StrItem( linep, 1, file_field_delimiters );
+		item.category = GetItemCategoryByLetter( *cat ).id;
 		item.status = Char2ItemStatus( ( * ConvFuncsInstance->StrItem( linep, 2, file_field_delimiters ) ) );
 		
 		item.last_update = GetCurrentTime();
-		item.seller_id = GetNewSellerId();
+		item.seller_id = seller.id;
 		items.push_back(item);
 	} ;
 	
@@ -419,31 +431,6 @@ ITEM_ID DataTextfile::GetNewItemId( void )
 	return biggestId + 1;
 }
 
-ItemCategoryArray DataTextfile::GetItemsCategories( ItemDataArray& items )
-{
-	ItemCategory	cat;
-	ItemCategoryArray	res;
-	
-	for( unsigned int i=0; i<items.size(); ++i ) {
-		
-		cat = GetItemCategory( items[ i ].category );
-		res.push_back(cat);
-	}
-	
-	return res;
-}
-
-ItemCategory DataTextfile::GetItemCategory(ITEM_CATEGORY_ID id)
-{
-	for( int i=0; i < m_ItemCategories.size(); ++i ) {
-		if ( m_ItemCategories[ i ].id == id ) {
-			return m_ItemCategories[ i ];
-		}
-	}
-	
-	throw WrongItemCategoryException();
-}
-
 void DataTextfile::ReplaceCharactersInString( std::string& str, const char* from, char to )
 {
 	unsigned int len = strlen( from );
@@ -451,25 +438,6 @@ void DataTextfile::ReplaceCharactersInString( std::string& str, const char* from
 		std::replace( str.begin(), str.end(), from[ i ], to );
 	}
 }
-
-// ItemCategory DataTextfile::GetItemCategoryByLetter(char letter)
-// ItemCategoryArray DataTextfile::GetItemsCategories(vector<ITEM_CATEGORY_ID>& ids);
-// ItemCategoryArray DataTextfile::GetItemsCategoriesByLetter(vector<char>& letters);
-
-SellerCategory DataTextfile::GetSellerCategory(SELLER_CATEGORY_ID id)
-{
-	for( int i=0; i < m_SellerCategories.size(); ++i ) {
-		if ( m_SellerCategories[ i ].id == id ) {
-			return m_SellerCategories[ i ];
-		}
-	}
-	
-	throw WrongSellerCategoryException();
-}
-
-// SellerCategory DataTextfile::GetSellerCategoryByLetter(char letter);
-// SellerCategoryArray DataTextfile::GetSellersCategories(vector<SELLER_CATEGORY_ID>& ids);
-//SellerCategoryArray DataTextfile::GetSellersCategoriesByLetter(vector<char>& letters);
 
 int DataTextfile::GetItemIndex( ITEM_ID id )
 {
@@ -487,4 +455,108 @@ int DataTextfile::GetSellerIndex( SELLER_ID id )
 			return i;
 	
 	return -1;
+}
+
+SellerCategoryArray DataTextfile::GetSellersCategories(vector<SELLER_CATEGORY_ID>& ids)
+{
+	SellerCategoryArray categories = GetSellersCategories();
+	assert( categories.size() > 0 );
+	SellerCategoryArray res;
+	
+	for( int idi=0; idi < ids.size(); ++idi ) {
+		int i;
+		for( i=0; i < categories.size(); ++i ) {
+			if ( categories[ i ].id == ids[ idi ] ) {
+				res.push_back( categories[ i ] );
+				break;
+			}
+		}
+		
+		if ( i == categories.size() ) {
+			res.push_back( categories[ 0 ] );
+		}
+	}
+	
+	return res;
+}
+
+ItemCategoryArray DataTextfile::GetItemsCategories(vector<ITEM_CATEGORY_ID>& ids)
+{
+	ItemCategoryArray categories = GetItemsCategories();
+	assert( categories.size() > 0 );
+	ItemCategoryArray res;
+	
+	for( int idi=0; idi < ids.size(); ++idi ) {
+		int i;
+		for( i=0; i < categories.size(); ++i ) {
+			if ( categories[ i ].id == ids[ idi ] ) {
+				res.push_back( categories[ i ] );
+				break;
+			}
+		}
+		
+		if ( i == categories.size() ) {
+			res.push_back( categories[ 0 ] );
+		}
+	}
+	
+	return res;
+}
+
+ItemCategoryArray DataTextfile::GetItemsCategories( void )
+{
+	return m_ItemCategories;
+}
+
+SellerCategoryArray DataTextfile::GetSellersCategories( void )
+{
+	return m_SellerCategories;
+}
+
+ItemCategoryArray DataTextfile::GetItemsCategoriesByLetter(vector<char>& letters)
+{
+	ItemCategoryArray categories = GetItemsCategories();
+	assert( categories.size() > 0 );
+	
+	ItemCategoryArray res;
+	
+	for( int li=0; li < letters.size(); ++li ) {
+		int ci;
+		for( ci=0; ci < categories.size(); ++ci ) {
+			if ( categories[ ci ].letter == letters[ li ] ) {
+				res.push_back( categories[ ci ] );
+				break;
+			}
+		}
+		
+		if ( ci == categories.size() ) {
+			res.push_back( categories[ 0 ] );
+		}
+	}
+	
+	return res;
+}
+
+SellerCategoryArray DataTextfile::GetSellersCategoriesByLetter(vector<char>& letters)
+{
+	SellerCategoryArray categories = GetSellersCategories();
+	assert( categories.size() > 0 );
+	
+	SellerCategoryArray res;
+	
+	for( int li=0; li < letters.size(); ++li ) {
+		int ci;
+		for( ci=0; ci < categories.size(); ++ci ) {
+			if ( categories[ ci ].letter == letters[ li ] ) {
+				res.push_back( categories[ ci ] );
+				break;
+			}
+		}
+		
+		if ( ci == categories.size() ) {
+			res.push_back( categories[ 0 ] );
+		}
+	}
+	
+	return res;
 }

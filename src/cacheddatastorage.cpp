@@ -5,17 +5,44 @@
 using namespace Burza;
 using namespace std;
 
-/*
-vector<SellerData> CachedDataStorage::GetSellers( void )
+CachedDataTextfile::CachedDataTextfile( string& datapath ) 
+  : DataTextfile( datapath )
 {
-	sellers.clear();
-	sellers = dataAccess.GetSellers();
+	// preload all data
+	SellerDataArray preloadedSellers = DataTextfile::GetSellers();
+	ItemDataArray preloadedItems;
 
-	return sellers;		
+	for( int i=0; i<preloadedSellers.size(); ++i ) {
+		sellers[ preloadedSellers[ i ].id ] = preloadedSellers[ i ];
+
+		preloadedItems = DataTextfile::GetSellerItems( preloadedSellers[ i ].id );
+		for( int j=0; j<preloadedItems.size(); ++j ) {
+			items[ preloadedItems[ j ].id ] = preloadedItems[ j ];
+		}
+	}
 }
 
-SellerData& CachedDataStorage::GetSeller(SELLER_ID id)
+SellerDataArray CachedDataTextfile::GetSellers( void )
 {
+	SellerDataArray outSellers;
+	
+	for( int i=0; i<sellers.size(); ++i ) {
+		outSellers.push_back( sellers[ i ] );
+	}
+	
+	return outSellers;
+}
+
+SellerData& CachedDataTextfile::GetSeller(SELLER_ID id)
+{
+	SellerMap::iterator it = sellers.find( id );
+	if ( it == sellers.end() ) {
+		throw new WrongSellerException();
+	}
+  
+	return it->second;
+	
+	/*
 	if (sellers.contains(id)) {
 		SellerData* s = dataAccess.GetSellerIfModified(id);
 		if (s != NULL) {
@@ -30,44 +57,57 @@ SellerData& CachedDataStorage::GetSeller(SELLER_ID id)
 			return sellers[ id ];
 		}
 	}
-	
-	throw new WrongSellerIdException();
+	*/
 }
 
-SELLER_ID CachedDataStorage::AddSeller(SellerData& seller)
+SELLER_ID CachedDataTextfile::AddSeller(SellerData& seller)
 {
 	// generate unique seller ID
+	SELLER_ID id = DataTextfile::AddSeller(seller);
 	sellers[ id ] = seller;
-	dataAccess.AddSeller(seller);
 }
 
-void CachedDataStorage::ModifySellerEnd(SELLER_ID id, SellerData& seller)
+void CachedDataTextfile::ModifySellerEnd(SELLER_ID id, SellerData& seller)
 {
-	vector<SellerData>::iterator it = sellers.find(id);
+	/*
+	SellerMap::iterator it = sellers.find( id );
 	
-	if (it != sellers.end()) {
+	if (it == sellers.end()) {
 		GetSellers();
 	} else {
 		SellerData* s = dataAccess.GetSellerIfModified(id);
 		if (s != NULL) {
-			sellers[ id ] = *s;
 		}
 	}
-}
-
-void CachedDataStorage::RemoveSeller(SELLER_ID id)
-{
-	if (sellers.find(id) == sellers.end()) {
-		throw new WrongSellerIdException();
-	}
-
-	dataAccess.RemoveSeller(id);
-	sellers.erase(id);
+	*/
 	
-	for( ItemDataIterator it=items.begin(); it != items.end(); ++it ) {
-		if ( it->seller_id == id ) {
-			it = items.erase(it);
+	sellers[ id ] = seller;
+	
+	DataTextfile::ModifySellerEnd( id, seller );
+}
+
+void CachedDataTextfile::RemoveSeller(SELLER_ID id)
+{
+	if ( sellers.find(id) == sellers.end()) {
+		throw new WrongSellerException();
+	}
+
+	DataTextfile::RemoveSeller( id );
+	sellers.erase( id );
+	
+	for( ItemMap::iterator it=items.begin(); it != items.end(); ++it ) {
+		if ( it->second.seller_id == id ) {
+			items.erase(it);
 		}
 	}
 }
-*/
+
+ItemData CachedDataTextfile::GetItem(ITEM_ID id)
+{
+	ItemMap::iterator it = items.find( id );
+	if ( it != items.end() ) {
+		return it->second;
+	}
+	
+	throw new WrongItemException();
+}

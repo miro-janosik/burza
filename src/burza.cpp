@@ -26,6 +26,8 @@
 #include "pdfwrap.h"
 #include "table.h"
 #include "datatextfile.h"
+#include "cacheddatastorage.h"
+#include "translate.h"
 
 using namespace Burza;
 
@@ -35,6 +37,11 @@ Centrala* Centrala::m_instance = NULL;
 int main2( int argc, char **argv )
 {
 	Centrala		*pcentrala = Centrala::Instance();
+
+	pcentrala->Register().m_storage = new CachedDataTextfile( Centrala::Settings().m_data_dir_path );
+	//TODO: dispose dataStorage in destructor somehow.
+	//	DataTextfile dataStorage = new DataTextfile( Centrala::Instancia()->Nastavenia()->m_data_dir_path );
+	//	m_storage = new CachedDataStorage(*dataStorage);
 	
 	ConvFuncs::SingletonInstanceCreate();
 	
@@ -51,8 +58,13 @@ int main2( int argc, char **argv )
 	Centrala::Dialogs().FillSellerCombos();
 	Centrala::Dialogs().RegisterDisplaySellerByIndex( 0 );
 
-	//Gtk::Main::run( * pcentrala->Dialogy()->m_pWndRegister );
-	Gtk::Main::run();
+	try {
+		//Gtk::Main::run( * pcentrala->Dialogy()->m_pWndRegister );
+		Gtk::Main::run();
+	}
+	catch (DataStorageException& ex){
+		BurzaDialogs::DisplayErrorMessageBox( ex.what(), _("Program failed to work, has to exit.") );
+	}
 
 	// setup update timer
 	// m_timer_connection = Glib::signal_timeout().connect( sigc::ptr_fun( &on_timer ), 100 );
@@ -147,10 +159,6 @@ double BurzaRegister::CalculateFee( SellerData& seller, ItemDataArray& items )
 
 BurzaRegister::BurzaRegister()
 {
-	m_storage = new DataTextfile( Centrala::Settings().m_data_dir_path );
-	//TODO: dispose dataStorage in destructor somehow.
-//	DataTextfile dataStorage = new DataTextfile( Centrala::Instancia()->Nastavenia()->m_data_dir_path );
-//	m_storage = new CachedDataStorage(*dataStorage);
 }
 
 BurzaRegister::~BurzaRegister()
