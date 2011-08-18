@@ -71,7 +71,7 @@ ItemData BurzaDialogs::CashoutGetSelectedItem( void )
 	return Centrala::Storage().GetItem( m_CashoutSelectedItemId );
 }
 
-int BurzaDialogs::NahrajDialogy( void )
+int BurzaDialogs::SetupDialogs( void )
 {
 	std::string		glade_fname;
 	
@@ -148,17 +148,17 @@ int BurzaDialogs::NahrajDialogy( void )
 		throw;
 	}
 	
-	m_pButtonImportSeller->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::ButtonRegisterImportSeller ) );
-	m_pButtonAddSeller->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::ButtonRegisterAddSeller ) );
-	m_pButtonUpdateSeller->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::ButtonRegisterUpdateSeller ) );
-	m_pButtonAddItem->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::ButtonRegisterAddItem ) );
-	m_pButtonModifyItem->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::ButtonRegisterModifyItem ) );
-	m_pButtonRemoveItem->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::ButtonRegisterRemoveItem ) );
-	m_pButtonCalcFee->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::ButtonRegisterCalcFee ) );
-	m_pButtonCalcRepayment->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::ButtonRegisterCalcRepayment ) );
-	m_pButtonCashout->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::ButtonSwitchToCashout ) );
+	m_pButtonImportSeller->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonImportSeller ) );
+	m_pButtonAddSeller->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonAddSeller ) );
+	m_pButtonUpdateSeller->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonUpdateSeller ) );
+	m_pButtonAddItem->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonAddItem ) );
+	m_pButtonModifyItem->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonModifyItem ) );
+	m_pButtonRemoveItem->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonRemoveItem ) );
+	m_pButtonCalcFee->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonCalcFee ) );
+	m_pButtonCalcRepayment->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonCalcRepayment ) );
+	m_pButtonCashout->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonSwitchToCashout ) );
 	
-	m_pComboSeller->signal_changed().connect( sigc::mem_fun( *this, &BurzaDialogs::ComboRegisterChangedSeller ) );
+	m_pComboSeller->signal_changed().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterComboChangedSeller ) );
 	
 	m_RegisterItemsSelection = m_pTreeViewItems->get_selection();
 	m_RegisterItemsSelection->set_mode( Gtk::SELECTION_MULTIPLE );
@@ -262,21 +262,19 @@ int BurzaDialogs::NahrajDialogy( void )
 		throw;
 	}
 	
-	m_pButtonRegister->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::ButtonSwitchToRegister ) );
-	m_pCashoutButtonAddItem->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::ButtonCashoutAddItem ) );
-	m_pCashoutButtonRemoveItem->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::ButtonCashoutRemoveItem ) );
-	m_pCashoutButtonFinish->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::ButtonCashoutFinished ) );
+	m_pButtonRegister->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::CashoutButtonSwitchToRegister ) );
+	m_pCashoutButtonAddItem->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::CashoutButtonAddItem ) );
+	m_pCashoutButtonRemoveItem->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::CashoutButtonRemoveItem ) );
+	m_pCashoutButtonFinish->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::CashoutButtonFinished ) );
 	
 	m_CashoutItemsSelection = m_pCashoutTreeViewList->get_selection();
 	m_CashoutItemsSelection->set_mode( Gtk::SELECTION_SINGLE );
-	m_CashoutItemsSelection->signal_changed().connect( sigc::mem_fun( this, &BurzaDialogs::TreeSelectChangedItem ) );
+	m_CashoutItemsSelection->signal_changed().connect( sigc::mem_fun( this, &BurzaDialogs::CashoutItemsTreeSelectChanged ) );
 	
 	m_pCashoutEntryLookupSeller->signal_changed().connect( sigc::mem_fun( this, &BurzaDialogs::CashoutEditLookupSellerChanged ) );
 	m_pCashoutEntryLookupItem->signal_changed().connect( sigc::mem_fun( this, &BurzaDialogs::CashoutEditLookupItemChanged ) );
-	m_pCashoutComboLookupSeller->signal_changed().connect( sigc::mem_fun( *this,
-		&BurzaDialogs::CashoutComboLookupSellerChanged ) );
-	m_pCashoutComboLookupItem->signal_changed().connect( 
-		sigc::mem_fun( *this, &BurzaDialogs::CashoutComboLookupItemChanged ) );
+	m_pCashoutComboLookupSeller->signal_changed().connect( sigc::mem_fun( *this, &BurzaDialogs::CashoutComboLookupSellerChanged ) );
+	m_pCashoutComboLookupItem->signal_changed().connect( sigc::mem_fun( *this, &BurzaDialogs::CashoutComboLookupItemChanged ) );
 	
 	m_pCashoutComboSearch->signal_changed().connect( sigc::mem_fun( this, &BurzaDialogs::CashoutEditSearchChanged ) );
 	m_pCashoutComboSearchEntry->signal_changed().connect( sigc::mem_fun( this, &BurzaDialogs::CashoutEditSearchEntryChanged ) );
@@ -360,10 +358,10 @@ int BurzaDialogs::NahrajDialogy( void )
 		throw;
 	}
 	
-	m_pItemeditOk->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::ButtonItemEditOk ) );
-	m_pItemeditCancel->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::ButtonItemEditCancel ) );
-	m_pWndItem->signal_delete_event().connect( sigc::mem_fun( *this, &BurzaDialogs::ButtonItemEditClose ) );
-	m_pItemeditStatusCombo->signal_changed().connect( sigc::mem_fun( *this, &BurzaDialogs::ComboItemEditStatusChanged ) );
+	m_pItemeditOk->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonItemEditOk ) );
+	m_pItemeditCancel->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonItemEditCancel ) );
+	m_pWndItem->signal_delete_event().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonItemEditClose ) );
+	m_pItemeditStatusCombo->signal_changed().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterComboItemEditStatusChanged ) );
 	
 	// == seller details edit dialog == 
 
@@ -382,9 +380,9 @@ int BurzaDialogs::NahrajDialogy( void )
 		throw;
 	}
 	
-	m_pSellerEditOk->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::ButtonSellerEditOk ) );
-	m_pSellerEditCancel->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::ButtonSellerEditCancel ) );
-	m_pWndSeller->signal_delete_event().connect( sigc::mem_fun( *this, &BurzaDialogs::ButtonSellerEditClose ) );
+	m_pSellerEditOk->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonSellerEditOk ) );
+	m_pSellerEditCancel->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonSellerEditCancel ) );
+	m_pWndSeller->signal_delete_event().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonSellerEditClose ) );
 	
 		// === --- === --- === throw - catch  === --- === --- ===
 	
@@ -490,7 +488,7 @@ void BurzaDialogs::FillSellerCombos( void )
 	}
 }
 
-void BurzaDialogs::ButtonRegisterImportSeller( void )
+void BurzaDialogs::RegisterButtonImportSeller( void )
 {
 	ExcelFileWrapper	x;
 	Gtk::FileChooserDialog dialog("Select importer file", Gtk::FILE_CHOOSER_ACTION_OPEN );
@@ -533,7 +531,7 @@ void BurzaDialogs::ButtonRegisterImportSeller( void )
 		return;
 	}
 	
-	DataStorage	&storage = Centrala::Storage();
+	DataAccessInterface	&storage = Centrala::Storage();
 	
 	bool sellerExists = true;
 	try {
@@ -554,28 +552,28 @@ void BurzaDialogs::ButtonRegisterImportSeller( void )
 	storage.AddItems( items, seller.id );
 }
 
-void BurzaDialogs::ButtonRegisterAddSeller( void )
+void BurzaDialogs::RegisterButtonAddSeller( void )
 {
 	// m_sellerEditAction = ea_add;
-	StartDialogEditSeller( SELLER_ID_NONE );
+	RegisterStartDialogEditSeller( SELLER_ID_NONE );
 }
 
-void BurzaDialogs::ButtonRegisterUpdateSeller( void )
+void BurzaDialogs::RegisterButtonUpdateSeller( void )
 {
 	// m_sellerEditAction = ea_modify;
 	if ( RegisterAnySelectedSeller() )
-		StartDialogEditSeller( RegisterGetSelectedSellerId() );
+		RegisterStartDialogEditSeller( RegisterGetSelectedSellerId() );
 }
 
-void BurzaDialogs::ButtonRegisterAddItem( void )
+void BurzaDialogs::RegisterButtonAddItem( void )
 {
 	if ( !RegisterAnySelectedSeller() )
 		return;
 	
-	StartDialogEditProduct( ITEM_ID_NONE );
+	RegisterStartDialogEditProduct( ITEM_ID_NONE );
 }
 
-void BurzaDialogs::ButtonRegisterModifyItem( void )
+void BurzaDialogs::RegisterButtonModifyItem( void )
 {
 	if ( !RegisterAnySelectedSeller() )
 		return;
@@ -586,10 +584,10 @@ void BurzaDialogs::ButtonRegisterModifyItem( void )
 	if ( listOfItems.size() != 1 )
 		return;
 	
-	StartDialogEditProduct( listOfItems[0] );
+	RegisterStartDialogEditProduct( listOfItems[0] );
 }
 
-void BurzaDialogs::ButtonRegisterRemoveItem( void )
+void BurzaDialogs::RegisterButtonRemoveItem( void )
 {
 	if ( !RegisterAnySelectedSeller() )
 		return;
@@ -613,7 +611,7 @@ void BurzaDialogs::ButtonRegisterRemoveItem( void )
 	RegisterDisplaySeller( seller );
 }
 
-void BurzaDialogs::ButtonRegisterCalcFee( void )
+void BurzaDialogs::RegisterButtonCalcFee( void )
 {
 	if ( !RegisterAnySelectedSeller() )
 		return;
@@ -628,7 +626,7 @@ void BurzaDialogs::ButtonRegisterCalcFee( void )
 		Centrala::Settings().m_string_mena.c_str() ) );
 }
 
-void BurzaDialogs::ButtonRegisterCalcRepayment( void )
+void BurzaDialogs::RegisterButtonCalcRepayment( void )
 {
 	m_pLabelFee->set_text( string( " -4500.00 ") + Centrala::Settings().m_string_mena );
 	
@@ -660,7 +658,7 @@ void BurzaDialogs::ButtonRegisterCalcRepayment( void )
 	}
 }
 
-void BurzaDialogs::ButtonSwitchToCashout( void )
+void BurzaDialogs::RegisterButtonSwitchToCashout( void )
 {
 	m_pWndRegister->hide();
 	m_pWndCashOut->show();
@@ -696,7 +694,7 @@ void BurzaDialogs::ButtonSwitchToCashout( void )
 	m_pWndCashOut->set_focus_chain( cashoutFocusList );
 }
 
-void BurzaDialogs::ButtonSwitchToRegister( void )
+void BurzaDialogs::CashoutButtonSwitchToRegister( void )
 {
 	m_pWndRegister->show();
 	m_pWndCashOut->hide();
@@ -706,7 +704,7 @@ void BurzaDialogs::ButtonSwitchToRegister( void )
 	m_pLabelFee->set_text( "" );
 }
 
-void BurzaDialogs::ComboRegisterChangedSeller( void )
+void BurzaDialogs::RegisterComboChangedSeller( void )
 {
 	int i = m_pComboSeller->get_active_row_number();
 	
@@ -721,7 +719,7 @@ void BurzaDialogs::ComboRegisterChangedSeller( void )
 	RegisterDisplaySellerByIndex( i );
 }
 
-void BurzaDialogs::TreeSelectChangedItem( void )
+void BurzaDialogs::CashoutItemsTreeSelectChanged( void )
 {
 	
 }
@@ -766,13 +764,13 @@ void BurzaDialogs::RegisterGetSelectedItemIds( vector<ITEM_ID>& listOfIds )
 	}
 }
 
-void BurzaDialogs::ButtonCashoutAddItem( void )
+void BurzaDialogs::CashoutButtonAddItem( void )
 {
-	if ( ! CashoutAnySelectedItem() )
+	if ( ! CashoutAnySelectedItem() ) {
 		return;
+	}
 	
 	ShoppingCartIterator it;
-	
 	for( it = m_shoppingCart.begin(); it != m_shoppingCart.end(); ++it ) {
 		if ( *it == CashoutGetSelectedItemId() )
 			break;
@@ -815,7 +813,7 @@ void BurzaDialogs::CheckoutCartChanged( void )
 	m_pCashoutLabelSum->set_text( str );
 }
 
-void BurzaDialogs::ButtonCashoutFinished( void )
+void BurzaDialogs::CashoutButtonFinished( void )
 {
 	if ( ! DisplayYesNoMessageBox( _("Dokončiť nákup?"), "" )) {
 		return;
@@ -829,7 +827,7 @@ void BurzaDialogs::ButtonCashoutFinished( void )
 	CheckoutCartChanged();
 }
 
-void BurzaDialogs::ButtonCashoutRemoveItem( void )
+void BurzaDialogs::CashoutButtonRemoveItem( void )
 {
 	vector<unsigned int> itemIndexes;
 	
@@ -908,6 +906,7 @@ void BurzaDialogs::CashoutSelectedItemChanged( void )
 void BurzaDialogs::CashoutSellerChanged( void )
 {
 	m_pCashoutComboLookupItem->clear();
+	m_CashoutDisplayedItems.clear();
 	
 	if ( ! CashoutAnySelectedSeller() )
 		return;
@@ -921,6 +920,7 @@ void BurzaDialogs::CashoutSellerChanged( void )
 			items[ i ].number,
 			items[ i ].name.c_str() );
 		m_pCashoutComboLookupItem->append_text( str );
+		m_CashoutDisplayedItems.push_back( items[i] );
 	}
 }
 
@@ -955,7 +955,7 @@ bool BurzaDialogs::DisplayYesNoMessageBox( string message, string title )
 	return ( res == Gtk::RESPONSE_YES );
 }
 
-void BurzaDialogs::StartDialogEditProduct( ITEM_ID itemid )
+void BurzaDialogs::RegisterStartDialogEditProduct( ITEM_ID itemid )
 {
 	ItemData item;
 	
@@ -965,7 +965,7 @@ void BurzaDialogs::StartDialogEditProduct( ITEM_ID itemid )
 		}
 		catch(WrongItemException)
 		{
-			throw runtime_error( "BurzaDialogs::ButtonRegisterModifyItem item not in list" );
+			throw runtime_error( "BurzaDialogs::RegisterStartDialogEditProduct item not in list" );
 		}
 	}
 
@@ -987,7 +987,7 @@ void BurzaDialogs::StartDialogEditProduct( ITEM_ID itemid )
 	m_pWndItem->show();
 }
 
-void BurzaDialogs::ButtonItemEditOk( void )
+void BurzaDialogs::RegisterButtonItemEditOk( void )
 {
 	// validate
 	bool validate_needed = false;
@@ -1068,27 +1068,27 @@ void BurzaDialogs::ButtonItemEditOk( void )
 	RegisterDisplaySeller( m_EditedSeller );
 	
 	// after adding new item - start adding another one.
-	StartDialogEditProduct( ITEM_ID_NONE );
+	RegisterStartDialogEditProduct( ITEM_ID_NONE );
 }
 
-void BurzaDialogs::ButtonItemEditCancel( void )
+void BurzaDialogs::RegisterButtonItemEditCancel( void )
 {
 	m_pWndItem->hide();
 	m_EditedItem.id = ITEM_ID_NONE;
 	m_EditedSeller.id = SELLER_ID_NONE;
 }
 
-bool BurzaDialogs::ButtonItemEditClose( GdkEventAny* )
+bool BurzaDialogs::RegisterButtonItemEditClose( GdkEventAny* )
 {
-	ButtonItemEditCancel(); 
+	RegisterButtonItemEditCancel(); 
 	return true; 
 }
 
-void BurzaDialogs::ComboItemEditStatusChanged( void )
+void BurzaDialogs::RegisterComboItemEditStatusChanged( void )
 {
 }
 
-void BurzaDialogs::StartDialogEditSeller( SELLER_ID id )
+void BurzaDialogs::RegisterStartDialogEditSeller( SELLER_ID id )
 {
 	SellerData seller; 
 	
@@ -1107,7 +1107,7 @@ void BurzaDialogs::StartDialogEditSeller( SELLER_ID id )
 	m_pWndSeller->show();
 }
 
-void BurzaDialogs::ButtonSellerEditOk( void )
+void BurzaDialogs::RegisterButtonSellerEditOk( void )
 {
 	// validate
 	string str;
@@ -1139,27 +1139,27 @@ void BurzaDialogs::ButtonSellerEditOk( void )
 		Centrala::Storage().ModifySellerEnd( m_EditedSeller.id, m_EditedSeller );
 	}
 	
-	SellerModified( m_EditedSeller );
+	RegisterSellerModified( m_EditedSeller );
 	
 	// start adding items right away !
 	if ( action == ea_add ) {
 		// uses m_EditedSeller
-		StartDialogEditProduct( ITEM_ID_NONE );
+		RegisterStartDialogEditProduct( ITEM_ID_NONE );
 	}
 }
 
-void BurzaDialogs::ButtonSellerEditCancel( void )
+void BurzaDialogs::RegisterButtonSellerEditCancel( void )
 {
 	m_pWndSeller->hide();
 }
 
-bool BurzaDialogs::ButtonSellerEditClose( GdkEventAny* )
+bool BurzaDialogs::RegisterButtonSellerEditClose( GdkEventAny* )
 {
-	ButtonSellerEditCancel(); 
+	RegisterButtonSellerEditCancel(); 
 	return true; 
 }
 
-void BurzaDialogs::SellerModified( SellerData& seller )
+void BurzaDialogs::RegisterSellerModified( SellerData& seller )
 {
 	FillSellerCombos();
 	RegisterDisplaySeller( seller.shortcode.c_str() );
@@ -1176,6 +1176,7 @@ void BurzaDialogs::CashoutDisplaySeller( const char* shortcode )
 	int idx = mp_register->NajdiPredajcuPodlaKoduIndex( shortcode );
 	
 	m_pCashoutComboLookupItem->clear();
+	m_CashoutDisplayedItems.clear();
 	
 	if ( idx == -1 ) {
 		m_pCashoutComboLookupSeller->set_active( -1 );

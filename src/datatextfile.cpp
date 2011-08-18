@@ -86,9 +86,9 @@ void DataTextfile::SaveSellerToTxtFile( SellerData& seller, ItemDataArray& items
 	file.Close();
 }
 
-SELLER_ID DataTextfile::LoadFromTxtFile( string filename, SellerData& seller, ItemDataArray& items )
+SELLER_ID DataTextfile::LoadFromTxtFile( string filename, SellerData& seller, ItemDataArray& newitems )
 {
-	items.clear();
+	newitems.clear();
 	
 	CConvFile	file;
 	file.OpenFile( filename.c_str(), CConvFile::fm_text, CConvFile::fm_read );
@@ -140,7 +140,7 @@ SELLER_ID DataTextfile::LoadFromTxtFile( string filename, SellerData& seller, It
 		
 		item.last_update = GetCurrentTime();
 		item.seller_id = seller.id;
-		items.push_back(item);
+		item.id = ITEM_ID_NONE;
 	} ;
 	
 	file.Close();
@@ -166,76 +166,22 @@ void DataTextfile::LoadFromTxtFile( SELLER_ID id, SellerData& seller, ItemDataAr
 
 SellerDataArray DataTextfile::GetSellers( void )
 {
-	std::string		predajca_pat, filename;
-	SellerData		seller;
-	ItemDataArray	seller_items;
-	SELLER_ID		id;
-
-	sellers.clear();
-	
-	predajca_pat = DataPath;
-	predajca_pat += "*.txt";
-	
-	bool found;
-	found = ConvFuncsInstance->Find_FirstFile( predajca_pat.c_str() );
-	while( found ) {
-		found = ConvFuncsInstance->Find_NextFile();
-		
-		filename = DataPath;
-		filename += ConvFuncsInstance->Find_CurrentFileName();
-		
-		try {
-		  items.clear();
-		  
-		  id = LoadFromTxtFile( filename, seller, seller_items );
-		}
-		catch(...)
-		{
-			continue;
-		}
-		
-		sellers.push_back(seller);
-	}
-	
-	return sellers;
+	throw NotImplementedException();
 }
 
 SellerData& DataTextfile::GetSeller(SELLER_ID id)
 {
-	if (sellers.empty()) {
-		GetSellers();
-	}
-	
-	for( int i=0; i < sellers.size(); ++i )
-		if ( sellers[ i ].id == id )
-			return sellers[ i ];
-	
-	throw WrongSellerException();
+	throw NotImplementedException();
 }
 
 ItemDataArray DataTextfile::GetSellerItems(SELLER_ID id)
 {
-	SellerData	seller;
-	ItemDataArray	items;
-	
-	LoadFromTxtFile( id, seller, items );
-	
-	return items;
+	throw NotImplementedException();
 }
 
 ItemData DataTextfile::GetSellerItem(SELLER_ID id, int item_number)
 {
-	SellerData	seller;
-	ItemDataArray	items;
-	
-	LoadFromTxtFile( id, seller, items );
-	
-	ItemData* item = FindItemByNumber( items, item_number );
-	if ( item == NULL ) {
-		throw new WrongItemException();
-	}
-	
-	return *item;
+	throw NotImplementedException();
 }
 
 ItemData DataTextfile::GetItem(ITEM_ID id)
@@ -273,16 +219,6 @@ string DataTextfile::GetSellerFilenameNew( SellerData& seller )
 	return filename;
 }
 
-SELLER_ID DataTextfile::AddSeller(SellerData& seller)
-{
-	ItemDataArray items;
-	
-	seller.id = GetNewSellerId();
-	SaveSellerToTxtFile( seller, items );
-	
-	return seller.id;
-}
-
 bool DataTextfile::ModifySellerStart(SELLER_ID id)
 {
 }
@@ -304,53 +240,6 @@ void DataTextfile::RemoveSeller(SELLER_ID id)
 		complete += filename;
 		ConvFuncs::DoDeleteFile( complete.c_str() );
 	}
-	
-	for( int i=0; i < sellers.size(); ++i ) {
-		if ( sellers[ i ].id == id ) {
-			sellers.begin() + i;
-			break;
-		}
-	}
-}
-
-ITEM_ID DataTextfile::AddItem(ItemData& item, SELLER_ID sellerId)
-{
-	SellerData seller = GetSeller(sellerId);
-	ItemDataArray items = GetSellerItems(sellerId);
-	
-	item.id = GetNewItemId();
-	items.push_back(item);
-	SaveSellerToTxtFile( seller, items );
-}
-
-void DataTextfile::ModifyItem(ITEM_ID item_id, ItemData& item)
-{
-	SellerData seller = GetSeller(item.seller_id);
-	ItemDataArray items = GetSellerItems(item.seller_id);
-
-	int idx = GetItemIndex( item_id );
-	if ( idx == -1 ) {
-		throw new WrongItemException();
-	}
-	
-	items[ idx ] = item;
-	
-	SaveSellerToTxtFile(seller, items);
-}
-
-void DataTextfile::RemoveItem(ITEM_ID id)
-{
-	SELLER_ID seller_id = GetItem( id ).seller_id;
-	int idx = GetItemIndex( id );
-	if ( idx == -1 ) {
-		throw new WrongItemException();
-	}
-	
-	items.erase( items.begin() + idx );
-	
-	SellerData seller = GetSeller(seller_id);
-	ItemDataArray items = GetSellerItems(seller_id);
-	SaveSellerToTxtFile(seller, items);
 }
 
 bool DataTextfile::IsSellerModified(SELLER_ID id)
@@ -371,64 +260,6 @@ bool DataTextfile::IsItemModified(ITEM_ID id)
 ItemData* DataTextfile::GetItemIfModified(ITEM_ID id)
 {
 	return NULL;
-}
-
-SellerData& DataTextfile::GetSellerByCode(string& code)
-{
-	if (sellers.empty()) {
-		GetSellers();
-	}
-	
-	SellerDataIterator it = sellers.begin(), ite = sellers.end();
-	for( ; it != ite; ++it ) {
-		if (it->shortcode == code) {
-			return *it;
-		}
-	}
-	
-	throw WrongSellerException();
-}
-
-SELLER_ID DataTextfile::GetNewSellerId( void )
-{
-	if (sellers.empty()) {
-		GetSellers();
-	}
-	
-	SELLER_ID biggestId = 0;
-	
-	SellerDataIterator it = sellers.begin(), ite = sellers.end();
-	for( ; it != ite; ++it ) {
-		if (it->id > biggestId) {
-			biggestId = it->id;
-		}
-	}
-	
-	return biggestId + 1;
-}
-
-ITEM_ID DataTextfile::GetNewItemId( void )
-{
-	if (sellers.empty()) {
-		GetSellers();
-	}
-	
-	ITEM_ID biggestId = 0;
-	
-	SellerDataIterator it = sellers.begin(), ite = sellers.end();
-	for( ; it != ite; ++it ) {
-
-		ItemDataArray items = GetSellerItems(it->id);
-		ItemDataIterator itemit = items.begin(), itemite = items.end();
-	  
-		for( ; itemit != itemite; ++itemit ) {
-			if (itemit->id > biggestId) {
-				biggestId = itemit->id;
-			}
-		}
-	}
-	
-	return biggestId + 1;
 }
 
 void DataTextfile::ReplaceCharactersInString( std::string& str, const char* from, char to )

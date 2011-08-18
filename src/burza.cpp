@@ -52,7 +52,7 @@ int main2( int argc, char **argv )
 	
 	// ============
 	
-	Centrala::Dialogs().NahrajDialogy();
+	Centrala::Dialogs().SetupDialogs();
 	
 	// Centrala::Register().NacitajVsetkychPredajcov();
 	Centrala::Dialogs().FillSellerCombos();

@@ -5,7 +5,7 @@
 
 namespace Burza {
 
-class DataTextfile : public DataStorage
+class DataTextfile : public DataAccessInterface
 {
   public:
 	DataTextfile( string& datapath );

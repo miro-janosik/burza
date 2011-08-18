@@ -17,8 +17,6 @@
 using namespace std;
 using namespace Burza;
 
-class Burza::BurzaRegister;
-
 // ComboBoxText is class derived from ComboBox, I have to provide special constructor
 // so I can load it up from glade
 class ComboBoxTextDer : public Gtk::ComboBoxText {
@@ -34,7 +32,7 @@ public:
 	~BurzaDialogs();
 	
 	// returns 0 on success.
-	int NahrajDialogy( void );
+	int SetupDialogs( void );
 	
 	// vyplni komba v Registri aj Pokladni
 	void FillSellerCombos( void );
@@ -44,7 +42,6 @@ public:
 	void RegisterDisplaySeller( const char* kod );
 	void RegisterDisplaySellerByIndex( unsigned int idx );
 	
-	void PokladnaVyplnTovarDoKomba( void );
 	void CashoutSellerChanged( void );
 	
 	// Displays message box with message. Function returns only after you click OK on the box.
@@ -53,24 +50,24 @@ public:
 	//! returns true if Yes is pressed, false otherwise (you can expect that either No or 'x' was pressed.
 	bool DisplayYesNoMessageBox( string message, string title );
 	
-	void StartDialogEditProduct( ITEM_ID item );
-	void StartDialogEditSeller( SELLER_ID id );
-	void SellerModified( Burza::SellerData& seller );
+	void RegisterStartDialogEditProduct( ITEM_ID item );
+	void RegisterStartDialogEditSeller( SELLER_ID id );
+	void RegisterSellerModified( Burza::SellerData& seller );
 	
 public:
 	
 	// "register" dialog functions
-	void ButtonRegisterImportSeller( void );
-	void ButtonRegisterAddSeller( void );
-	void ButtonRegisterUpdateSeller( void );
-	void ButtonRegisterAddItem( void );
-	void ButtonRegisterModifyItem( void );
-	void ButtonRegisterRemoveItem( void );
-	void ButtonRegisterCalcFee( void );
-	void ButtonRegisterCalcRepayment( void );
-	void ButtonSwitchToCashout( void );
-	void ComboRegisterChangedSeller( void );
-	void TreeSelectChangedItem( void );
+	void RegisterButtonImportSeller( void );
+	void RegisterButtonAddSeller( void );
+	void RegisterButtonUpdateSeller( void );
+	void RegisterButtonAddItem( void );
+	void RegisterButtonModifyItem( void );
+	void RegisterButtonRemoveItem( void );
+	void RegisterButtonCalcFee( void );
+	void RegisterButtonCalcRepayment( void );
+	void RegisterButtonSwitchToCashout( void );
+	void RegisterComboChangedSeller( void );
+	void CashoutItemsTreeSelectChanged( void );
 	
 	void RegisterGetSelectedItemIds( vector<Burza::ITEM_ID>& listOfIds );
 	
@@ -78,12 +75,12 @@ public:
 	static void GetSelectedItemNumbers( Glib::RefPtr<Gtk::TreeSelection>& selector, vector<unsigned int>& listOfItems );
 	
 	// "cash-out" dialog callback functions
-	void ButtonSwitchToRegister( void );
-	void ButtonCashoutAddItem( void );
-	void ButtonCashoutFinished( void );
-	void ButtonCashoutRemoveItem( void );
-	void ComboCashoutLookupSeller( void );
-	void ComboCashoutLookupItem( void );
+	void CashoutButtonSwitchToRegister( void );
+	void CashoutButtonAddItem( void );
+	void CashoutButtonFinished( void );
+	void CashoutButtonRemoveItem( void );
+	void CashoutComboLookupSeller( void );
+	void CashoutComboLookupItem( void );
 	void CashoutEditLookupSellerChanged( void );
 	void CashoutEditLookupItemChanged( void );
 	void CashoutComboLookupSellerChanged( void );
@@ -98,15 +95,15 @@ public:
 	
 	// "item properties dialog functions
 	//! Item editing finished. Fill item back to seller, and notify that seller was modified.
-	void ButtonItemEditOk( void );
-	void ButtonItemEditCancel( void );
-	bool ButtonItemEditClose( GdkEventAny* );
-	void ComboItemEditStatusChanged( void );
+	void RegisterButtonItemEditOk( void );
+	void RegisterButtonItemEditCancel( void );
+	bool RegisterButtonItemEditClose( GdkEventAny* );
+	void RegisterComboItemEditStatusChanged( void );
 	
 	// "seller" edit dialog
-	void ButtonSellerEditOk( void );
-	void ButtonSellerEditCancel( void );
-	bool ButtonSellerEditClose( GdkEventAny* );
+	void RegisterButtonSellerEditOk( void );
+	void RegisterButtonSellerEditCancel( void );
+	bool RegisterButtonSellerEditClose( GdkEventAny* );
 	
 public:
 	Burza::BurzaRegister			*mp_register;

@@ -18,8 +18,9 @@ public:
 	SELLER_ID AddSeller(SellerData& seller);
 	void ModifySellerEnd(SELLER_ID id, SellerData& seller);
 	void RemoveSeller(SELLER_ID id);
-
+	
 	ItemData GetItem(ITEM_ID id);
+	ItemData GetSellerItem(SELLER_ID id, int item_number);
 	
 private:
 	

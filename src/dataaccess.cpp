@@ -32,6 +32,16 @@ SellerData::SellerData()
 	id = -1;
 }
 
+SellerData::SellerData(const SellerData& a)
+{
+	id			= a.id;
+	name		= a.name;
+	shortcode	= a.shortcode;
+	note		= a.note;
+	category	= a.category;
+	last_update	= a.last_update;
+}
+
 SellerData::SellerData(string _name, string _shortcode, string _note, int _category)
 {
 	name = _name;
@@ -65,6 +75,17 @@ ItemData::ItemData(string _name, int _number, double _price, int _category, Item
 	status = _status;
 	seller_id = -1;
 	id = -1;
+}
+
+ItemData::ItemData(const ItemData& a)
+{
+	id = a.id;
+	name = a.name;
+	number = a.number;
+	price = a.price;
+	category = a.category;
+	status = a.status;
+	seller_id = a.seller_id;
 }
 
 ItemDataArray DataAccessInterface::GetSellerItems(SELLER_ID id)

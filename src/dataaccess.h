@@ -71,6 +71,7 @@ struct SellerData {
 public:
 	SellerData();
 	SellerData(string _name, string _shortcode, string _note, int _category);
+	SellerData(const SellerData&);
 } ;
 
 enum ItemStatus {
@@ -97,6 +98,7 @@ struct ItemData {
 	
 public:
 	ItemData();
+	ItemData(const ItemData&);
 	ItemData(string _name, int _number, double _price, int _category, ItemStatus _status);
 } ;
 

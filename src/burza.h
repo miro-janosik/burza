@@ -85,7 +85,7 @@ public:
 	
 	NastaveniaProgramu		m_nastavenia;
 	
-	DataStorage		*m_storage;
+	DataAccessInterface		*m_storage;
 	
 	BurzaRegister();
 	~BurzaRegister();
@@ -166,7 +166,7 @@ public:
 	static NastaveniaProgramu&	Settings( void ) { return Instance()->m_settings; }
 	static BurzaDialogs& Dialogs( void ) { return * Instance()->mp_dialogs; }
 	static BurzaRegister& Register( void ) { return Instance()->m_register; }
-	static DataStorage& Storage( void ) { return * Instance()->m_register.m_storage; }
+	static DataAccessInterface& Storage( void ) { return * Instance()->m_register.m_storage; }
 	
 	NastaveniaProgramu		m_settings;
 	BurzaDialogs			*mp_dialogs;
