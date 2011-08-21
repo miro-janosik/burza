@@ -304,6 +304,12 @@ public:
 
   //! looks for a seller in the array. Returns index of the seller in the array, or -1 if not found
   static int FindSellerIndexByCode( SellerDataArray& list, string code );
+
+  //! returns seller's index in the GetSellers() array
+  virtual int GetSellerIndex( SELLER_ID id ) { throw NotImplementedException(); }
+  
+  //! returns item's index in the GetSellerItems() array
+  virtual int GetItemIndex( ITEM_ID id ) { throw NotImplementedException(); }
   
   //! returns unique non-used seller ID
   virtual SELLER_ID GetNewSellerId( void ) = 0;

@@ -7,8 +7,11 @@ namespace Burza {
 
 class DataTextfile : public DataAccessInterface
 {
+  private:
+	DataTextfile();
   public:
 	DataTextfile( string& datapath );
+	~DataTextfile();
   
   public:
 	//! Data functions
@@ -45,7 +48,7 @@ class DataTextfile : public DataAccessInterface
 	//! Loaded items have filled seller_id, but not their own ID.
 	SELLER_ID LoadFromTxtFile( string filename, SellerData& seller, ItemDataArray& items );
 	
-  private:
+  protected:
 	//! class helper functions
   
 	void SaveSellerToTxtFile( SellerData& seller, ItemDataArray& items );
@@ -53,12 +56,9 @@ class DataTextfile : public DataAccessInterface
 	string GetSellerFilenameExisting( SELLER_ID id );
 	string GetSellerFilenameNew( SellerData& seller );
 	void ReplaceCharactersInString( std::string& str, const char* from, char to );
-	int GetSellerIndex( SELLER_ID id );
-	int GetItemIndex( ITEM_ID id );
 	
-  private:
+  protected:
 	//! class data
-
 
 	string	DataPath;
 	

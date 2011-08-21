@@ -35,6 +35,10 @@ DataTextfile::DataTextfile( string& datapath )
 	m_SellerCategories.push_back(scat);
 }
 
+DataTextfile::~DataTextfile()
+{
+}
+
 void DataTextfile::SaveSellerToTxtFile( SellerData& seller, ItemDataArray& items )
 {
 	string oldname = GetSellerFilenameExisting(seller.id);
@@ -268,24 +272,6 @@ void DataTextfile::ReplaceCharactersInString( std::string& str, const char* from
 	for( unsigned int i=0; i<len; i++ ) {
 		std::replace( str.begin(), str.end(), from[ i ], to );
 	}
-}
-
-int DataTextfile::GetItemIndex( ITEM_ID id )
-{
-	for( int i=0; i<items.size(); ++i )
-		if ( items[ i ].id == id )
-			return i;
-	
-	return -1;
-}
-
-int DataTextfile::GetSellerIndex( SELLER_ID id )
-{
-	for( int i=0; i<sellers.size(); ++i )
-		if ( sellers[ i ].id == id )
-			return i;
-	
-	return -1;
 }
 
 SellerCategoryArray DataTextfile::GetSellersCategories(vector<SELLER_CATEGORY_ID>& ids)

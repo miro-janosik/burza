@@ -1,6 +1,7 @@
 #include "cacheddatastorage.h"
 #include "dataaccess.h"
 #include <bits/algorithmfwd.h>
+#include <assert.h>
 
 #include "log.h"
 
@@ -50,50 +51,8 @@ CachedDataTextfile::CachedDataTextfile( string& datapath )
 	}
 }
 
-SellerDataArray CachedDataTextfile::GetSellers( void )
+CachedDataTextfile::~CachedDataTextfile()
 {
-	SellerDataArray outSellers;
-	SellerMap::iterator	ss, se;
-	
-	for( ss = sellers.begin(), se = sellers.end(); se != ss; ++ss ) {
-		outSellers.push_back( ss->second );
-	}
-
-	return outSellers;
-}
-
-SellerData& CachedDataTextfile::GetSeller(SELLER_ID id)
-{
-	SellerMap::iterator it = sellers.find( id );
-	if ( it == sellers.end() ) {
-		throw new WrongSellerException();
-	}
-  
-	return it->second;
-	
-	/*
-	if (sellers.contains(id)) {
-		SellerData* s = dataAccess.GetSellerIfModified(id);
-		if (s != NULL) {
-			sellers[ id ] = *s;
-		}
-		return sellers[ id ];
-	}
-
-	if (dataAccess.SellersModified(sellersDate)) {
-		GetSellers();
-		if (sellers.contains(id)) {
-			return sellers[ id ];
-		}
-	}
-	*/
-}
-
-SELLER_ID CachedDataTextfile::AddSeller(SellerData& seller)
-{
-	// generate unique seller ID
-	SELLER_ID id = DataTextfile::AddSeller(seller);
-	sellers[ id ] = seller;
 }
 
 void CachedDataTextfile::ModifySellerEnd(SELLER_ID id, SellerData& seller)
@@ -134,8 +93,6 @@ void CachedDataTextfile::RemoveSeller(SELLER_ID id)
 			items.erase(it);
 		}
 	}
-	
-	Save
 }
 
 ItemData CachedDataTextfile::GetItem(ITEM_ID id)
@@ -155,10 +112,10 @@ ItemData CachedDataTextfile::GetSellerItem(SELLER_ID id, int item_number)
 		throw new WrongSellerException();
 	}
 	
-	for( ItemDataIterator itemit = items.begin(), itemend = items.end(); 
+	for( ItemMap::iterator itemit = items.begin(), itemend = items.end(); 
 	  itemit != itemend; ++itemit ) {
-		 if (( itemit->seller_id == id ) && ( itemit->number == item_number ))
-			return *itemit;
+		 if (( itemit->second.seller_id == id ) && ( itemit->second.number == item_number ))
+			return itemit->second;
 	}
   
 	throw new WrongItemException();
@@ -166,14 +123,14 @@ ItemData CachedDataTextfile::GetSellerItem(SELLER_ID id, int item_number)
 
 SellerDataArray CachedDataTextfile::GetSellers( void )
 {
-	SellerDataArray		result;
-	SellerMap::iterator	sit, site;
+	SellerDataArray outSellers;
+	SellerMap::iterator	ss, se;
 	
-	for( sit = sellers.begin(), site = sellers.end(); sit != site; ++sit ) {
-		result.push_back( sit.second );
+	for( ss = sellers.begin(), se = sellers.end(); se != ss; ++ss ) {
+		outSellers.push_back( ss->second );
 	}
-	
-	return result;
+
+	return outSellers;
 }
 
 SellerData& CachedDataTextfile::GetSeller(SELLER_ID id)
@@ -183,10 +140,8 @@ SellerData& CachedDataTextfile::GetSeller(SELLER_ID id)
 		throw new WrongSellerException();
 	}
 	
-	return sit.second;
+	return sit->second;
 }
-
-void CachedDataTextfile::RemoveItem(ITEM_ID id);
 
 void CachedDataTextfile::RemoveItem(ITEM_ID id)
 {
@@ -196,24 +151,20 @@ void CachedDataTextfile::RemoveItem(ITEM_ID id)
 	SaveSellerFile( seller_id );
 }
 
-void CachedDataTextfile::SaveSellerFile(SELLER_ID id);
-
 void CachedDataTextfile::SaveSellerFile(SELLER_ID id)
 {
-	SellerData seller = GetSeller( seller_id );
-	ItemDataArray items = GetSellerItems( seller_id );
+	SellerData seller = GetSeller( id );
+	ItemDataArray items = GetSellerItems( id );
 	
 	SaveSellerToTxtFile(seller, items);
 }
 
 SellerData& CachedDataTextfile::GetSellerByCode(string& code)
-
-SellerData& CachedDataTextfile::GetSellerByCode(string& code)
 {
 	SellerMap::iterator it = sellers.begin(), ite = sellers.end();
 	for( ; it != ite; ++it ) {
-		if (it->shortcode == code) {
-			return *it;
+		if (it->second.shortcode == code) {
+			return it->second;
 		}
 	}
 	
@@ -221,22 +172,18 @@ SellerData& CachedDataTextfile::GetSellerByCode(string& code)
 }
 
 SELLER_ID CachedDataTextfile::GetNewSellerId( void )
-
-SELLER_ID CachedDataTextfile::GetNewSellerId( void )
 {
 	SELLER_ID biggestId = 0;
 	
-	SellerDataIterator it = sellers.begin(), ite = sellers.end();
+	SellerMap::iterator it = sellers.begin(), ite = sellers.end();
 	for( ; it != ite; ++it ) {
-		if (it->id > biggestId) {
-			biggestId = it->id;
+		if (it->first > biggestId) {
+			biggestId = it->first;
 		}
 	}
 	
 	return biggestId + 1;
 }
-
-ITEM_ID DataTextfile::GetNewItemId( void )
 
 ITEM_ID CachedDataTextfile::GetNewItemId( void )
 {
@@ -245,15 +192,13 @@ ITEM_ID CachedDataTextfile::GetNewItemId( void )
 	ItemMap::iterator itemit = items.begin(), itemite = items.end();
   
 	for( ; itemit != itemite; ++itemit ) {
-		if (itemit->id > biggestId) {
-			biggestId = itemit->id;
+		if (itemit->first > biggestId) {
+			biggestId = itemit->first;
 		}
 	}
 	
 	return biggestId + 1;
 }
-
-ItemDataArray CachedDataTextfile::GetSellerItems(SELLER_ID id)
 
 ItemDataArray CachedDataTextfile::GetSellerItems(SELLER_ID id)
 {
@@ -264,16 +209,14 @@ ItemDataArray CachedDataTextfile::GetSellerItems(SELLER_ID id)
 	
 	ItemDataArray result;
 	
-	for( ItemDataIterator itemit = items.begin(), itemend = items.end(); 
+	for( ItemMap::iterator itemit = items.begin(), itemend = items.end(); 
 	  itemit != itemend; ++itemit ) {
-		 if ( itemit->seller_id == id )
-			result.push_back( *itemit );
+		 if ( itemit->second.seller_id == id )
+			result.push_back( itemit->second );
 	}
   
 	return result;
 }
-
-SELLER_ID DataTextfile::AddSeller(SellerData& seller)
 
 SELLER_ID CachedDataTextfile::AddSeller(SellerData& seller)
 {
@@ -282,13 +225,10 @@ SELLER_ID CachedDataTextfile::AddSeller(SellerData& seller)
 	seller.id = GetNewSellerId();
 	sellers[ seller.id ] = seller;
 	
-	SaveSellerFile( seller_id );
+	SaveSellerFile( seller.id );
 	
 	return seller.id;
 }
-
-ITEM_ID DataTextfile::AddItem(ItemData& item, SELLER_ID sellerId)
-void DataTextfile::ModifyItem(ITEM_ID item_id, ItemData& item)
 
 ITEM_ID CachedDataTextfile::AddItem(ItemData& item, SELLER_ID sellerId)
 {
@@ -315,3 +255,26 @@ void CachedDataTextfile::ModifyItem(ITEM_ID item_id, ItemData& item)
 	SaveSellerFile( item.seller_id );
 }
 
+int CachedDataTextfile::GetItemIndex( ITEM_ID id )
+{
+	// checks if item exists, throws if it does not.
+	ItemData item = GetItem( id );
+	ItemDataArray allitems = GetSellerItems( item.seller_id );
+	
+	for( int i=0; i<allitems.size(); ++i )
+		if ( allitems[ i ].id == id )
+			return i;
+	
+	return -1;
+}
+
+int CachedDataTextfile::GetSellerIndex( SELLER_ID id )
+{
+	SellerDataArray allsellers = GetSellers();
+	
+	for( int i=0; i<allsellers.size(); ++i )
+		if ( allsellers[ i ].id == id )
+			return i;
+	
+	return -1;
+}
