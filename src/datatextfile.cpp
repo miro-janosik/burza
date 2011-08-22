@@ -145,6 +145,8 @@ SELLER_ID DataTextfile::LoadFromTxtFile( string filename, SellerData& seller, It
 		item.last_update = GetCurrentTime();
 		item.seller_id = seller.id;
 		item.id = ITEM_ID_NONE;
+		
+		newitems.push_back( item );
 	} ;
 	
 	file.Close();

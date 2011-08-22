@@ -13,6 +13,7 @@
 #include "pdfwrap.h"
 #include "recipees.h"
 #include "datatextfile.h"
+#include "cacheddatastorage.h"
 #include "translate.h"
 
 using namespace Burza;
@@ -523,7 +524,7 @@ void BurzaDialogs::RegisterButtonImportSeller( void )
 	ItemDataArray items;
 	
 	try {
-		DataTextfile	textStorage( Centrala::Settings().m_data_dir_path );
+		CachedDataTextfile	textStorage( Centrala::Settings().m_data_dir_path );
 		textStorage.LoadFromTxtFile(filename, seller, items );
 	}
 	catch( runtime_error& e ) {

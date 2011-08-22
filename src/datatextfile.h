@@ -11,37 +11,30 @@ class DataTextfile : public DataAccessInterface
 	DataTextfile();
   public:
 	DataTextfile( string& datapath );
-	~DataTextfile();
+	virtual ~DataTextfile();
   
   public:
 	//! Data functions
 	
-	SELLER_ID AddSeller(SellerData& seller);
-	SellerDataArray GetSellers( void );
-	SellerData& GetSeller(SELLER_ID id);
-	ItemDataArray GetSellerItems(SELLER_ID id);
-	bool ModifySellerStart(SELLER_ID id);
-	void ModifySellerEnd(SELLER_ID id, SellerData& seller);
-	void RemoveSeller(SELLER_ID id);
-	ITEM_ID AddItem(ItemData& item, SELLER_ID id);
-	void ModifyItem(ITEM_ID item_id, ItemData& item);
-	void RemoveItem(ITEM_ID id);
-	bool IsSellerModified(SELLER_ID id);
-	SellerData* GetSellerIfModified(SELLER_ID id);
-	bool IsItemModified(ITEM_ID id);
-	ItemData* GetItemIfModified(ITEM_ID id);
-	SellerData& GetSellerByCode(string& code);
-	ItemData GetSellerItem(SELLER_ID id, int item_number);
-	ItemData GetItem(ITEM_ID id);
-	SELLER_ID GetNewSellerId( void );
-	ITEM_ID GetNewItemId( void );
+	virtual SellerDataArray GetSellers( void );
+	virtual SellerData& GetSeller(SELLER_ID id);
+	virtual ItemDataArray GetSellerItems(SELLER_ID id);
+	virtual bool ModifySellerStart(SELLER_ID id);
+	virtual void ModifySellerEnd(SELLER_ID id, SellerData& seller);
+	virtual void RemoveSeller(SELLER_ID id);
+	virtual bool IsSellerModified(SELLER_ID id);
+	virtual SellerData* GetSellerIfModified(SELLER_ID id);
+	virtual bool IsItemModified(ITEM_ID id);
+	virtual ItemData* GetItemIfModified(ITEM_ID id);
+	virtual ItemData GetSellerItem(SELLER_ID id, int item_number);
+	virtual ItemData GetItem(ITEM_ID id);
 	
-	ItemCategoryArray GetItemsCategories( void );
-	SellerCategoryArray GetSellersCategories( void );
-	ItemCategoryArray GetItemsCategories(vector<ITEM_CATEGORY_ID>& ids);
-	ItemCategoryArray GetItemsCategoriesByLetter(vector<char>& letters);
-	SellerCategoryArray GetSellersCategories(vector<SELLER_CATEGORY_ID>& ids);
-	SellerCategoryArray GetSellersCategoriesByLetter(vector<char>& letters);	
+	virtual ItemCategoryArray GetItemsCategories( void );
+	virtual SellerCategoryArray GetSellersCategories( void );
+	virtual ItemCategoryArray GetItemsCategories(vector<ITEM_CATEGORY_ID>& ids);
+	virtual ItemCategoryArray GetItemsCategoriesByLetter(vector<char>& letters);
+	virtual SellerCategoryArray GetSellersCategories(vector<SELLER_CATEGORY_ID>& ids);
+	virtual SellerCategoryArray GetSellersCategoriesByLetter(vector<char>& letters);	
 	
   public:
 	//! Seller has filled ID from the text file.

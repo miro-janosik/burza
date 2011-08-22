@@ -14,7 +14,7 @@ private:
 	CachedDataTextfile();
 public:
 	CachedDataTextfile( string& datapath );
-	~CachedDataTextfile();
+	virtual ~CachedDataTextfile();
 	
 	virtual SellerDataArray GetSellers( void );
 	virtual SellerData& GetSeller(SELLER_ID id);
