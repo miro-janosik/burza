@@ -27,9 +27,9 @@ void Recipees::PrintSellerStatus( PdfWrapperBase& pdf, SELLER_ID id )
 	TableColumnSpecs	columns;
 	string str;
 
-	columns.AddColumn( _("číslo"), 60 );
-	columns.AddColumn( _("názov"), 200 );
-	columns.AddColumn( _("cena"), 60 );
+	columns.AddColumn( _("číslo"), 10 );
+	columns.AddColumn( _("názov"), 40 );
+	columns.AddColumn( _("cena"), 10 );
 	
 	ItemDataArray sellerItems = Centrala::Storage().GetSellerItems( seller.id );
 	
@@ -47,7 +47,7 @@ void Recipees::PrintSellerStatus( PdfWrapperBase& pdf, SELLER_ID id )
 		items.Cell( i, 2 ) = ConvFuncs::FormatStdStr( "%0.2f", sellerItems[ i ].price );
 	}
 
-	pdf.DrawTable( 10, 60, items, columns );
+	pdf.DrawTable( 10, 10, 5, items, columns );
 }
 
 void Recipees::AddProgramPageFooter( PdfWrapperBase& pdf )
@@ -88,10 +88,10 @@ void Recipees::PrintRecipeeAtEndOfCheckout( ItemDataArray& items, PdfWrapperBase
 		TableColumnSpecs columns;
 		unsigned int index;
 		
-		columns.AddColumn( "#", 40 );
-		columns.AddColumn( _("číslo"), 60 );
-		columns.AddColumn( _("názov"), 200 );
-		columns.AddColumn( _("cena"), 60 );
+		columns.AddColumn( "#", 5 );
+		columns.AddColumn( _("číslo"), 10 );
+		columns.AddColumn( _("názov"), 30 );
+		columns.AddColumn( _("cena"), 20 );
 		
 		table.Resize( items.size(), 4 );
 		
@@ -121,10 +121,7 @@ void Recipees::PrintRecipeeAtEndOfCheckout( ItemDataArray& items, PdfWrapperBase
 			table.Cell( index, 3 ) = ConvFuncs::FormatStdStr( "%0.2f", it->price );
 		}
 		
-		pdf.DrawTable( 50, 50, table, columns );
-		
-		// pocet poloziek: suma:
-		pdf.ClosePDF();
+		pdf.DrawTable( 20, 20, 5, table, columns );
 		
 	} catch( runtime_error& e ) {
 		errorMessage = "PDF error:";
@@ -155,11 +152,11 @@ void Recipees::PrintProductsToPDF( PdfWrapperBase& pdf, SellerData& seller )
 	TableOfCells	table;
 	TableColumnSpecs columns;
 	
-	columns.AddColumn( "#", 40 );
-	columns.AddColumn( _("nazov"), 200 );
-	columns.AddColumn( _("cena"), 60 );
-	columns.AddColumn( _("kat"), 40 );
-	columns.AddColumn( _("stav"), 90 );
+	columns.AddColumn( "#", 10 );
+	columns.AddColumn( _("nazov"), 40 );
+	columns.AddColumn( _("cena"), 10 );
+	columns.AddColumn( _("kat"), 10 );
+	columns.AddColumn( _("stav"), 15 );
 	
 	BurzaRegister* reg = & Centrala::Register();	
 	
@@ -183,6 +180,6 @@ void Recipees::PrintProductsToPDF( PdfWrapperBase& pdf, SellerData& seller )
 		table.Cell( j, 4 ) = DataAccessInterface::ItemStatus2String( items[ i ].status );
 	}
 	
-	pdf.DrawTable( 50, 50, table, columns );
+	pdf.DrawTable( 10, 10, 5, table, columns );
 }
 

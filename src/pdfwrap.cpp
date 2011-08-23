@@ -138,7 +138,17 @@ void HPDFWrapper::NewPage( string name )
 
 void HPDFWrapper::PercentToPos( float percentx, float percenty, int& posx, int& posy )
 {
+	PercentToPosX( percentx, posx );
+	PercentToPosY( percenty, posy );
+}
+
+void HPDFWrapper::PercentToPosX( float percentx, int& posx )
+{
 	posx = percentx * m_default_page_width / 100;
+}
+
+void HPDFWrapper::PercentToPosY( float percenty, int& posy )
+{
 	posy = percenty * m_default_page_height / 100;
 }
 
@@ -160,62 +170,65 @@ void HPDFWrapper::WriteSingleText( float x, float y, string text )
 	HPDF_Page_EndText( m_current_page  );
 }
 
-void HPDFWrapper::DrawTable( float fx, float fy, TableOfCells& t, TableColumnSpecs& c )
+void HPDFWrapper::DrawTable( float fx, float fy, float rowHeight, TableOfCells& t, TableColumnSpecs& c )
 {
-	int pixelsx, pixelsy;
-	PercentToPos( fx, fy, pixelsx, pixelsy );
+	int posxPx, posyPx, tmpi, rowHeightPx;
+	PercentToPos( fx, fy, posxPx, posyPx );
+	PercentToPos( 0, rowHeight, tmpi, rowHeightPx );
 	
-	unsigned int pos, table_width, table_height, cell_height;
+	unsigned int pos, table_width, tableHeightPx;
 	
 	// everything has to be drawn upside down
 	
-	cell_height = 18;
-	const unsigned int cell_text_left_margin = 4;
-	const unsigned int cell_text_top_margin = 0;
+	const unsigned int cellTextLeftMarginPerc = 1;
+	const unsigned int cellTextTopMarginPerc = 0;
 	
 	// count column width
 	table_width = 0;
 	for( unsigned int i=0; i<c.m_columns.size(); ++i ) {
-		int w, z;
-		PercentToPos( c.m_columns[ i ].m_width, 0, w, z );
+		int w;
+		PercentToPosX( c.m_columns[ i ].m_width, w );
 		table_width += w;
 	}
-	table_height = ( 1 + t.Rows() ) * cell_height;
+	tableHeightPx = ( 1 + t.Rows() ) * rowHeightPx;
 	
 	// draw lines
 	HPDF_Page_SetLineWidth( m_current_page, 0.5);
 	
 	// 2 = header row + bottom line
-	int py;
+	int py = m_default_page_width - posyPx;
 	for ( unsigned int i = 0; i < 2+t.Rows(); ++i )
 	{
-		py = m_default_page_height - pixelsy - i * cell_height;
-		
-		HPDF_Page_MoveTo( m_current_page, pixelsx, py );
-		HPDF_Page_LineTo( m_current_page, pixelsx + table_width, py );
+		HPDF_Page_MoveTo( m_current_page, posxPx, py );
+		HPDF_Page_LineTo( m_current_page, posxPx + table_width, py );
 		HPDF_Page_Stroke( m_current_page );
+		
+		py -= rowHeightPx;
 	}
 	
 	// vertical lines
 	// do not draw header line, if it is merged with line to right
-	int px = fx;
+	int px = posxPx;
 	for ( unsigned int i = 0; i <= c.Columns(); ++i )
 	{
 		if ( c.m_columns[ i ].m_merge_header_cell_to_right ) {
-			HPDF_Page_MoveTo( m_current_page, px, m_default_page_height - pixelsy - cell_height );
+			HPDF_Page_MoveTo( m_current_page, px, m_default_page_width - posyPx - rowHeightPx );
 		} else {
-			HPDF_Page_MoveTo( m_current_page, px, m_default_page_height - pixelsy );
+			HPDF_Page_MoveTo( m_current_page, px, m_default_page_width - posyPx );
 		}
-		HPDF_Page_LineTo( m_current_page, px, m_default_page_height - pixelsy - table_height );
+		HPDF_Page_LineTo( m_current_page, px, m_default_page_width - posyPx - tableHeightPx );
 		HPDF_Page_Stroke( m_current_page );
 		
 		// last vertical line
-		if ( i < c.Columns() )
-			px += c.m_columns[ i ].m_width;
+		if ( i < c.Columns() ) {
+			int w;
+			PercentToPosX( c.m_columns[ i ].m_width, w );
+			px += w;
+		}
 	}
 	
-	py = m_default_page_height - pixelsy - cell_text_top_margin;
-	px = pixelsx + cell_text_left_margin;
+	px = fx + cellTextLeftMarginPerc;
+	py = fy - cellTextTopMarginPerc;
 	// print out header text
 	for ( unsigned int ix = 0; ix < c.m_columns.size(); ++ix ) {
 		
@@ -229,8 +242,8 @@ void HPDFWrapper::DrawTable( float fx, float fy, TableOfCells& t, TableColumnSpe
 	
 	// print out cell text
 	for ( unsigned int iy = 0; iy < t.Rows(); ++iy ) {
-		py -= cell_height;
-		px = pixelsx + cell_text_left_margin;
+		px = fx + cellTextLeftMarginPerc;
+		py -= rowHeight;
 		for ( unsigned int ix = 0; ix < t.Columns(); ++ix ) {
 			
 			if ( t.Cell( iy, ix ).GetText().empty() )
@@ -247,9 +260,10 @@ void HPDFWrapper::WriteSingleTextIntoWidth( float x, float y, float width, strin
 {
 	int px, py;
 	PercentToPos( x, y, px, py );
+	px = m_default_page_width - px;
 	
 	int width_pixels;
-	PercentToPos( width, y, width_pixels, py );
+	PercentToPosX( width, width_pixels );
 	
 	HPDF_UINT	len;
 	

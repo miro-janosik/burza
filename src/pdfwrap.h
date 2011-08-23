@@ -25,10 +25,12 @@ public:
 	
 	virtual void NewPage( string name ) = 0;
 	virtual void WriteSingleText( float x, float y, string text ) = 0;
-	virtual void DrawTable( float x, float y, TableOfCells& t, TableColumnSpecs& c ) = 0;
+	virtual void DrawTable( float x, float y, float rowHeight, TableOfCells& t, TableColumnSpecs& c ) = 0;
 	
 	//! converts position in page size percentage to position of the engine
 	virtual void PercentToPos( float percentx, float percenty, int& posx, int& posy ) = 0;
+	virtual void PercentToPosX( float percentx, int& posx ) = 0;
+	virtual void PercentToPosY( float percenty, int& posy ) = 0;
 	
 	//! converts position from position of the engine to percentage position
 	virtual void PosToPercent( int posx, int posy, float& percentx, float& percenty ) = 0;
@@ -43,13 +45,23 @@ public:
 	
 	void SetCurrentFont( HPDF_Font font, float size );
 	void NewPage( string name );
+
+	//! x, y : left top position on the page in percentage, 0 - 100%
 	void WriteSingleText( float x, float y, string text );
+
+	//! x, y : left top position on the page in percentage, 0 - 100%
+	//! width : size x in page percentage, 0 - 100%
 	void WriteSingleTextIntoWidth( float x, float y, float width, string text );
 	
-	void DrawTable( float x, float y, TableOfCells& t, TableColumnSpecs& c );
+	//! x, y : left top position on the page in percentage, 0 - 100%
+	//! rowHeight : height of the row in percentage of page height.
+	//! column width is defined in TableColumnSpecs.
+	void DrawTable( float x, float y, float rowHeight, TableOfCells& t, TableColumnSpecs& c );
 
 	//! converts position in page size percentage to position of the engine
 	virtual void PercentToPos( float percentx, float percenty, int& posx, int& posy );
+	virtual void PercentToPosX( float percentx, int& posx );
+	virtual void PercentToPosY( float percenty, int& posy );
 	
 	//! converts position from position of the engine to percentage position
 	virtual void PosToPercent( int posx, int posy, float& percentx, float& percenty );

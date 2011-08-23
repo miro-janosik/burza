@@ -28,6 +28,7 @@
 #include "datatextfile.h"
 #include "cacheddatastorage.h"
 #include "translate.h"
+#include "recipees.h"
 
 using namespace Burza;
 
@@ -329,22 +330,12 @@ void BurzaRegister::GenerateSellerUniqueCode( SellerData& seller, std::string tr
 void BurzaRegister::FinishCheckout( ItemDataArray& items )
 {
 	double sum = CalcPriceOfProducts( items );
-	
+	/*
 	// mark items in register as sold
 	ItemDataIterator it, ite;
 	
 	for( it = items.begin(), ite = items.end(); it != ite; ++it ) {
 
-		/*
-		SellerData seller;
-		try {
-			seller = m_storage->GetSeller( it->seller_id );
-		}
-		catch(WrongSellerException ex) {
-			throw runtime_error( "BurzaRegister::FinishCheckout: Seller not found" );
-		}
-		*/
-		
 		ItemData item;
 		try {
 			item = m_storage->GetItem(it->id);
@@ -355,6 +346,24 @@ void BurzaRegister::FinishCheckout( ItemDataArray& items )
 		
 		item.status = sold;
 		m_storage->ModifyItem(item.id, item);
+	}
+	*/
+	try {
+	  
+	  Recipees recipees;
+	  HPDFWrapper	pdf;
+	  pdf.CreatePDF( "/home/mirex/tmp/a.pdf" );
+	  
+	  recipees.PrintRecipeeAtEndOfCheckout( items, pdf );
+	  
+	  pdf.ClosePDF();
+	  
+	} catch( runtime_error& e ) {
+		Centrala::Dialogs().DisplayErrorMessageBox( "PDF error", e.what() );
+	} catch( out_of_range& e ) {
+		Centrala::Dialogs().DisplayErrorMessageBox( "PDF out of range error", e.what() );
+	} catch( ... ) {
+		Centrala::Dialogs().DisplayErrorMessageBox( "PDF error" );
 	}
 }
 
