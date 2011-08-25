@@ -8,10 +8,23 @@
 #include <string>
 #include "hpdf.h"
 #include "convfncs.h"
+#include "stringencoding.h"
 
 using namespace std;
 using namespace Burza;
 using namespace BurzaTable;
+
+void PdfWrapperBase::PosToPercent( int posx, int posy, float& percentx, float& percenty )
+{
+	percentx = PosToPercentX( posx );
+	percenty = PosToPercentY( posy ); 
+}
+
+void PdfWrapperBase::PercentToPos( float percentx, float percenty, int& posx, int& posy )
+{
+	posx = PercentToPosX( percentx );
+	posy = PercentToPosY( percenty );
+}
 
 HPDFWrapper::HPDFWrapper()
 {
@@ -45,7 +58,7 @@ int HPDFWrapper::CreatePDF( string filename )
 		
 		// get default font
 		m_font_helvetica = HPDF_GetFont ( m_pdf, "Helvetica", "ISO8859-2" );
-		SetCurrentFont( m_font_helvetica, 15 );
+		SetCurrentFont( m_font_helvetica, 2 );
 	
 		// load font object
 		/*
@@ -103,17 +116,24 @@ void HPDFWrapper::PdfErrorHandler(
 
 void HPDFWrapper::SetCurrentFont( HPDF_Font font, float size )
 {
-	int sx, sy;
-	PercentToPos( 0, size, sx, sy );
+	int sy = PercentToHeight( size );
 
 	m_current_font = font;
-	m_current_font_size = size;
+	m_current_font_size = sy;
 	
 //	m_font_height_below_line = HPDF_Font_GetXHeight( font );
 //	m_font_height_above_line = HPDF_Font_GetCapHeight( font );
-	m_font_height_below_line = size / 3;
-	m_font_height_above_line = size * 2 / 3;
-	
+	m_font_height_above_line = sy * 2 / 3;
+}
+
+float HPDFWrapper::GetFontHeight( void )
+{
+	return HeightToPercent( m_current_font_size + m_font_height_below_line );
+}
+
+float HPDFWrapper::GetFontHeightBase( void )
+{
+	return HeightToPercent( m_current_font_size );
 }
 
 void HPDFWrapper::NewPage( string name )
@@ -136,45 +156,41 @@ void HPDFWrapper::NewPage( string name )
 	HPDF_Page_SetFontAndSize( m_current_page, m_current_font, m_current_font_size );
 }
 
-void HPDFWrapper::PercentToPos( float percentx, float percenty, int& posx, int& posy )
+int HPDFWrapper::PercentToPosX( float percentx )
 {
-	PercentToPosX( percentx, posx );
-	PercentToPosY( percenty, posy );
+	return percentx * m_default_page_width / 100;
 }
 
-void HPDFWrapper::PercentToPosX( float percentx, int& posx )
+int HPDFWrapper::PercentToPosY( float percenty )
 {
-	posx = percentx * m_default_page_width / 100;
+	return m_default_page_height - ( percenty * m_default_page_height / 100 );
 }
 
-void HPDFWrapper::PercentToPosY( float percenty, int& posy )
+int HPDFWrapper::PercentToHeight( float percentHeight )
 {
-	posy = percenty * m_default_page_height / 100;
+	return ( percentHeight * m_default_page_height / 100 );
 }
 
-void HPDFWrapper::PosToPercent( int posx, int posy, float& percentx, float& percenty )
+float HPDFWrapper::PosToPercentX( int posx )
 {
-	percentx = (float)posx / m_default_page_width * 100;
-	percenty = (float)posy / m_default_page_height * 100; 
+	return (float)posx / m_default_page_width * 100;
 }
 
-void HPDFWrapper::WriteSingleText( float x, float y, string text )
+float HPDFWrapper::PosToPercentY( int posy )
 {
-	int px, py;
-	PercentToPos( x, y, px, py );
-  
-	HPDF_Page_BeginText( m_current_page );
-	//HPDF_Page_SetFontAndSize( m_current_page, font, m_current_font_size );
-	HPDF_Page_MoveTextPos( m_current_page, px, py );
-	HPDF_Page_ShowText( m_current_page, text.c_str() );
-	HPDF_Page_EndText( m_current_page  );
+	return (m_default_page_height - (float)posy) / m_default_page_height * 100; 
+}
+
+float HPDFWrapper::HeightToPercent( int height )
+{
+	return (float)height / m_default_page_height * 100; 
 }
 
 void HPDFWrapper::DrawTable( float fx, float fy, float rowHeight, TableOfCells& t, TableColumnSpecs& c )
 {
-	int posxPx, posyPx, tmpi, rowHeightPx;
+	int posxPx, posyPx, rowHeightPx;
 	PercentToPos( fx, fy, posxPx, posyPx );
-	PercentToPos( 0, rowHeight, tmpi, rowHeightPx );
+	rowHeightPx = PercentToHeight( rowHeight );
 	
 	unsigned int pos, table_width, tableHeightPx;
 	
@@ -187,7 +203,7 @@ void HPDFWrapper::DrawTable( float fx, float fy, float rowHeight, TableOfCells& 
 	table_width = 0;
 	for( unsigned int i=0; i<c.m_columns.size(); ++i ) {
 		int w;
-		PercentToPosX( c.m_columns[ i ].m_width, w );
+		w = PercentToPosX( c.m_columns[ i ].m_width );
 		table_width += w;
 	}
 	tableHeightPx = ( 1 + t.Rows() ) * rowHeightPx;
@@ -196,7 +212,7 @@ void HPDFWrapper::DrawTable( float fx, float fy, float rowHeight, TableOfCells& 
 	HPDF_Page_SetLineWidth( m_current_page, 0.5);
 	
 	// 2 = header row + bottom line
-	int py = m_default_page_width - posyPx;
+	int py = posyPx;
 	for ( unsigned int i = 0; i < 2+t.Rows(); ++i )
 	{
 		HPDF_Page_MoveTo( m_current_page, posxPx, py );
@@ -212,23 +228,23 @@ void HPDFWrapper::DrawTable( float fx, float fy, float rowHeight, TableOfCells& 
 	for ( unsigned int i = 0; i <= c.Columns(); ++i )
 	{
 		if ( c.m_columns[ i ].m_merge_header_cell_to_right ) {
-			HPDF_Page_MoveTo( m_current_page, px, m_default_page_width - posyPx - rowHeightPx );
+			HPDF_Page_MoveTo( m_current_page, px, posyPx - rowHeightPx );
 		} else {
-			HPDF_Page_MoveTo( m_current_page, px, m_default_page_width - posyPx );
+			HPDF_Page_MoveTo( m_current_page, px, posyPx );
 		}
-		HPDF_Page_LineTo( m_current_page, px, m_default_page_width - posyPx - tableHeightPx );
+		HPDF_Page_LineTo( m_current_page, px, posyPx - tableHeightPx );
 		HPDF_Page_Stroke( m_current_page );
 		
 		// last vertical line
 		if ( i < c.Columns() ) {
 			int w;
-			PercentToPosX( c.m_columns[ i ].m_width, w );
+			w = PercentToPosX( c.m_columns[ i ].m_width );
 			px += w;
 		}
 	}
 	
 	px = fx + cellTextLeftMarginPerc;
-	py = fy - cellTextTopMarginPerc;
+	py = fy + cellTextTopMarginPerc;
 	// print out header text
 	for ( unsigned int ix = 0; ix < c.m_columns.size(); ++ix ) {
 		
@@ -243,7 +259,7 @@ void HPDFWrapper::DrawTable( float fx, float fy, float rowHeight, TableOfCells& 
 	// print out cell text
 	for ( unsigned int iy = 0; iy < t.Rows(); ++iy ) {
 		px = fx + cellTextLeftMarginPerc;
-		py -= rowHeight;
+		py += rowHeight;
 		for ( unsigned int ix = 0; ix < t.Columns(); ++ix ) {
 			
 			if ( t.Cell( iy, ix ).GetText().empty() )
@@ -254,31 +270,70 @@ void HPDFWrapper::DrawTable( float fx, float fy, float rowHeight, TableOfCells& 
 			px += c.m_columns[ ix ].m_width;
 		}
 	}
+	
+	int miny, maxy;
+	miny = 20;
+	maxy = miny + PercentToHeight( GetFontHeight() );
+	
+	HPDF_Page_MoveTo( m_current_page, 20, miny );
+	HPDF_Page_LineTo( m_current_page, 100, miny );
+	HPDF_Page_LineTo( m_current_page, 100, maxy );
+	HPDF_Page_LineTo( m_current_page, 20, maxy );
+	HPDF_Page_LineTo( m_current_page, 20, miny );
+	HPDF_Page_Stroke( m_current_page );
+	
+	float ptx, pty, pwx;
+	PosToPercent( 80, maxy, pwx, pty );
+	PosToPercent( 20, maxy, ptx, pty );
+	
+	WriteSingleTextIntoWidth( ptx, pty, pwx, "AČgjhýĹq" );
+	float fh = GetFontHeight();
+
+	HPDF_Page_MoveTo( m_current_page, 30, PercentToPosY( pty ) );
+	HPDF_Page_LineTo( m_current_page, 110, PercentToPosY( pty ) );
+	HPDF_Page_MoveTo( m_current_page, 40, PercentToPosY( pty + fh ) );
+	HPDF_Page_LineTo( m_current_page, 120, PercentToPosY( pty + fh ) );
+	HPDF_Page_Stroke( m_current_page );
+}
+
+void HPDFWrapper::WriteSingleText( float x, float y, string text )
+{
+	int px, py;
+	PercentToPos( x, y, px, py );
+
+	string str = text;
+	StringEncoding::UTF8toISO8859_2( str );
+	
+	HPDF_Page_BeginText( m_current_page );
+	HPDF_Page_MoveTextPos( m_current_page, px, py );
+	HPDF_Page_ShowText( m_current_page, str.c_str() );
+	HPDF_Page_EndText( m_current_page  );
 }
 
 void HPDFWrapper::WriteSingleTextIntoWidth( float x, float y, float width, string text )
 {
 	int px, py;
 	PercentToPos( x, y, px, py );
-	px = m_default_page_width - px;
+
+	string str = text;
+	StringEncoding::UTF8toISO8859_2( str );
 	
-	int width_pixels;
-	PercentToPosX( width, width_pixels );
+	int width_pixels = PercentToPosX( width );
 	
 	HPDF_UINT	len;
 	
 	// measure how many characters will fit
 	len = HPDF_Font_MeasureText ( m_current_font,
-		(const unsigned char*) text.c_str(), text.size(), width_pixels, m_current_font_size,
+		(const unsigned char*) str.c_str(), str.size(), width_pixels, m_current_font_size,
 		0, 0, HPDF_FALSE, NULL );
 	if ( len == 0 )
 		throw runtime_error( "WriteSingleTextIntoWidth: HPDF_Font_MeasureText failed." );
 	
-	text.erase( len );
+	str.erase( len );
 	
 	HPDF_Page_BeginText( m_current_page );
-	HPDF_Page_MoveTextPos( m_current_page, px, py - m_font_height_below_line - m_font_height_above_line );
-	HPDF_Page_ShowText( m_current_page, text.c_str() );
+	HPDF_Page_MoveTextPos( m_current_page, px, py - m_current_font_size );
+	HPDF_Page_ShowText( m_current_page, str.c_str() );
 	HPDF_Page_EndText( m_current_page );
 }
 

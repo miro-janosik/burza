@@ -41,7 +41,7 @@ void Recipees::PrintSellerStatus( PdfWrapperBase& pdf, SELLER_ID id )
 		items.Cell( i, 0 ) = ConvFuncs::FormatStdStr( "%i", i + 1 );
 		
 		str = sellerItems[ i ].name;
-		StringEncoding::UTF8toISO8859_2( str );
+		//StringEncoding::UTF8toISO8859_2( str );
 		items.Cell( i, 1 ) = str;
 
 		items.Cell( i, 2 ) = ConvFuncs::FormatStdStr( "%0.2f", sellerItems[ i ].price );
@@ -79,7 +79,7 @@ void Recipees::PrintRecipeeAtEndOfCheckout( ItemDataArray& items, PdfWrapperBase
 		title += ConvFuncs::FormatStdStr( "%i-%i-%i %i:%i",
 			dt->year, dt->month, dt->day, dt->hour, dt->minute );
 		
-		StringEncoding::UTF8toISO8859_2( title );
+		//StringEncoding::UTF8toISO8859_2( title );
 		pdf.NewPage( title );
 		AddProgramPageFooter( pdf );
 		
@@ -113,15 +113,13 @@ void Recipees::PrintRecipeeAtEndOfCheckout( ItemDataArray& items, PdfWrapperBase
 
 			table.Cell( index, 0 ) = ConvFuncs::FormatStdStr( "%i", index + 1 );
 			str = ConvFuncs::FormatStdStr( "%s-%i", seller.shortcode.c_str(), it->number );
-			StringEncoding::UTF8toISO8859_2( str );
 			table.Cell( index, 1 ) = str;
 			str = it->name;
-			StringEncoding::UTF8toISO8859_2( str );
 			table.Cell( index, 2 ) = str;
 			table.Cell( index, 3 ) = ConvFuncs::FormatStdStr( "%0.2f", it->price );
 		}
 		
-		pdf.DrawTable( 20, 20, 5, table, columns );
+		pdf.DrawTable( 20, 20, 2.5, table, columns );
 		
 	} catch( runtime_error& e ) {
 		errorMessage = "PDF error:";
@@ -146,7 +144,7 @@ void Recipees::PrintProductsToPDF( PdfWrapperBase& pdf, SellerData& seller )
 	str += " - ";
 	str += seller.name;
 	
-	StringEncoding::UTF8toISO8859_2( str );
+	//StringEncoding::UTF8toISO8859_2( str );
 	pdf.WriteSingleText( 10, 10, str.c_str() );
 	
 	TableOfCells	table;
@@ -172,7 +170,7 @@ void Recipees::PrintProductsToPDF( PdfWrapperBase& pdf, SellerData& seller )
 		
 		table.Cell( j, 0 ) = ConvFuncs::FormatStdStr( "%i", items[ i ].number );
 		str = items[ i ].name;
-		StringEncoding::UTF8toISO8859_2( str );
+		//StringEncoding::UTF8toISO8859_2( str );
 		table.Cell( j, 1 ) = str;
 		table.Cell( j, 2 ) = ConvFuncs::FormatStdStr( "%0.2f", items[ i ].price );
 		table.Cell( j, 3 ) = ConvFuncs::FormatStdStr( "%c",

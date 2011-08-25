@@ -24,16 +24,35 @@ public:
 	virtual void ClosePDF( void ) = 0;
 	
 	virtual void NewPage( string name ) = 0;
+
+	//! x, y : left top position on the page in percentage, 0 - 100%
+	//! width : size x in page percentage, 0 - 100%
+	//! text : text in unicode
 	virtual void WriteSingleText( float x, float y, string text ) = 0;
+
+	//! returns font height in percentage of page (0 - 100%)
+	//! returns height of the font including descent and wovel space
+	virtual float GetFontHeight( void ) = 0;
+	//! returns height of the font from base line to top including wovel space
+	virtual float GetFontHeightBase( void ) = 0;
+	
+	//! x, y : left top position on the page in percentage, 0 - 100%
+	//! rowHeight : height of the row in percentage of page height.
+	//! column width is defined in TableColumnSpecs.
+	//! text of headers and cells : text in unicode
 	virtual void DrawTable( float x, float y, float rowHeight, TableOfCells& t, TableColumnSpecs& c ) = 0;
 	
-	//! converts position in page size percentage to position of the engine
-	virtual void PercentToPos( float percentx, float percenty, int& posx, int& posy ) = 0;
-	virtual void PercentToPosX( float percentx, int& posx ) = 0;
-	virtual void PercentToPosY( float percenty, int& posy ) = 0;
+	//! converts position in page size percentage to position of the pdf engine
+	virtual void PercentToPos( float percentx, float percenty, int& posx, int& posy );
+	virtual int PercentToPosX( float percentx ) = 0;
+	virtual int PercentToPosY( float percenty ) = 0;
+	virtual int PercentToHeight( float percentHeight ) = 0;
 	
 	//! converts position from position of the engine to percentage position
-	virtual void PosToPercent( int posx, int posy, float& percentx, float& percenty ) = 0;
+	virtual void PosToPercent( int posx, int posy, float& percentx, float& percenty );
+	virtual float PosToPercentX( int posx ) = 0;
+	virtual float PosToPercentY( int posy ) = 0;
+	virtual float HeightToPercent( int height ) = 0;
 };
 
 class HPDFWrapper : public PdfWrapperBase {
@@ -42,40 +61,45 @@ public:
 	~HPDFWrapper();
 	int CreatePDF( string filename );
 	void ClosePDF( void );
-	
-	void SetCurrentFont( HPDF_Font font, float size );
+  
 	void NewPage( string name );
-
-	//! x, y : left top position on the page in percentage, 0 - 100%
+	
+	//! size : height of the font in percentage of page height
+	void SetCurrentFont( HPDF_Font font, float height );
+	
+	float GetFontHeight( void );
+	float GetFontHeightBase( void );
+	
 	void WriteSingleText( float x, float y, string text );
-
-	//! x, y : left top position on the page in percentage, 0 - 100%
-	//! width : size x in page percentage, 0 - 100%
 	void WriteSingleTextIntoWidth( float x, float y, float width, string text );
 	
-	//! x, y : left top position on the page in percentage, 0 - 100%
-	//! rowHeight : height of the row in percentage of page height.
-	//! column width is defined in TableColumnSpecs.
 	void DrawTable( float x, float y, float rowHeight, TableOfCells& t, TableColumnSpecs& c );
 
 	//! converts position in page size percentage to position of the engine
-	virtual void PercentToPos( float percentx, float percenty, int& posx, int& posy );
-	virtual void PercentToPosX( float percentx, int& posx );
-	virtual void PercentToPosY( float percenty, int& posy );
+	virtual int PercentToPosX( float percentx );
+	virtual int PercentToPosY( float percenty );
+	virtual int PercentToHeight( float percentHeight );
 	
 	//! converts position from position of the engine to percentage position
-	virtual void PosToPercent( int posx, int posy, float& percentx, float& percenty );
+	virtual float PosToPercentX( int posx );
+	virtual float PosToPercentY( int posy );
+	virtual float HeightToPercent( int height );
 	
 private:
 	HPDF_Doc m_pdf;
 	
 	string		m_filename;
-	bool			m_open;
+	bool		m_open;
 	HPDF_Font	m_font_helvetica;
 	
 	HPDF_Font	m_current_font;
+	
+	// height of the font. Height from bottom line to the top of the character including wovels.
 	unsigned int m_current_font_size;
-	unsigned int m_font_height_below_line, m_font_height_above_line;
+	// number of pixels below the line. From bottom line to bottom of g,j,q.
+	unsigned int m_font_height_below_line;
+	// number of pixels from top of characters to top of wovels
+	unsigned int m_font_height_above_line;
 	
 	HPDF_Page	m_current_page;
 	HPDF_Outline	m_outline_root;

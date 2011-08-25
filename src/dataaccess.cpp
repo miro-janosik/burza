@@ -143,7 +143,7 @@ void DataAccessInterface::AddItems( ItemDataArray& items, SELLER_ID sellerId )
 	}
 }
 
-ItemDataArray& DataAccessInterface::GetItems(vector<ITEM_ID> ids)
+ItemDataArray DataAccessInterface::GetItems(vector<ITEM_ID> ids)
 {
 	ItemDataArray items;
   

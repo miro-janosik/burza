@@ -243,7 +243,7 @@ class DataAccessInterface {
 
   //! Get multiple items
   //! Throws WrongItemIdException if no such item is present.
-  virtual ItemDataArray& GetItems(vector<ITEM_ID> ids);
+  virtual ItemDataArray GetItems(vector<ITEM_ID> ids);
   
   // ==== categories ====
   //! Get all item categories
