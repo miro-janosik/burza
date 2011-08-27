@@ -417,6 +417,9 @@ NastaveniaProgramu::NastaveniaProgramu()
 	m_data_dir_path += "data/";
 
 	m_string_mena = "∈";
+	
+	m_computer_name = "PC123";
+	m_name_of_the_sale = "Jesenna burza 2011";
 }
 
 // ==============================================

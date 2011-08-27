@@ -25,6 +25,11 @@ public:
 	
 	virtual void NewPage( string name ) = 0;
 
+	//! font name, for example "Helvetica"
+	virtual void SetFontFace( string name ) = 0;
+	//! font height in percentage of page (0 - 100%)
+	virtual void SetFontSize( float size ) = 0;
+	
 	//! x, y : left top position on the page in percentage, 0 - 100%
 	//! width : size x in page percentage, 0 - 100%
 	//! text : text in unicode
@@ -35,12 +40,16 @@ public:
 	virtual float GetFontHeight( void ) = 0;
 	//! returns height of the font from base line to top including wovel space
 	virtual float GetFontHeightBase( void ) = 0;
+
+	struct TableStyle {
+		//! rowHeight : height of the row in percentage of page height.
+		float	rowHeight;
+	};
 	
 	//! x, y : left top position on the page in percentage, 0 - 100%
-	//! rowHeight : height of the row in percentage of page height.
 	//! column width is defined in TableColumnSpecs.
 	//! text of headers and cells : text in unicode
-	virtual void DrawTable( float x, float y, float rowHeight, TableOfCells& t, TableColumnSpecs& c ) = 0;
+	virtual void DrawTable( float x, float y, TableStyle& style, TableOfCells& t, TableColumnSpecs& c ) = 0;
 	
 	//! converts position in page size percentage to position of the pdf engine
 	virtual void PercentToPos( float percentx, float percenty, int& posx, int& posy );
@@ -64,8 +73,8 @@ public:
   
 	void NewPage( string name );
 	
-	//! size : height of the font in percentage of page height
-	void SetCurrentFont( HPDF_Font font, float height );
+	void SetFontFace( string name );
+	void SetFontSize( float size );
 	
 	float GetFontHeight( void );
 	float GetFontHeightBase( void );
@@ -73,7 +82,7 @@ public:
 	void WriteSingleText( float x, float y, string text );
 	void WriteSingleTextIntoWidth( float x, float y, float width, string text );
 	
-	void DrawTable( float x, float y, float rowHeight, TableOfCells& t, TableColumnSpecs& c );
+	void DrawTable( float x, float y, TableStyle& style, TableOfCells& t, TableColumnSpecs& c );
 
 	//! converts position in page size percentage to position of the engine
 	virtual int PercentToPosX( float percentx );
@@ -86,6 +95,10 @@ public:
 	virtual float HeightToPercent( int height );
 	
 private:
+
+	//! size : height of the font in percentage of page height
+	void SetCurrentFont( HPDF_Font font, float height );
+  
 	HPDF_Doc m_pdf;
 	
 	string		m_filename;
@@ -109,6 +122,8 @@ private:
 	static void PdfErrorHandler( 
 		HPDF_STATUS error_no, HPDF_STATUS detail_no, void *user_data);
 	
+	// function to test out size of font and its position on the page.
+	void FontPrintTest( void );
 } ;
 
 }; // namespace

@@ -639,14 +639,14 @@ void BurzaDialogs::RegisterButtonCalcRepayment( void )
 	  Recipees recipees;
 	  HPDFWrapper	pdf;
 	  pdf.CreatePDF( "/home/mirex/tmp/a.pdf" );
-	  /*
-	  for( unsigned int i=0; i<150; i++ ) {
-		  pdf.NewPage( ConvFuncs::FormatCstr( "index %i", i ) );
-		  pseller->PrintProductsToPDF( pdf );
+	  
+	  SellerDataArray sellers = Centrala::Storage().GetSellers();
+	  
+	  for( unsigned int i=0; i<sellers.size(); i++ ) {
+		  recipees.PrintSellerStatus( pdf, sellers[ i ].id );
 	  }
-	  */
 
-	  recipees.PrintSellerStatus( pdf, m_SelectedSellerId );
+	  // recipees.PrintSellerStatus( pdf, m_SelectedSellerId );
 	  
 	  pdf.ClosePDF();
 	

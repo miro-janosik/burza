@@ -33,6 +33,10 @@ public:
 	std::string		m_string_mena; 
 	
 	std::string		m_data_dir_path;
+	
+	std::string		m_computer_name;
+	
+	std::string		m_name_of_the_sale;
 } ;
 
 /*

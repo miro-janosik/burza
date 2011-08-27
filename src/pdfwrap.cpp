@@ -33,8 +33,9 @@ HPDFWrapper::HPDFWrapper()
 	m_open = false;
 
 	m_current_font = 0;
-	m_current_font_size = 0;
+	m_current_font_size = 10;
 	m_font_height_below_line = m_font_height_above_line = 0;
+	m_current_page = NULL;
 }
 
 HPDFWrapper::~HPDFWrapper()
@@ -57,9 +58,9 @@ int HPDFWrapper::CreatePDF( string filename )
 		HPDF_SetPageMode( m_pdf, HPDF_PAGE_MODE_USE_OUTLINE);
 		
 		// get default font
-		m_font_helvetica = HPDF_GetFont ( m_pdf, "Helvetica", "ISO8859-2" );
-		SetCurrentFont( m_font_helvetica, 2 );
-	
+		SetFontFace( "Helvetica" );
+		SetFontSize( 2 );
+
 		// load font object
 		/*
 		#ifdef __WIN32__
@@ -100,6 +101,7 @@ void HPDFWrapper::ClosePDF( void )
 	HPDF_Free( m_pdf );
 	
 	m_open = false;
+	m_current_page = NULL;
 }
 
 void HPDFWrapper::PdfErrorHandler( 
@@ -114,6 +116,17 @@ void HPDFWrapper::PdfErrorHandler(
 	throw runtime_error( s );
 }
 
+void HPDFWrapper::SetFontFace( string name )
+{
+	HPDF_Font font = HPDF_GetFont( m_pdf, name.c_str(), "ISO8859-2" );
+	SetCurrentFont( font, m_current_font_size );
+}
+
+void HPDFWrapper::SetFontSize( float size )
+{
+	SetCurrentFont( m_current_font, size );
+}
+
 void HPDFWrapper::SetCurrentFont( HPDF_Font font, float size )
 {
 	int sy = PercentToHeight( size );
@@ -124,6 +137,11 @@ void HPDFWrapper::SetCurrentFont( HPDF_Font font, float size )
 //	m_font_height_below_line = HPDF_Font_GetXHeight( font );
 //	m_font_height_above_line = HPDF_Font_GetCapHeight( font );
 	m_font_height_above_line = sy * 2 / 3;
+
+	// set font on the actual page.
+	if (m_current_page != NULL) {
+		HPDF_Page_SetFontAndSize( m_current_page, m_current_font, m_current_font_size );
+	}
 }
 
 float HPDFWrapper::GetFontHeight( void )
@@ -147,12 +165,15 @@ void HPDFWrapper::NewPage( string name )
 	HPDF_Page_SetWidth( m_current_page, m_default_page_width );
 	HPDF_Page_SetHeight( m_current_page, m_default_page_height );
 
-	outline = HPDF_CreateOutline( m_pdf, m_outline_root, name.c_str(), NULL);
+	string str = name;
+	StringEncoding::UTF8toISO8859_2( str );
+	outline = HPDF_CreateOutline( m_pdf, m_outline_root, str.c_str(), NULL);
 	dst = HPDF_Page_CreateDestination( m_current_page );
 	HPDF_Destination_SetXYZ(dst, 0, HPDF_Page_GetHeight( m_current_page ), 1);
 	// HPDF_Destination_SetFitB(dst);
 	HPDF_Outline_SetDestination( outline, dst );
 
+	// set actual font on current page.
 	HPDF_Page_SetFontAndSize( m_current_page, m_current_font, m_current_font_size );
 }
 
@@ -186,18 +207,18 @@ float HPDFWrapper::HeightToPercent( int height )
 	return (float)height / m_default_page_height * 100; 
 }
 
-void HPDFWrapper::DrawTable( float fx, float fy, float rowHeight, TableOfCells& t, TableColumnSpecs& c )
+void HPDFWrapper::DrawTable( float fx, float fy, TableStyle& style, TableOfCells& t, TableColumnSpecs& c )
 {
 	int posxPx, posyPx, rowHeightPx;
 	PercentToPos( fx, fy, posxPx, posyPx );
-	rowHeightPx = PercentToHeight( rowHeight );
+	rowHeightPx = PercentToHeight( style.rowHeight );
 	
 	unsigned int pos, table_width, tableHeightPx;
 	
 	// everything has to be drawn upside down
 	
-	const unsigned int cellTextLeftMarginPerc = 1;
-	const unsigned int cellTextTopMarginPerc = 0;
+	const unsigned int cellTextLeftMarginPerc = GetFontHeight() / 6;
+	const unsigned int cellTextTopMarginPerc = GetFontHeight() / 6;
 	
 	// count column width
 	table_width = 0;
@@ -206,94 +227,76 @@ void HPDFWrapper::DrawTable( float fx, float fy, float rowHeight, TableOfCells& 
 		w = PercentToPosX( c.m_columns[ i ].m_width );
 		table_width += w;
 	}
-	tableHeightPx = ( 1 + t.Rows() ) * rowHeightPx;
+	tableHeightPx = PercentToHeight( ( 1 + t.Rows() ) * style.rowHeight );
 	
 	// draw lines
 	HPDF_Page_SetLineWidth( m_current_page, 0.5);
 	
 	// 2 = header row + bottom line
-	int py = posyPx;
+	float py = fy;
 	for ( unsigned int i = 0; i < 2+t.Rows(); ++i )
 	{
-		HPDF_Page_MoveTo( m_current_page, posxPx, py );
-		HPDF_Page_LineTo( m_current_page, posxPx + table_width, py );
+		int y = PercentToPosY( py );
+		HPDF_Page_MoveTo( m_current_page, posxPx, y );
+		HPDF_Page_LineTo( m_current_page, posxPx + table_width, y );
 		HPDF_Page_Stroke( m_current_page );
 		
-		py -= rowHeightPx;
+		py += style.rowHeight;
 	}
 	
 	// vertical lines
 	// do not draw header line, if it is merged with line to right
-	int px = posxPx;
+	float px = fx;
 	for ( unsigned int i = 0; i <= c.Columns(); ++i )
 	{
-		if ( c.m_columns[ i ].m_merge_header_cell_to_right ) {
-			HPDF_Page_MoveTo( m_current_page, px, posyPx - rowHeightPx );
+		int x = PercentToPosX( px );
+		
+		if (( i < c.Columns() ) &&
+			( c.m_columns[ i ].m_merge_header_cell_to_right )) {
+			HPDF_Page_MoveTo( m_current_page, x, posyPx - rowHeightPx );
 		} else {
-			HPDF_Page_MoveTo( m_current_page, px, posyPx );
+			HPDF_Page_MoveTo( m_current_page, x, posyPx );
 		}
-		HPDF_Page_LineTo( m_current_page, px, posyPx - tableHeightPx );
+		HPDF_Page_LineTo( m_current_page, x, posyPx - tableHeightPx );
 		HPDF_Page_Stroke( m_current_page );
 		
 		// last vertical line
 		if ( i < c.Columns() ) {
-			int w;
-			w = PercentToPosX( c.m_columns[ i ].m_width );
-			px += w;
+			px += c.m_columns[ i ].m_width;
 		}
 	}
 	
-	px = fx + cellTextLeftMarginPerc;
-	py = fy + cellTextTopMarginPerc;
+	float tx, ty;
+	tx = fx + cellTextLeftMarginPerc;
+	ty = fy + cellTextTopMarginPerc;
+	
 	// print out header text
 	for ( unsigned int ix = 0; ix < c.m_columns.size(); ++ix ) {
 		
 		if ( c.m_columns[ ix ].m_name.empty() )
 			continue;
 		
-		WriteSingleTextIntoWidth( px, py, c.m_columns[ ix ].m_width, c.m_columns[ ix ].m_name );
+		WriteSingleTextIntoWidth( tx, ty, c.m_columns[ ix ].m_width, c.m_columns[ ix ].m_name );
 		
-		px += c.m_columns[ ix ].m_width;
+		tx += c.m_columns[ ix ].m_width;
 	}
 	
 	// print out cell text
 	for ( unsigned int iy = 0; iy < t.Rows(); ++iy ) {
-		px = fx + cellTextLeftMarginPerc;
-		py += rowHeight;
+		
+		tx = fx + cellTextLeftMarginPerc;
+		ty += style.rowHeight;
+		
 		for ( unsigned int ix = 0; ix < t.Columns(); ++ix ) {
 			
 			if ( t.Cell( iy, ix ).GetText().empty() )
 				continue;
 			
-			WriteSingleTextIntoWidth( px, py, c.m_columns[ ix ].m_width, t.Cell( iy, ix ).GetText() );
+			WriteSingleTextIntoWidth( tx, ty, c.m_columns[ ix ].m_width, t.Cell( iy, ix ).GetText() );
 			
-			px += c.m_columns[ ix ].m_width;
+			tx += c.m_columns[ ix ].m_width;
 		}
 	}
-	
-	int miny, maxy;
-	miny = 20;
-	maxy = miny + PercentToHeight( GetFontHeight() );
-	
-	HPDF_Page_MoveTo( m_current_page, 20, miny );
-	HPDF_Page_LineTo( m_current_page, 100, miny );
-	HPDF_Page_LineTo( m_current_page, 100, maxy );
-	HPDF_Page_LineTo( m_current_page, 20, maxy );
-	HPDF_Page_LineTo( m_current_page, 20, miny );
-	HPDF_Page_Stroke( m_current_page );
-	
-	float ptx, pty, pwx;
-	PosToPercent( 80, maxy, pwx, pty );
-	PosToPercent( 20, maxy, ptx, pty );
-	
-	WriteSingleTextIntoWidth( ptx, pty, pwx, "AČgjhýĹq" );
-	float fh = GetFontHeight();
-
-	HPDF_Page_MoveTo( m_current_page, 30, PercentToPosY( pty ) );
-	HPDF_Page_LineTo( m_current_page, 110, PercentToPosY( pty ) );
-	HPDF_Page_MoveTo( m_current_page, 40, PercentToPosY( pty + fh ) );
-	HPDF_Page_LineTo( m_current_page, 120, PercentToPosY( pty + fh ) );
-	HPDF_Page_Stroke( m_current_page );
 }
 
 void HPDFWrapper::WriteSingleText( float x, float y, string text )
@@ -337,3 +340,29 @@ void HPDFWrapper::WriteSingleTextIntoWidth( float x, float y, float width, strin
 	HPDF_Page_EndText( m_current_page );
 }
 
+void HPDFWrapper::FontPrintTest( void )
+{
+	int miny, maxy;
+	miny = 20;
+	maxy = miny + PercentToHeight( GetFontHeight() );
+	
+	HPDF_Page_MoveTo( m_current_page, 20, miny );
+	HPDF_Page_LineTo( m_current_page, 100, miny );
+	HPDF_Page_LineTo( m_current_page, 100, maxy );
+	HPDF_Page_LineTo( m_current_page, 20, maxy );
+	HPDF_Page_LineTo( m_current_page, 20, miny );
+	HPDF_Page_Stroke( m_current_page );
+	
+	float ptx, pty, pwx;
+	PosToPercent( 80, maxy, pwx, pty );
+	PosToPercent( 20, maxy, ptx, pty );
+	
+	WriteSingleTextIntoWidth( ptx, pty, pwx, "AČgjhýĹq" );
+	float fh = GetFontHeight();
+
+	HPDF_Page_MoveTo( m_current_page, 30, PercentToPosY( pty ) );
+	HPDF_Page_LineTo( m_current_page, 110, PercentToPosY( pty ) );
+	HPDF_Page_MoveTo( m_current_page, 40, PercentToPosY( pty + fh ) );
+	HPDF_Page_LineTo( m_current_page, 120, PercentToPosY( pty + fh ) );
+	HPDF_Page_Stroke( m_current_page );
+}
