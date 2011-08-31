@@ -15,6 +15,7 @@
 #include "datatextfile.h"
 #include "cacheddatastorage.h"
 #include "translate.h"
+#include <gtkmm-2.4/gtkmm/filechooserdialog.h>
 
 using namespace Burza;
 using namespace BurzaExcel;
@@ -130,6 +131,7 @@ int BurzaDialogs::SetupDialogs( void )
 	xmlWndRegister->get_widget( "label fee", m_pLabelFee );
 	xmlWndRegister->get_widget( "label seller note", m_pLabelSellerNote );
 	xmlWndRegister->get_widget( "button cashout", m_pButtonCashout );
+	xmlWndRegister->get_widget( "button_review_of_sellers", m_pRegisterButtonReviewOfSellers );
 	
 	if (( m_pComboSeller == NULL ) ||
 		( m_pButtonImportSeller == NULL ) ||
@@ -143,7 +145,8 @@ int BurzaDialogs::SetupDialogs( void )
 		( m_pButtonCalcRepayment == NULL ) ||
 		( m_pLabelFee == NULL ) ||
 		( m_pLabelSellerNote == NULL ) ||
-		( m_pButtonCashout  == NULL )) {
+		( m_pButtonCashout  == NULL ) ||
+		( m_pRegisterButtonReviewOfSellers == NULL )) {
 		
 		error = "Dialog file is corrupt [1].";
 		throw;
@@ -158,6 +161,7 @@ int BurzaDialogs::SetupDialogs( void )
 	m_pButtonCalcFee->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonCalcFee ) );
 	m_pButtonCalcRepayment->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonCalcRepayment ) );
 	m_pButtonCashout->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonSwitchToCashout ) );
+	m_pRegisterButtonReviewOfSellers->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonReviewOfSellers ) );
 	
 	m_pComboSeller->signal_changed().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterComboChangedSeller ) );
 	
@@ -646,8 +650,6 @@ void BurzaDialogs::RegisterButtonCalcRepayment( void )
 		  recipees.PrintSellerStatus( pdf, sellers[ i ].id );
 	  }
 
-	  // recipees.PrintSellerStatus( pdf, m_SelectedSellerId );
-	  
 	  pdf.ClosePDF();
 	
 	} catch( runtime_error& e ) {
@@ -693,6 +695,54 @@ void BurzaDialogs::RegisterButtonSwitchToCashout( void )
 	cashoutFocusList.push_back( m_pButtonRegister );
 	
 	m_pWndCashOut->set_focus_chain( cashoutFocusList );
+}
+
+void BurzaDialogs::RegisterButtonReviewOfSellers( void )
+{
+	// offer save dialog with location of the document
+	ConvFuncs::GetDateTime();
+	string offeredName = 
+		ConvFuncs::FormatStdStr( "%s_%02i-%02i-%02i_%02i-%02i.pdf",
+		_("PrehladPredajcov"),
+		ConvFuncs::datetime.year % 100, ConvFuncs::datetime.month, ConvFuncs::datetime.day,
+		ConvFuncs::datetime.hour, ConvFuncs::datetime.minute );
+	
+	Gtk::FileChooserDialog dlg( _("Cielovy subor"), Gtk::FILE_CHOOSER_ACTION_SAVE );
+	
+	dlg.set_current_folder( Centrala::Settings().m_document_ouput_directory );
+	dlg.set_current_name( offeredName );
+	dlg.set_do_overwrite_confirmation
+	//Add response buttons the the dialog:
+	dlg.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
+	dlg.add_button(Gtk::Stock::SAVE, Gtk::RESPONSE_OK);
+	
+	int result = dlg.run();
+	if ( result != Gtk::RESPONSE_OK ) {
+		return;
+	}
+	
+	string name = dlg.get_filename();
+	
+	try {
+		Recipees recipees;
+		HPDFWrapper	pdf;
+		pdf.CreatePDF( name );
+		
+		SellerDataArray sellers = Centrala::Storage().GetSellers();
+		
+		for( unsigned int i=0; i<sellers.size(); i++ ) {
+			recipees.PrintSellerStatus( pdf, sellers[ i ].id );
+		}
+		
+		pdf.ClosePDF();
+		
+	} catch( runtime_error& e ) {
+		DisplayErrorMessageBox( "PDF error", e.what() );
+	} catch( out_of_range& e ) {
+		DisplayErrorMessageBox( "PDF out of range error", e.what() );
+	} catch( ... ) {
+		DisplayErrorMessageBox( "PDF error" );
+	}
 }
 
 void BurzaDialogs::CashoutButtonSwitchToRegister( void )

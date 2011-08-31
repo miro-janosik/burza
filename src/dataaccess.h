@@ -12,11 +12,13 @@ ITEMS
 	primary key int ITEM_ID
 	string NAME
 	int SELLER_ID
+	int NUMBER
 	float PRICE
 	datetime MODIFIED
 	bool	CHANGING
 	string CHANGED_BY
-	int	CATEGORY_ID
+	int	ITEM_CATEGORY_ID
+	int STATUS
 SELLERS
 	primary key int SELLER_ID
 	string SHORT_CODE
@@ -25,7 +27,7 @@ SELLERS
 	datetime MODIFIED
 	bool	CHANGING
 	string CHANGED_BY
-	int	CATEGORY_ID
+	int	SELLER_CATEGORY_ID
 LOGS
 	primary key int LOG_ID
 	int ITEM_ID
@@ -34,9 +36,11 @@ LOGS
 
 SELLER_CATEGORY
 	primary key int ID
+	char	LETTER
 	double FEE_PER_SALE
 ITEM_CATEGORY
 	primary key int ID
+	char LETTER
 	double FEE_PER_ITEM
 
 xx SETTINGS

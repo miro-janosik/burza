@@ -14,6 +14,8 @@ public:
   void AddProgramPageHeaderAndFooter( PdfWrapperBase& pdf );
 
   void PrintRecipeeAtEndOfCheckout( ItemDataArray& items, PdfWrapperBase& pdf );
+  
+  void PrintSellerReturnSheet( PdfWrapperBase& pdf, SELLER_ID id );
 };
 
 };

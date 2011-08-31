@@ -412,10 +412,14 @@ int BurzaRegister::VerifyItemNumber( ItemData& item, int newNumber )
 
 NastaveniaProgramu::NastaveniaProgramu()
 {
-	m_data_dir_path = ConvFuncsInstance->GetPathFromPathFilename(
+	string exePath = ConvFuncsInstance->GetPathFromPathFilename(
 		ConvFuncsInstance->GetExecutableFilePathName() );
+	m_data_dir_path = exePath;
 	m_data_dir_path += "data/";
 
+	m_document_ouput_directory = exePath;
+	m_document_ouput_directory += "/documents/";
+	
 	m_string_mena = "∈";
 	
 	m_computer_name = "PC123";

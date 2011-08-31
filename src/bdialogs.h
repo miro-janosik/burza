@@ -67,6 +67,8 @@ public:
 	void RegisterButtonCalcRepayment( void );
 	void RegisterButtonSwitchToCashout( void );
 	void RegisterComboChangedSeller( void );
+	void RegisterButtonReviewOfSellers( void );
+	
 	void CashoutItemsTreeSelectChanged( void );
 	
 	void RegisterGetSelectedItemIds( vector<Burza::ITEM_ID>& listOfIds );
@@ -128,6 +130,7 @@ public:
 	Gtk::Label		*m_pLabelFee;
 	Gtk::Label		*m_pLabelSellerNote;
 	Gtk::Button		*m_pButtonCashout;
+	Gtk::Button		*m_pRegisterButtonReviewOfSellers;
 	
 	Glib::RefPtr<Gtk::TreeSelection>	m_RegisterItemsSelection;
 	Glib::RefPtr<Gtk::ListStore>	m_RegisterItemsListModel;

@@ -213,12 +213,12 @@ void HPDFWrapper::DrawTable( float fx, float fy, TableStyle& style, TableOfCells
 	PercentToPos( fx, fy, posxPx, posyPx );
 	rowHeightPx = PercentToHeight( style.rowHeight );
 	
-	unsigned int pos, table_width, tableHeightPx;
+	unsigned int pos, table_width, tableBottomPx;
 	
 	// everything has to be drawn upside down
 	
-	const unsigned int cellTextLeftMarginPerc = GetFontHeight() / 6;
-	const unsigned int cellTextTopMarginPerc = GetFontHeight() / 6;
+	const float cellTextLeftMarginPerc = GetFontHeight() / 6;
+	const float cellTextTopMarginPerc = 0;
 	
 	// count column width
 	table_width = 0;
@@ -227,7 +227,7 @@ void HPDFWrapper::DrawTable( float fx, float fy, TableStyle& style, TableOfCells
 		w = PercentToPosX( c.m_columns[ i ].m_width );
 		table_width += w;
 	}
-	tableHeightPx = PercentToHeight( ( 1 + t.Rows() ) * style.rowHeight );
+	tableBottomPx = PercentToPosY( fy + ( 1 + t.Rows() ) * style.rowHeight );
 	
 	// draw lines
 	HPDF_Page_SetLineWidth( m_current_page, 0.5);
@@ -257,7 +257,7 @@ void HPDFWrapper::DrawTable( float fx, float fy, TableStyle& style, TableOfCells
 		} else {
 			HPDF_Page_MoveTo( m_current_page, x, posyPx );
 		}
-		HPDF_Page_LineTo( m_current_page, x, posyPx - tableHeightPx );
+		HPDF_Page_LineTo( m_current_page, x, tableBottomPx );
 		HPDF_Page_Stroke( m_current_page );
 		
 		// last vertical line
@@ -276,7 +276,7 @@ void HPDFWrapper::DrawTable( float fx, float fy, TableStyle& style, TableOfCells
 		if ( c.m_columns[ ix ].m_name.empty() )
 			continue;
 		
-		WriteSingleTextIntoWidth( tx, ty, c.m_columns[ ix ].m_width, c.m_columns[ ix ].m_name );
+		WriteSingleTextIntoWidth( tx, ty, c.m_columns[ ix ].m_width - cellTextLeftMarginPerc * 2, c.m_columns[ ix ].m_name );
 		
 		tx += c.m_columns[ ix ].m_width;
 	}
@@ -292,7 +292,7 @@ void HPDFWrapper::DrawTable( float fx, float fy, TableStyle& style, TableOfCells
 			if ( t.Cell( iy, ix ).GetText().empty() )
 				continue;
 			
-			WriteSingleTextIntoWidth( tx, ty, c.m_columns[ ix ].m_width, t.Cell( iy, ix ).GetText() );
+			WriteSingleTextIntoWidth( tx, ty, c.m_columns[ ix ].m_width - cellTextLeftMarginPerc * 2, t.Cell( iy, ix ).GetText() );
 			
 			tx += c.m_columns[ ix ].m_width;
 		}

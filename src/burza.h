@@ -30,13 +30,20 @@ public:
 	
 public:
 	
+	//! for example "EUR", "Czech krown", "E"
 	std::string		m_string_mena; 
 	
+	//! directory from where files are imported 
 	std::string		m_data_dir_path;
 	
+	//! name of current computer. Useful when identifying PC that changes seller.
 	std::string		m_computer_name;
 	
+	//! Name of the sale, it is written in output documents.
 	std::string		m_name_of_the_sale;
+	
+	//! directory where files are output
+	std::string		m_document_ouput_directory;
 } ;
 
 /*

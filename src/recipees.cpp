@@ -20,10 +20,10 @@ void Recipees::PrintSellerStatus( PdfWrapperBase& pdf, SELLER_ID id )
 	AddProgramPageHeaderAndFooter( pdf );
 	
 	pdf.SetFontSize(2);
-	pdf.WriteSingleText( 10, 10, ConvFuncs::FormatStdStr(_("Predávajúci %s - %s"), 
+	pdf.WriteSingleText( 10, 10, ConvFuncs::FormatStdStr(_("Predávajúci: %s - %s"), 
 		seller.name.c_str(), seller.shortcode.c_str() ));
-	pdf.WriteSingleText( 10, 14, ConvFuncs::FormatStdStr(_("Poznámka %s"), seller.note.c_str() ));
-	pdf.WriteSingleText( 10, 18, ConvFuncs::FormatStdStr(_("Stav dňa %s"), ConvFuncsInstance->CurDateTimeString() ));
+	pdf.WriteSingleText( 10, 13, ConvFuncs::FormatStdStr(_("Poznámka: %s"), seller.note.c_str() ));
+	pdf.WriteSingleText( 10, 16, ConvFuncs::FormatStdStr(_("Stav dňa: %s"), ConvFuncsInstance->CurDateTimeString() ));
 
 	TableOfCells	items;
 	TableColumnSpecs	columns;
@@ -165,3 +165,7 @@ void Recipees::PrintRecipeeAtEndOfCheckout( ItemDataArray& items, PdfWrapperBase
 	}
 }
 
+void Recipees::PrintSellerReturnSheet( PdfWrapperBase& pdf, SELLER_ID id )
+{
+	PrintSellerStatus( pdf, id );
+}
