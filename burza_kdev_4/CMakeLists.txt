@@ -26,15 +26,20 @@ include_directories(src; kdev_src)
 find_package(PkgConfig)
 pkg_check_modules(GTKMM REQUIRED gtkmm-2.4)
 pkg_check_modules(GLADEMM REQUIRED libglademm-2.4)
+pkg_check_modules(PQXX REQUIRED pqxx)
 
 MESSAGE("gtkmm: ${GTKMM_FOUND}, ${GTKMM_INCLUDE_DIRS} , ${GTKMM_LIBRARY_DIRS}.")
 MESSAGE("Glade: ${GLADEMM_FOUND}, ${GLADEMM_LIBRARY_DIRS} , ${GLADEMM_INCLUDE_DIRS} , ${GLADEMM_LIBRARIES} .")
+set(PQXX_LIBRARY_DIRS "/usr/lib")
+set(PQXX_INCLUDE_DIRS "/usr/include")
+set(PQXX_LIBRARIES "libpqxx.so")
 
 set(PRJ_LIB_DIR "${PROJECT_SOURCE_DIR}/../lib")
 
 include_directories(
   ${GLADEMM_INCLUDE_DIRS}
   ${GTKMM_INCLUDE_DIRS}
+  ${PQXX_INCLUDE_DIRS}
   "${PRJ_LIB_DIR}/libharu/include"
   "${PRJ_LIB_DIR}/libXL/include"
   )
@@ -42,12 +47,14 @@ include_directories(
 link_directories( 
   ${GTKMM_LIBRARY_DIRS} 
   ${GLADEMM_LIBRARY_DIRS}
+  ${PQXX_LIBRARY_DIRS}
   ${PRJ_LIB_DIR}"/libXL"
   )
 
 target_link_libraries(burza_kdev 
   ${GTKMM_LIBRARIES}
   ${GLADEMM_LIBRARIES}
+  ${PQXX_LIBRARIES}
   "${PRJ_LIB_DIR}/libharu/lib/libhpdf.a"
   "${PRJ_LIB_DIR}/libXL/libxl.so"
   )

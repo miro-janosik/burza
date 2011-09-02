@@ -77,11 +77,6 @@ ak pri startupe nieje server, tak msg a pouzi lokal db
 
 */
 
-class DataPostgress : public DataStorage
-{
-  
-};
-
 }
 
 #endif

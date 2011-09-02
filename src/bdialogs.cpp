@@ -711,7 +711,8 @@ void BurzaDialogs::RegisterButtonReviewOfSellers( void )
 	
 	dlg.set_current_folder( Centrala::Settings().m_document_ouput_directory );
 	dlg.set_current_name( offeredName );
-	dlg.set_do_overwrite_confirmation
+	dlg.set_do_overwrite_confirmation();
+	
 	//Add response buttons the the dialog:
 	dlg.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
 	dlg.add_button(Gtk::Stock::SAVE, Gtk::RESPONSE_OK);
