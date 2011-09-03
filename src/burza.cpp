@@ -25,10 +25,12 @@
 // not required here, only for test
 #include "pdfwrap.h"
 #include "table.h"
-#include "datatextfile.h"
-#include "cacheddatastorage.h"
 #include "translate.h"
 #include "recipees.h"
+
+#include "datatextfile.h"
+#include "cacheddatastorage.h"
+#include "datapostgrespqxx.h"
 
 using namespace Burza;
 
@@ -39,7 +41,9 @@ int main2( int argc, char **argv )
 {
 	Centrala		*pcentrala = Centrala::Instance();
 
-	pcentrala->Register().m_storage = new CachedDataTextfile( Centrala::Settings().m_data_dir_path );
+	// pcentrala->Register().m_storage = new CachedDataTextfile( Centrala::Settings().m_data_dir_path );
+	pcentrala->Register().m_storage = new DataPostgresPqxx();
+	
 	//TODO: dispose dataStorage in destructor somehow.
 	//	DataTextfile dataStorage = new DataTextfile( Centrala::Instancia()->Nastavenia()->m_data_dir_path );
 	//	m_storage = new CachedDataStorage(*dataStorage);

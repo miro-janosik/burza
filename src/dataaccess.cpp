@@ -42,6 +42,19 @@ SellerData::SellerData(const SellerData& a)
 	last_update	= a.last_update;
 }
 
+SellerData::SellerData(SELLER_ID _id, string _name, string _shortcode, string _note, int _category)
+{
+	name = _name;
+	shortcode = _shortcode;
+	note = _note;
+	category = _category;
+  
+	ConvFuncs::GetDateTime();
+	last_update = ConvFuncs::datetime;
+	
+	id = _id;
+}
+
 SellerData::SellerData(string _name, string _shortcode, string _note, int _category)
 {
 	name = _name;

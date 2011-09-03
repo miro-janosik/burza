@@ -74,6 +74,7 @@ struct SellerData {
 
 public:
 	SellerData();
+	SellerData(SELLER_ID id, string _name, string _shortcode, string _note, int _category);
 	SellerData(string _name, string _shortcode, string _note, int _category);
 	SellerData(const SellerData&);
 } ;
