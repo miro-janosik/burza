@@ -317,7 +317,7 @@ public:
   virtual int GetItemIndex( ITEM_ID id ) { throw NotImplementedException(); }
   
   //! returns unique non-used seller ID
-  virtual SELLER_ID GetNewSellerId( void ) = 0;
+  virtual SELLER_ID GetNewSellerId( void );
 
   //! returns unique non-used item ID
   virtual ITEM_ID GetNewItemId( void ) = 0;

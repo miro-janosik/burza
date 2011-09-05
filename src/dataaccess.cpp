@@ -243,3 +243,19 @@ SellerCategory DataAccessInterface::GetSellerCategoryByLetter(char letter)
 	SellerCategoryArray categories = GetSellersCategoriesByLetter( letters );
 	return categories[ 0 ];
 }
+
+SELLER_ID DataAccessInterface::GetNewSellerId( void )
+{
+	SellerDataArray sellers = GetSellers();
+	
+	SELLER_ID biggestId = -2;
+	int i = 0, c = sellers.size();
+	
+	for( ; i < c; ++i ) {
+		if ( sellers[ i ].id > biggestId) {
+			biggestId = sellers[ i ].id;
+		}
+	}
+	
+	return biggestId + 1;
+}
