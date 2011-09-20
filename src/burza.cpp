@@ -62,13 +62,18 @@ int main2( int argc, char **argv )
 	// Centrala::Register().NacitajVsetkychPredajcov();
 	Centrala::Dialogs().FillSellerCombos();
 	Centrala::Dialogs().RegisterDisplaySellerByIndex( 0 );
-
+	
+	std::string exceptionMessage;
+	
 	try {
 		//Gtk::Main::run( * pcentrala->Dialogy()->m_pWndRegister );
 		Gtk::Main::run();
 	}
+	catch (std::exception& ex) {
+		exceptionMessage = ex.what();
+	}
 	catch (DataStorageException& ex){
-		BurzaDialogs::DisplayErrorMessageBox( ex.what(), _("Program failed to work, has to exit.") );
+		exceptionMessage = ex.what();
 	}
 
 	// setup update timer

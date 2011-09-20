@@ -17,7 +17,7 @@ class DataTextfile : public DataAccessInterface
 	//! Data functions
 	
 	virtual SellerDataArray GetSellers( void );
-	virtual SellerData& GetSeller(SELLER_ID id);
+	virtual SellerData GetSeller(SELLER_ID id);
 	virtual ItemDataArray GetSellerItems(SELLER_ID id);
 	virtual bool ModifySellerStart(SELLER_ID id);
 	virtual void ModifySellerEnd(SELLER_ID id, SellerData& seller);

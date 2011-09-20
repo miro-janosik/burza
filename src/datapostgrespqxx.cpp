@@ -1,7 +1,12 @@
 #include "datapostgrespqxx.h"
+
+#include <exception>
+
 #include "pqxx/pqxx"
 #include "log.h"
 #include "convfncs.h"
+#include "bdialogs.h"
+#include "errhandler.h"
 
 using namespace Burza;
 using namespace pqxx;
@@ -66,7 +71,9 @@ DataPostgresPqxx::DataPostgresPqxx()
 	}
 	catch(exception& e)
 	{
-		throw new database_exception("Connection to database failed");
+		string str = "Connection to database failed: ";
+		str += e.what();
+		HandlePostgresqlException(new database_exception(str));
 	}
 }
 
@@ -77,22 +84,47 @@ DataPostgresPqxx::~DataPostgresPqxx()
 
 SellerDataArray DataPostgresPqxx::GetSellers( void )
 {
-	SellerDataArray sellers = QueryForSellers( "SELECT * FROM sellers", "getting sellers", false );
+	SellerDataArray sellers;
+	
+	try {
+	  sellers = QueryForSellers( "SELECT * FROM sellers", "getting sellers", false );
+	}
+	catch(exception& e)
+	{
+		HandlePostgresqlException(e);
+	}
+	
 	return sellers;
 }
 
-SellerData& DataPostgresPqxx::GetSeller(SELLER_ID id)
+SellerData DataPostgresPqxx::GetSeller(SELLER_ID id)
 {
+	SellerDataArray sellers;
 	string query = ConvFuncs::FormatStdStr( "SELECT * FROM sellers WHERE \"SELLER_ID\" = %i", id );
-	SellerDataArray sellers = QueryForSellers( query, "getting sellers", true );
+	try {
+	  sellers = QueryForSellers( query, "getting sellers", true );
+	}
+	catch(exception& e)
+	{
+		HandlePostgresqlException(e);
+	}
+
 	return sellers[ 0 ];
 }
 
 ItemDataArray DataPostgresPqxx::GetSellerItems(SELLER_ID id)
 {
+	ItemDataArray items;
 	string query = ConvFuncs::FormatStdStr( "SELECT * FROM items WHERE \"SELLER_ID\" = %i", id );
 
-	ItemDataArray items = QueryForItems( query, "getting seller items", false);
+	try {
+		items = QueryForItems( query, "getting seller items", false);
+	}
+	catch(exception& e)
+	{
+		HandlePostgresqlException(e);
+	}
+	
 	return items;
 }
 
@@ -107,12 +139,17 @@ void DataPostgresPqxx::ModifySellerEnd(SELLER_ID id, SellerData& seller)
 {
 	seller.id = id;
   
-	work work1(*dbConnection, "update seller" );
-	string query = ConvFuncs::FormatStdStr( 
-		"UPDATE sellers SET %s WHERE \"SELLER_ID\" = %i", SellerToQueryUpdateValuesString( seller ).c_str(), id );
-	
-	result sellersResult = work1.exec( query );
-	work1.commit();
+	try {
+	  work work1(*dbConnection, "update seller" );
+	  string query = ConvFuncs::FormatStdStr( 
+		  "UPDATE sellers SET %s WHERE \"SELLER_ID\" = %i", SellerToQueryUpdateValuesString( seller ).c_str(), id );
+	  
+	  result sellersResult = work1.exec( query );
+	  work1.commit();
+	}
+	catch(exception& ex) {
+		HandlePostgresqlException( ex );
+	}
 }
 
 bool DataPostgresPqxx::IsSellerModified(SELLER_ID id)
@@ -141,18 +178,44 @@ ItemData* DataPostgresPqxx::GetItemIfModified(ITEM_ID id)
 
 ItemData DataPostgresPqxx::GetSellerItem(SELLER_ID id, int item_number)
 {
+	ItemDataArray items;
 	string query = ConvFuncs::FormatStdStr( "SELECT * FROM items WHERE \"SELLER_ID\" = %i AND \"ITEM_ID\" = %i", id, item_number );
-	ItemDataArray items = QueryForItems( query, "getting seller item by numer", true );
+	try {
+		items = QueryForItems( query, "getting seller item by numer", true );
+	}
+	catch(exception& e)
+	{
+		HandlePostgresqlException( e );
+	}
 	
-	return items[ 0 ];
+	for( int i=0; i<items.size(); ++i ) {
+		if ( items[ i ].number == item_number ) {
+			return items[ i ];
+		}
+	}
+	
+	throw new WrongItemException();
 }
 
 ItemData DataPostgresPqxx::GetItem(ITEM_ID id)
 {
+	ItemDataArray items;
 	string query = ConvFuncs::FormatStdStr( "SELECT * FROM items WHERE \"ID\" = %i", id );
-	ItemDataArray items = QueryForItems( query, "getting item by id", true );
 	
-	return items[ 0 ];
+	try {
+		items = QueryForItems( query, "getting item by id", true );
+		
+		if (! items.empty() ) {
+			return items[ 0 ];
+		}
+
+		throw new WrongItemException();
+	}
+	catch(exception& e)
+	{
+		HandlePostgresqlException( e );
+		throw new WrongItemException();
+	}
 }
 
 	
@@ -225,76 +288,122 @@ SellerCategoryArray DataPostgresPqxx::GetSellersCategoriesByLetter(vector<char>&
 	return cats;
 }
 
-SellerData& DataPostgresPqxx::GetSellerByCode(string& code)
+SellerData DataPostgresPqxx::GetSellerByCode(string& code)
 {
+	SellerDataArray sellers;
 	string query = ConvFuncs::FormatStdStr( "SELECT * FROM sellers WHERE \"SHORT_CODE\" = %s", code.c_str() );
-	SellerDataArray sellers = QueryForSellers( query, "getting seller by code", true );
+	try {
+		sellers = QueryForSellers( query, "getting seller by code", true );
+	}
+	catch(exception& e)
+	{
+		HandlePostgresqlException( e );
+		throw new WrongSellerException();
+	}
+	
 	return sellers[ 0 ];
 }
 
 void DataPostgresPqxx::RemoveSeller(SELLER_ID id)
 {
-	work dbGetSellers(*dbConnection, "remove seller by id" );
-	string query = ConvFuncs::FormatStdStr( "DELETE FROM sellers WHERE \"SELLER_ID\" = %i", id );
-	result sellersResult = dbGetSellers.exec( query );
-	dbGetSellers.commit();
+	try {
+	  work dbGetSellers(*dbConnection, "remove seller by id" );
+	  string query = ConvFuncs::FormatStdStr( "DELETE FROM sellers WHERE \"SELLER_ID\" = %i", id );
+	  result sellersResult = dbGetSellers.exec( query );
+	  dbGetSellers.commit();
+	}
+	catch(exception& ex) {
+		HandlePostgresqlException( ex );
+	}
 }
 
 SELLER_ID DataPostgresPqxx::AddSeller(SellerData& seller)
 {
 	seller.id = GetNewSellerId();
+	ConvFuncs::GetDateTime();
+	seller.last_update = ConvFuncs::datetime;
   
-	work dbGetSellers(*dbConnection, "add seller" );
-	string query = ConvFuncs::FormatStdStr( 
-		"INSERT INTO sellers VALUES %s", SellerToQueryValuesString( seller ).c_str() );
-	
-	result sellersResult = dbGetSellers.exec( query );
-	dbGetSellers.commit();
+	try {
+		work dbGetSellers(*dbConnection, "add seller" );
+		string query = ConvFuncs::FormatStdStr( 
+			"INSERT INTO sellers VALUES %s", SellerToQueryValuesString( seller ).c_str() );
+		
+		result sellersResult = dbGetSellers.exec( query );
+		dbGetSellers.commit();
+	}
+	catch(exception& ex) {
+		HandlePostgresqlException( ex );
+	}
 	
 	return seller.id;
 }
 
 ITEM_ID DataPostgresPqxx::AddItem(ItemData& item, SELLER_ID id)
 {
-	item.id = GetNewItemId();
-  
-	work dbGetSellers(*dbConnection, "add item" );
-	string query = ConvFuncs::FormatStdStr( 
-		"INSERT INTO items VALUES %s", ItemToQueryNewValuesString( item ).c_str() );
+	ConvFuncs::GetDateTime();
+	item.last_update = ConvFuncs::datetime;
 	
-	result sellersResult = dbGetSellers.exec( query );
-	dbGetSellers.commit();
+	try {
+		item.id = GetNewItemId();
+		
+		work dbGetSellers(*dbConnection, "add item" );
+		string query = ConvFuncs::FormatStdStr( 
+			"INSERT INTO items VALUES %s", ItemToQueryNewValuesString( item ).c_str() );
+		
+		result sellersResult = dbGetSellers.exec( query );
+		dbGetSellers.commit();
+	}
+	catch(exception& ex) {
+		HandlePostgresqlException( ex );
+	}
 	
 	return item.id;
 }
 
 void DataPostgresPqxx::ModifyItem(ITEM_ID item_id, ItemData& item)
 {
-	item.id = GetNewItemId();
-  
-	work dbGetSellers(*dbConnection, "add item" );
-	string query = ConvFuncs::FormatStdStr( 
-		"UPDATE items SET %s WHERE \"ITEM_ID\" = %i", ItemToQueryUpdateValuesString( item ).c_str(), item_id );
-	
-	result sellersResult = dbGetSellers.exec( query );
-	dbGetSellers.commit();
+	try {
+		work dbGetSellers(*dbConnection, "modify item" );
+		string query = ConvFuncs::FormatStdStr( 
+			"UPDATE items SET %s WHERE \"ITEM_ID\" = %i", ItemToQueryUpdateValuesString( item ).c_str(), item_id );
+		
+		result sellersResult = dbGetSellers.exec( query );
+		dbGetSellers.commit();
+	}
+	catch(exception& ex) {
+		HandlePostgresqlException( ex );
+	}
 }
 
 void DataPostgresPqxx::RemoveItem(ITEM_ID id)
 {
-	work dbGetSellers(*dbConnection, "remove item" );
-	string query = ConvFuncs::FormatStdStr( 
-	  "DELETE FROM items WHERE \"ITEM_ID\" = %i", id );
+	try {
+		work dbGetSellers(*dbConnection, "remove item" );
+		string query = ConvFuncs::FormatStdStr( 
+		  "DELETE FROM items WHERE \"ITEM_ID\" = %i", id );
 
-	result sellersResult = dbGetSellers.exec( query );
-	dbGetSellers.commit();
+		result sellersResult = dbGetSellers.exec( query );
+		dbGetSellers.commit();
+	}
+	catch(exception& ex) {
+		HandlePostgresqlException( ex );
+		throw new WrongItemException();
+	}
 }
 
 ITEM_ID DataPostgresPqxx::GetNewItemId( void )
 {
+	ItemDataArray items;
 	string query = ConvFuncs::FormatStdStr( "SELECT * FROM items" );
 
-	ItemDataArray items = QueryForItems( query, "getting all items", false);
+	try {
+		items = QueryForItems( query, "getting all items", false);
+	}
+	catch(exception& e)
+	{
+		HandlePostgresqlException( e );
+		throw e;
+	}
 	
 	SELLER_ID biggestId = -2;
 	int i = 0, c = items.size();
@@ -311,7 +420,7 @@ ITEM_ID DataPostgresPqxx::GetNewItemId( void )
 string DataPostgresPqxx::TimestampToString(ConvFuncs::s_datetime& time )
 {
 	// 2011-01-01 01:02:03
-	string res = ConvFuncs::FormatStdStr("%i-%02i-%02i %02i:%02i:%02i",
+	string res = ConvFuncs::FormatStdStr("%04i-%02i-%02i %02i:%02i:%02i",
 		time.year, time.month, time.day,
 		time.hour, time.minute, time.second );
 		
@@ -326,7 +435,7 @@ ConvFuncs::s_datetime DataPostgresPqxx::StringToTimestamp( string time )
 	
 	ConvFuncs::Tokenize(time, parts, " ");
 	if ( parts.size() != 2 ) {
-		throw runtime_error( "DataPostgresPqxx::StringToTimestamp: Could not convert time string because of incorrect format." );
+		HandleException(new runtime_error( "DataPostgresPqxx::StringToTimestamp: Could not convert time string because of incorrect format." ));
 	}
 	
 	ConvFuncs::Tokenize( parts[ 0 ], dateParts, "-" );
@@ -334,7 +443,7 @@ ConvFuncs::s_datetime DataPostgresPqxx::StringToTimestamp( string time )
 
 	if (( dateParts.size() != 3 ) ||
 		( timeParts.size() != 3 )) {
-		throw runtime_error( "DataPostgresPqxx::StringToTimestamp: Could not convert time string because of incorrect format." );
+		HandleException(new runtime_error( "DataPostgresPqxx::StringToTimestamp: Could not convert time string because of incorrect format." ));
 	}
 	
 	result.year		= atoi( dateParts[ 0 ].c_str() );
@@ -367,7 +476,7 @@ void DataPostgresPqxx::DbDataToSellerData( const result::tuple& result, SellerDa
 		  dataCorrupt = true;
 	
 	if ( dataCorrupt ) {
-		throw runtime_error("Data in DB corrupted!");
+		HandleException(new runtime_error("Data in DB corrupted!"));
 	}
 	
 	data.last_update = StringToTimestamp( timeString );
@@ -394,7 +503,7 @@ void DataPostgresPqxx::DbDataToItemData( const result::tuple& result, ItemData& 
 		  dataCorrupt = true;
 	
 	if ( dataCorrupt ) {
-		throw runtime_error("Data in DB corrupted!");
+		HandleException( new runtime_error("Data in DB corrupted!"));
 	}
 	
 	data.last_update = StringToTimestamp( timeString );
@@ -403,16 +512,24 @@ void DataPostgresPqxx::DbDataToItemData( const result::tuple& result, ItemData& 
 ItemDataArray DataPostgresPqxx::QueryForItems( string query, string queryName, bool singleItem )
 {
 	ItemDataArray items;
-
-	work work1(*dbConnection, queryName);
-	result itemResult = work1.exec( query );
-	work1.commit();
+	result itemResult;
+	
+	try {
+		work work1(*dbConnection, queryName);
+		itemResult = work1.exec( query );
+		work1.commit();
+	}
+	catch(exception& ex) {
+		HandlePostgresqlException( ex );
+		return items;
+	}
 
 	int i = 0, c = itemResult.size();
 	if (( singleItem ) && ( c != 1 )) {
-		throw runtime_error( 
+		HandleException(new runtime_error( 
 			ConvFuncs::FormatStdStr( 
-			"DataPostgresPqxx::QueryForItems no single item: '%s' => '%s'.", queryName.c_str(), query.c_str() ));
+			"DataPostgresPqxx::QueryForItems no single item: '%s' => '%s'.", queryName.c_str(), query.c_str() )));
+		return items;
 	}
 	
 	i = 0;
@@ -429,20 +546,28 @@ ItemDataArray DataPostgresPqxx::QueryForItems( string query, string queryName, b
 
 SellerDataArray DataPostgresPqxx::QueryForSellers( string query, string queryName, bool singleSellers )
 {
-	work dbGetSellers(*dbConnection, queryName );
-	result sellersResult = dbGetSellers.exec( query );
-	dbGetSellers.commit();
-
 	SellerDataArray sellers;
+	result sellersResult;
+	
+	try {
+		work dbGetSellers(*dbConnection, queryName );
+		sellersResult = dbGetSellers.exec( query );
+		dbGetSellers.commit();
+	}
+	catch(exception& ex) {
+		HandlePostgresqlException( ex );
+		return sellers;
+	}
+
 	SellerData sellerData;
 	
 	int i = 0, c = sellersResult.size();
 	string timeString;
 
 	if (( singleSellers ) && ( c != 1 )) {
-		throw runtime_error( 
+		HandleException(new runtime_error( 
 			ConvFuncs::FormatStdStr( 
-			"DataPostgresPqxx::QueryForSellers no single item: '%s' => '%s'.", queryName.c_str(), query.c_str() ));
+			"DataPostgresPqxx::QueryForSellers no single item: '%s' => '%s'.", queryName.c_str(), query.c_str() )));
 	}
 	
 	for( ; i < c; ++i ) {
@@ -495,4 +620,14 @@ string DataPostgresPqxx::SellerToQueryUpdateValuesString( SellerData& data )
 		data.shortcode.c_str(), data.name.c_str(), data.note.c_str(), 
 		"false", "", data.category, TimestampToString( data.last_update ).c_str() );
 	return values;
+}
+
+void DataPostgresPqxx::HandlePostgresqlException( exception& e )
+{
+	ErrorHandling::HandlePostgresException(e);
+}
+
+void DataPostgresPqxx::HandleException( exception& e )
+{
+	ErrorHandling::HandleException(e);
 }

@@ -17,11 +17,11 @@ public:
 	virtual ~CachedDataTextfile();
 	
 	virtual SellerDataArray GetSellers( void );
-	virtual SellerData& GetSeller(SELLER_ID id);
+	virtual SellerData GetSeller(SELLER_ID id);
 	virtual SELLER_ID AddSeller(SellerData& seller);
 	virtual void ModifySellerEnd(SELLER_ID id, SellerData& seller);
 	virtual void RemoveSeller(SELLER_ID id);
-	virtual SellerData& GetSellerByCode(string& code);
+	virtual SellerData GetSellerByCode(string& code);
 	
 	virtual ItemData GetItem(ITEM_ID id);
 	virtual void RemoveItem(ITEM_ID id);

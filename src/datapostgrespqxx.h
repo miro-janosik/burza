@@ -30,7 +30,7 @@ class DataPostgresPqxx : public DataAccessInterface
   public:
 
 	virtual SellerDataArray GetSellers( void );
-	virtual SellerData& GetSeller(SELLER_ID id);
+	virtual SellerData GetSeller(SELLER_ID id);
 	virtual ItemDataArray GetSellerItems(SELLER_ID id);
 	virtual bool ModifySellerStart(SELLER_ID id);
 	virtual void ModifySellerEnd(SELLER_ID id, SellerData& seller);
@@ -49,7 +49,7 @@ class DataPostgresPqxx : public DataAccessInterface
 	virtual SellerCategoryArray GetSellersCategories(vector<SELLER_CATEGORY_ID>& ids);
 	virtual SellerCategoryArray GetSellersCategoriesByLetter(vector<char>& letters);	
 
-	virtual SellerData& GetSellerByCode(string& code);
+	virtual SellerData GetSellerByCode(string& code);
 	virtual SELLER_ID AddSeller(SellerData& seller);
 	virtual ITEM_ID AddItem(ItemData& item, SELLER_ID id);
 	virtual void ModifyItem(ITEM_ID item_id, ItemData& item);
@@ -82,6 +82,10 @@ class DataPostgresPqxx : public DataAccessInterface
 	string SellerToQueryUpdateValuesString( SellerData& data );
 	string ItemToQueryNewValuesString( ItemData& item );
 	string ItemToQueryUpdateValuesString( ItemData& item );
+	void HandlePostgresqlException( exception& e );
+	void HandlePostgresqlException( exception* e ) { HandlePostgresqlException( *e ); }
+	void HandleException( exception& e );
+	void HandleException( exception* e ) { HandleException( *e ); }
 };
 
 }

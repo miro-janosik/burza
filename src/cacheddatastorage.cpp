@@ -133,7 +133,7 @@ SellerDataArray CachedDataTextfile::GetSellers( void )
 	return outSellers;
 }
 
-SellerData& CachedDataTextfile::GetSeller(SELLER_ID id)
+SellerData CachedDataTextfile::GetSeller(SELLER_ID id)
 {
 	SellerMap::iterator	sit = sellers.find( id );
 	if ( sit == sellers.end() ) {
@@ -159,7 +159,7 @@ void CachedDataTextfile::SaveSellerFile(SELLER_ID id)
 	SaveSellerToTxtFile(seller, items);
 }
 
-SellerData& CachedDataTextfile::GetSellerByCode(string& code)
+SellerData CachedDataTextfile::GetSellerByCode(string& code)
 {
 	SellerMap::iterator it = sellers.begin(), ite = sellers.end();
 	for( ; it != ite; ++it ) {

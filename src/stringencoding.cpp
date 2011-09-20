@@ -10,6 +10,9 @@
 #include <exception>
 #include <errno.h>
 
+// #include <glibmm-2.4/glibmm/convert.h>
+// Glib::IConv	iconv;
+
 #ifdef _UNIX
 #include <string.h>
 #endif
@@ -58,7 +61,6 @@ void StringEncoding::UTF8toISO8859_2( std::string& str )
 	}
 	memcpy( inBuffer, str.c_str(), c );
 	inBuffer[ c ] = 0;
-	
 	
 	if ((cd = iconv_open( "ISO_8859-2", "UTF-8")) == (iconv_t)(-1)) 
 	{

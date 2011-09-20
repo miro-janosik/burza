@@ -201,19 +201,19 @@ class DataAccessInterface {
   virtual SellerDataArray GetSellers( void ) = 0;
   
   //! Get single seller data.
-  //! Throws WrongSellerIdException if no such seller is present.
-  virtual SellerData& GetSeller(SELLER_ID id) = 0;
+  //! Throws WrongSellerException if no such seller is present.
+  virtual SellerData GetSeller(SELLER_ID id) = 0;
   
   //! Get single seller data.
-  //! Throws WrongSellerIdException if no such seller is present.
-  virtual SellerData& GetSellerByCode(string& code) = 0;
+  //! Throws WrongSellerException if no such seller is present.
+  virtual SellerData GetSellerByCode(string& code) = 0;
   
   //! Get seller's items.
-  //! Throws WrongSellerIdException if no such seller is present.
+  //! Throws WrongSellerException if no such seller is present.
   virtual ItemDataArray GetSellerItems(SELLER_ID id) = 0;
 
   //! Get seller's item. Throws WrongItemNumberException if item not present.
-  //! Throws WrongSellerIdException if no such seller is present.
+  //! Throws WrongSellerException if no such seller is present.
   virtual ItemData GetSellerItem(SELLER_ID id, int item_number) = 0;
   
   //! Adds new seller, returns ID.
@@ -221,15 +221,15 @@ class DataAccessInterface {
 
   //! Call when you want to modify seller. Returns false if already being modified.
   //! In that case wait or cancel modifications.
-  //! Throws WrongSellerIdException if no such seller is present.
+  //! Throws WrongSellerException if no such seller is present.
   virtual bool ModifySellerStart(SELLER_ID id) = 0;
   
   //! Call when you want to finish seller modifications.
-  //! Throws WrongSellerIdException if no such seller is present.
+  //! Throws WrongSellerException if no such seller is present.
   virtual void ModifySellerEnd(SELLER_ID id, SellerData& seller) = 0;
 
   //! Removes seller.
-  //! Throws WrongSellerIdException if no such seller is present.
+  //! Throws WrongSellerException if no such seller is present.
   virtual void RemoveSeller(SELLER_ID id) = 0;
 
   //! Adds new item.
@@ -272,12 +272,12 @@ class DataAccessInterface {
   // ==== modified time ====
   
   //! Returns true if seller was modified since last local change
-  //! Throws WrongSellerIdException if no such seller is present.
+  //! Throws WrongSellerException if no such seller is present.
   virtual bool IsSellerModified(SELLER_ID id) { throw NotImplementedException(); }
   
   //! Returns seller data if seller was modified on server since last local change
   //! Returns null otherwise
-  //! Throws WrongSellerIdException if no such seller is present.
+  //! Throws WrongSellerException if no such seller is present.
   virtual SellerData* GetSellerIfModified(SELLER_ID id) { throw NotImplementedException(); }
 
   //! Returns true if item was modified on server since last local change

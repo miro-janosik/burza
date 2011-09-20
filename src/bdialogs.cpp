@@ -622,10 +622,8 @@ void BurzaDialogs::RegisterButtonCalcFee( void )
 		return;
 	
 	ItemDataArray items = Centrala::Storage().GetSellerItems( m_SelectedSellerId );
-	
-	double fee = Centrala::Register().CalculateFee( 
-		Centrala::Storage().GetSeller( m_SelectedSellerId ), 
-		items );
+	SellerData seller = Centrala::Storage().GetSeller( m_SelectedSellerId );
+	double fee = Centrala::Register().CalculateFee( seller, items );
 	
 	m_pLabelFee->set_text( ConvFuncs::FormatStdStr( "%0.2f %s", fee, 
 		Centrala::Settings().m_string_mena.c_str() ) );

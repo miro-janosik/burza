@@ -175,7 +175,7 @@ SellerDataArray DataTextfile::GetSellers( void )
 	throw NotImplementedException();
 }
 
-SellerData& DataTextfile::GetSeller(SELLER_ID id)
+SellerData DataTextfile::GetSeller(SELLER_ID id)
 {
 	throw NotImplementedException();
 }
