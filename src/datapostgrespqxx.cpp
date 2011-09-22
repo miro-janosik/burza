@@ -291,7 +291,7 @@ SellerCategoryArray DataPostgresPqxx::GetSellersCategoriesByLetter(vector<char>&
 SellerData DataPostgresPqxx::GetSellerByCode(string& code)
 {
 	SellerDataArray sellers;
-	string query = ConvFuncs::FormatStdStr( "SELECT * FROM sellers WHERE \"SHORT_CODE\" = %s", code.c_str() );
+	string query = ConvFuncs::FormatStdStr( "SELECT * FROM sellers WHERE \"SHORT_CODE\" = '%s'", code.c_str() );
 	try {
 		sellers = QueryForSellers( query, "getting seller by code", true );
 	}
@@ -616,7 +616,7 @@ string DataPostgresPqxx::ItemToQueryUpdateValuesString( ItemData& item )
 string DataPostgresPqxx::SellerToQueryUpdateValuesString( SellerData& data )
 {
 	string values = ConvFuncs::FormatStdStr( 
-		"\"SHORT_CODE\"='%s', \"NAME\"='%s', \"COMMENT\"='%s', \"CHANGING\"='%s', \"CHANGED_BY\"='%s', \"SELLER_CATEGORY_ID\"=%i \"MODIFIED\"='%s'",
+		"\"SHORT_CODE\"='%s', \"NAME\"='%s', \"COMMENT\"='%s', \"CHANGING\"='%s', \"CHANGED_BY\"='%s', \"SELLER_CATEGORY_ID\"=%i, \"MODIFIED\"='%s'",
 		data.shortcode.c_str(), data.name.c_str(), data.note.c_str(), 
 		"false", "", data.category, TimestampToString( data.last_update ).c_str() );
 	return values;

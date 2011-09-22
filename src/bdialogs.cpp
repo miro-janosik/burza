@@ -803,14 +803,16 @@ void BurzaDialogs::RegisterGetSelectedItemIds( vector<ITEM_ID>& listOfIds )
 	// count selected items
 	GetSelectedItemNumbers( m_RegisterItemsSelection, selectedIndexes );
 	
+	ItemDataArray items = Centrala::Storage().GetSellerItems(m_SelectedSellerId);
+	
 	for( int i=0; i<selectedIndexes.size(); ++i ) {
 		
-		if ( m_RegisterDisplayedItems.size() < selectedIndexes[ i ] ) {
-			assert( m_RegisterDisplayedItems.size() < selectedIndexes[ i ] );
+		if ( items.size() < selectedIndexes[ i ] ) {
+			assert( items.size() < selectedIndexes[ i ] );
 			return;
 		}
 		
-		listOfIds.push_back( m_RegisterDisplayedItems[ selectedIndexes[ i ] ].id );
+		listOfIds.push_back( items[ selectedIndexes[ i ] ].id );
 	}
 }
 

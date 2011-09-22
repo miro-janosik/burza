@@ -199,7 +199,7 @@ public:
 	// === register ===
 
 	//! items displayed in the register item list.
-	ItemDataArray m_RegisterDisplayedItems;
+	// ItemDataArray m_RegisterDisplayedItems;
 	
 	// Register
 	SELLER_ID		m_SelectedSellerId;
