@@ -47,7 +47,7 @@ void StringEncoding::UTF8toISO8859_2( std::string& str )
 	const unsigned int OutBufLen = 1024;
 	char inBuffer[ OutBufLen + 1 ];
 	char outBuffer[ OutBufLen + 1 ];
-	char* inBufferPtr = inBuffer;
+	const char* inBufferPtr = inBuffer;
 	char* outBufferPtr = outBuffer;
 	
 	size_t inleft = str.size();

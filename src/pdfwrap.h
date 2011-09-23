@@ -8,6 +8,8 @@
 #define BURZA_PDFWRAP_H
 
 #include <string>
+
+#define HPDF_DLL
 #include "hpdf.h"
 #include "table.h"
 

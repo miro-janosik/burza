@@ -41,9 +41,6 @@ int main2( int argc, char **argv )
 {
 	Centrala		*pcentrala = Centrala::Instance();
 
-	// pcentrala->Register().m_storage = new CachedDataTextfile( Centrala::Settings().m_data_dir_path );
-	pcentrala->Register().m_storage = new DataPostgresPqxx();
-	
 	//TODO: dispose dataStorage in destructor somehow.
 	//	DataTextfile dataStorage = new DataTextfile( Centrala::Instancia()->Nastavenia()->m_data_dir_path );
 	//	m_storage = new CachedDataStorage(*dataStorage);
@@ -58,6 +55,9 @@ int main2( int argc, char **argv )
 	// ============
 	
 	Centrala::Dialogs().SetupDialogs();
+	
+	// pcentrala->Register().m_storage = new CachedDataTextfile( Centrala::Settings().m_data_dir_path );
+	pcentrala->Register().m_storage = new DataPostgresPqxx();
 	
 	// Centrala::Register().NacitajVsetkychPredajcov();
 	Centrala::Dialogs().FillSellerCombos();
@@ -161,6 +161,8 @@ double BurzaRegister::CalculateFee( SellerData& seller, ItemDataArray& items )
 	SellerCategory scat = m_storage->GetSellerCategory(seller.category);
 	
 	fee += scat.seller_fee;
+
+	return -4.0;
 }
 
 // ==============================================

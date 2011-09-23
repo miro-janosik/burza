@@ -1,7 +1,10 @@
 #include "cacheddatastorage.h"
 #include "dataaccess.h"
-#include <bits/algorithmfwd.h>
 #include <assert.h>
+
+#ifdef _linux
+#include <bits/algorithmfwd.h>
+#endif
 
 #include "log.h"
 

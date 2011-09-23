@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual C++ Express 2008
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Burza", "Burza\Burza.vcproj", "{2F391BD3-CB0B-489F-92B9-930A4041C07A}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Burza", "Burza.vcproj", "{2F391BD3-CB0B-489F-92B9-930A4041C07A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

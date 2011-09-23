@@ -138,11 +138,6 @@ ConvFuncs::~ConvFuncs()
 	if ( FindFileHandle != -1 ) {
 		_findclose( FindFileHandle );
 	}
-	if ( DirPtr != NULL ) {
-		closedir( DirPtr );
-		memset( &DirEntry, 0, sizeof( DirEntry ) );
-		DirPtr = NULL;
-	}
 #elif ( defined( _MAC ) || defined( _UNIX ))
 	// release resources first
 	if ( DirPtr != NULL ) {

@@ -4,8 +4,12 @@
 #include "dataaccess.h"
 
 #include <exception>
-#include "pqxx/pqxx"
 #include "convfncs.h"
+#ifdef _linux
+#include "pqxx/pqxx"
+#else
+#include "pqxx\pqxx"
+#endif
 
 using namespace pqxx;
 using namespace std;

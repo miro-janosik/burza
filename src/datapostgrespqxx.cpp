@@ -65,14 +65,25 @@ string columnNameStrings[ columnNamesCount ] = {
 
 DataPostgresPqxx::DataPostgresPqxx()
 {
+	string connectionFailedString;
+
 	// Make a connection to the database
 	try {
 		dbConnection = new connection("user=postgres password=heslo dbname=burzadb hostaddr=127.0.0.1 port=5432");
+		//dbConnection = new connection();
+	}
+	catch(pqxx::broken_connection e)
+	{
+		connectionFailedString = e.what();
 	}
 	catch(exception& e)
 	{
+		connectionFailedString = e.what();
+	}
+
+	if (!connectionFailedString.empty()) {
 		string str = "Connection to database failed: ";
-		str += e.what();
+		str += connectionFailedString;
 		HandlePostgresqlException(new database_exception(str));
 	}
 }

@@ -1,3 +1,15 @@
+Windows:
+Instal packages:
+gtkmm-win32-devel-2.16.0-2.exe
+
+
+Linux:
+Install packages:
+pqxx
+you can compile the package by installing "postgresql-9.1.0-1-windows.exe" and getting 
+libpqxx-win32 (from lib dir or from http://www.kirit.com/libpqxx-win32)
+
+
 tery.install.txt
 
 so you want to use .so library from internet.

@@ -227,6 +227,7 @@ string DataTextfile::GetSellerFilenameNew( SellerData& seller )
 
 bool DataTextfile::ModifySellerStart(SELLER_ID id)
 {
+	return true;
 }
  
 void DataTextfile::ModifySellerEnd(SELLER_ID id, SellerData& seller)
