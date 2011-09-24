@@ -56,9 +56,14 @@ int main2( int argc, char **argv )
 	
 	Centrala::Dialogs().SetupDialogs();
 	
-	// pcentrala->Register().m_storage = new CachedDataTextfile( Centrala::Settings().m_data_dir_path );
-	pcentrala->Register().m_storage = new DataPostgresPqxx();
-	
+	try {
+		// pcentrala->Register().m_storage = new CachedDataTextfile( Centrala::Settings().m_data_dir_path );
+		pcentrala->Register().m_storage = new DataPostgresPqxx();
+	}
+	catch(...) {
+		return 0;
+	}
+
 	// Centrala::Register().NacitajVsetkychPredajcov();
 	Centrala::Dialogs().FillSellerCombos();
 	Centrala::Dialogs().RegisterDisplaySellerByIndex( 0 );

@@ -46,7 +46,7 @@
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="1"
+				RuntimeLibrary="3"
 				UsePrecompiledHeader="0"
 				PrecompiledHeaderThrough=""
 				WarningLevel="3"
@@ -63,10 +63,12 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libxl.lib pqxxd.lib libhpdf.lib"
+				AdditionalDependencies="libxl.lib libpqxxD.lib libhpdf.lib"
 				OutputFile="$(OutDir)\$(ProjectName)D.exe"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="&quot;$(ProjectDir)/../lib/libXL&quot;;&quot;$(ProjectDir)/../lib/pqxx&quot;;&quot;$(ProjectDir)/../lib/libharu&quot;"
+				IgnoreAllDefaultLibraries="false"
+				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				TargetMachine="1"

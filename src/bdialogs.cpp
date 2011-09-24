@@ -399,8 +399,6 @@ int BurzaDialogs::SetupDialogs( void )
 		DisplayErrorMessageBox( error, "Error initing dialog." );
 		return -1;
 	}
-	
-	
 }
 
 void BurzaDialogs::RegisterDisplaySeller( const char* kod )

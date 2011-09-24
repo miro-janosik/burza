@@ -1,7 +1,11 @@
 Windows:
 Instal packages:
 gtkmm-win32-devel-2.16.0-2.exe
-
+pqxx: more complicated. Libraries are present, but in case of problems they
+have to be recompiled. You need PostgreSql8.3 and libpqxx-win32.32368.zip which
+contains sources with msvc solution. If you build shared DLLs they have some problems
+running (stack corruption on connecting to DB), but building static DLL works
+if you add dependencies: wsock32.lib Ws2_32.lib , prefix PQXX_PQ_STATIC and set Burza to MDd.
 
 Linux:
 Install packages:

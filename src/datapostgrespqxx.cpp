@@ -65,14 +65,18 @@ string columnNameStrings[ columnNamesCount ] = {
 
 DataPostgresPqxx::DataPostgresPqxx()
 {
+	xml reader - config Nastavenia
+	test reading xls.
+	key
 	string connectionFailedString;
+	try removing dependency to libpq.dll
 
 	// Make a connection to the database
 	try {
 		dbConnection = new connection("user=postgres password=heslo dbname=burzadb hostaddr=127.0.0.1 port=5432");
 		//dbConnection = new connection();
 	}
-	catch(pqxx::broken_connection e)
+	catch(pqxx::broken_connection& e)
 	{
 		connectionFailedString = e.what();
 	}
@@ -80,11 +84,19 @@ DataPostgresPqxx::DataPostgresPqxx()
 	{
 		connectionFailedString = e.what();
 	}
-
+	catch(runtime_error& e)
+	{
+		connectionFailedString = e.what();
+	}
+	catch(...)
+	{
+		connectionFailedString = "Unknown PSQL exception";
+	}
 	if (!connectionFailedString.empty()) {
 		string str = "Connection to database failed: ";
 		str += connectionFailedString;
 		HandlePostgresqlException(new database_exception(str));
+		throw new DataStorageException();
 	}
 }
 
