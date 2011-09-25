@@ -521,19 +521,40 @@ void BurzaDialogs::RegisterButtonImportSeller( void )
 	
 	string filename = dialog.get_filename();
 	// s += "data/harok-burza.xls";
+	string::size_type pos = filename.rfind('.');
+	string ext;
+	bool knownType = false;
+
+	if (pos != string::npos) {
+		ext = filename.substr( pos + 1 );
+		ConvFuncs::StdStringToLower( ext );
+	}
 	
 	SellerData seller;
 	ItemDataArray items;
 	
 	try {
-		CachedDataTextfile	textStorage( Centrala::Settings().m_data_dir_path );
-		textStorage.LoadFromTxtFile(filename, seller, items );
+		if (ext == "txt" ) {
+			knownType = true;
+			CachedDataTextfile	textStorage( Centrala::Settings().m_data_dir_path );
+			textStorage.LoadFromTxtFile(filename, seller, items );
+		}
+		if (ext == "xls" ) {
+			knownType = true;
+			BurzaExcel::ExcelFileWrapper	excelFile;
+			excelFile.ReadSeller( filename, seller, items );
+		}
+
+		if (knownType == false) {
+			DisplayErrorMessageBox( _("Neznámy typ súboru. Podporované su 'xls' a 'txt'") );
+			return;
+		}
 	}
 	catch( runtime_error& e ) {
 		DisplayErrorMessageBox( string( "Error importing file." ) + e.what(), "Error importing file." );
 		return;
 	}
-	
+
 	DataAccessInterface	&storage = Centrala::Storage();
 	
 	bool sellerExists = true;
@@ -546,7 +567,7 @@ void BurzaDialogs::RegisterButtonImportSeller( void )
 	
 	if ( sellerExists ) {
 		DisplayErrorMessageBox( 
-			ConvFuncs::FormatCstr( _( "Error seller with that code already exists. Erase previous '%s' seller." ),
+			ConvFuncs::FormatCstr( _( "Predajca s rovnakým kódom už existuje. Zmažte najskôr predajcu '%s'." ),
 				seller.shortcode.c_str() ) );
 		return;
 	}

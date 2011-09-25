@@ -27,12 +27,15 @@
 #include "table.h"
 #include "translate.h"
 #include "recipees.h"
+#include "xmltool.h"
+#include "errhandler.h"
 
 #include "datatextfile.h"
 #include "cacheddatastorage.h"
 #include "datapostgrespqxx.h"
 
 using namespace Burza;
+using namespace XmlWrapperTool;
 
 Centrala* Centrala::m_instance = NULL;
 
@@ -98,59 +101,6 @@ int main2( int argc, char **argv )
 // ==============================================
 // ==============================================
 
-/*
-void Seller::PridajTovar( int cislo, const char* nazov, double cena, char kategoria, e_product_status stav )
-{
-	Product	t;
-
-	t.m_cena = cena;
-	t.m_cislo = cislo;
-	t.m_kategoria = kategoria;
-	t.m_nazov = nazov;
-	t.m_stav = stav;
-	
-	// generate 'cislo'
-	if ( t.m_cislo == -1 ) {
-		
-		int max = 0;
-		for( int i=0; i<m_products.size(); ++i ) {
-			if ( max < m_products[ i ].m_cislo )
-				max = m_products[ i ].m_cislo;
-		}
-		
-		t.m_cislo = max + 1;
-	}
-	
-	m_products.push_back( t );
-	
-	
-}
-
-void Seller::ZmazTovar( int cislo )
-{
-	for( int i=0; i<m_products.size(); ++i ) {
-		if ( cislo == m_products[ i ].m_cislo ) {
-			m_products.erase( m_products.begin() + i );
-			return;
-		}
-	}
-	
-	throw runtime_error( "Seller::ZmazTovar : invalid number." );
-}
-
-int Seller::NajdiTovarIndex( int cislo )
-{
-	for( unsigned int i=0; i<m_products.size(); ++i ) {
-		if ( cislo == m_products[ i ].m_cislo ) {
-			return i;
-		}
-	}
-	
-	return -1;
-}
-
-*/
-
 double BurzaRegister::CalculateFee( SellerData& seller, ItemDataArray& items )
 {
 	double fee = 0;
@@ -184,75 +134,11 @@ BurzaRegister::~BurzaRegister()
 }
 
 
-	/*
-void BurzaRegister::NacitajVsetkychPredajcov( void )
-{
-	m_storage->GetSellers();
-	
-	for(SellerDataIterator sc=sellers.begin(), se=sellers.end(); sc != se; ++sc ) {
-		Seller	s;
-		s.m_kod 		= sc->shortcode;
-		s.m_meno 		= sc->name;
-		s.m_poznamka	= sc->note;
-		s.m_kategoria	= sc->category;
-		s.m_unique_id	= sc->unique_id;
-		
-		ItemDataArray items;
-		items = m_storage->GetSellerItems( sc->unique_id );
-		
-		for( ItemDataIterator ic=items.begin(), ie=items.end(); ic != ie; ++ic ) {
-			Product	p;
-			
-			p.m_cena		= ic->price;
-			p.m_cislo		= ic->number;
-			p.m_kategoria	= ic->category;
-			p.m_nazov		= ic->name;
-			p.m_stav		= ic->status;
-			
-			s.m_products.push_back(p);
-		}
-	}
-}
-	*/
-
 void BurzaRegister::PridajNovehoPredajcu( const char* kod, const char* meno, const char* poznamka )
-{
-	/*
-	Seller	p;
-
-	p.m_kod = kod;
-	p.m_meno = meno;
-	p.m_poznamka = poznamka;
-	
-	m_predajcovia.push_back( p );
-	*/
-	
+{	
 	SellerData newseller(meno, kod, poznamka, 'a');
 	m_storage->AddSeller(newseller);
 }
-
-	/*
-BurzaRegister::t_predajcovia::iterator BurzaRegister::NajdiPredajcuPodlaKoduIt( const char* kod )
-{
-	std::vector< Seller >::iterator	it;
-	Seller	*p;
-	
-	for( it = m_predajcovia.begin(); it != m_predajcovia.end(); it++ ) {
-	
-		p = &( *it );
-	
-		if ( p->m_kod == kod )
-			return it;
-	}
-	
-	return it;
-	
-	string codeString( kod );
-	SellerData seller = m_storage->GetSellerByCode(codeString);
-	
-	return x;
-}
-	*/
 
 int BurzaRegister::NajdiPredajcuPodlaKoduIndex( const char* kod )
 {
@@ -440,6 +326,38 @@ NastaveniaProgramu::NastaveniaProgramu()
 	
 	m_computer_name = "PC123";
 	m_name_of_the_sale = "Jesenna burza 2011";
+
+	CXmlTreeSingleNode configRoot;
+	string confFilename = exePath + "burza.xml";
+	if ( CXmlWrapperTools::ReadTreeFromDiskFile( confFilename.c_str(), configRoot ) == 1 ) {
+		ErrorHandling::HandleException( *new std::exception(_("Súbor s nastavením nenájdený")) );
+	} else {
+		CXmlTreeSingleNode* server = configRoot.GetChild("burza")->GetChild("config")->GetChild("server");
+		if (server->IsValid()) {
+
+			CXmlTreeSingleNode* node;
+			
+			node = server->GetAttribute("address");
+			if (node->IsValid())
+				dbAddress = node->GetValue();
+
+			node = server->GetAttribute("user");
+			if (node->IsValid())
+				dbUser = node->GetValue();
+
+			node = server->GetAttribute("password");
+			if (node->IsValid())
+				dbPassword = node->GetValue();
+
+			node = server->GetAttribute("dbname");
+			if (node->IsValid())
+				dbName = node->GetValue();
+
+			node = server->GetAttribute("port");
+			if (node->IsValid())
+				dbPort = node->GetValueInt();
+		}
+	}
 }
 
 // ==============================================

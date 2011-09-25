@@ -50,17 +50,17 @@ void ExcelFileWrapper::ReadSheetIntoTable( string filename ) throw( runtime_erro
 		int cmax = xls_sheet->lastCol();
 		string str;
 		
-		m_sheet.Resize( cmax-cmin, rmax-rmin );
+		m_sheet.Resize( rmax-rmin, cmax-cmin );
 		
-		for( int y=rmin; y<rmax; y++ )
-			for( int x=cmin; x<cmax; x++ ) {
+		for( int row=rmin; row<rmax; ++row )
+			for( int col=cmin; col<cmax; ++col ) {
 				
-				switch( xls_sheet->cellType( y, x ) ) {
+				switch( xls_sheet->cellType( row, col ) ) {
 				case CELLTYPE_NUMBER:
-					str = ConvFuncs::FormatStdStr( "%0.2f", xls_sheet->readNum( y, x ) );
+					str = ConvFuncs::FormatStdStr( "%0.2f", xls_sheet->readNum( row, col ) );
 					break;
 				case CELLTYPE_STRING:
-					str = xls_sheet->readStr( y, x );
+					str = xls_sheet->readStr( row, col );
 					break;
 				case CELLTYPE_EMPTY:
 				case CELLTYPE_BOOLEAN:
@@ -70,7 +70,7 @@ void ExcelFileWrapper::ReadSheetIntoTable( string filename ) throw( runtime_erro
 					break;
 				}
 				
-				m_sheet.Cell( x, y ) = str;
+				m_sheet.Cell( row, col ) = str;
 			}
 			
 		result_str = "Ok";
@@ -93,6 +93,24 @@ void ExcelFileWrapper::ReadSheetIntoTable( string filename ) throw( runtime_erro
 	
 }
 
+bool ExcelFileWrapper::FindCellByText( const char* text, int& row, int& column)
+{
+	int rows = m_sheet.Rows();
+	int columns = m_sheet.Columns();
+
+	for( int r = 0; r < rows; ++r )
+		for( int c = 0; c < columns; ++c ) {
+			if ( m_sheet.Cell( r, c ).GetText() == text ) {
+				row = r;
+				column = c;
+				return true;
+			}
+		}
+	
+	row = column = -1;
+	return false;
+}
+
 void ExcelFileWrapper::ReadSeller( string filename, SellerData& seller, ItemDataArray& items ) throw( runtime_error )
 {
 	string error_str;
@@ -107,47 +125,81 @@ void ExcelFileWrapper::ReadSeller( string filename, SellerData& seller, ItemData
 		throw runtime_error( error_str );
 	}
 	
-	// check constant values
-	if (( m_sheet.Cell( 0, 0 ).GetText() != "burza" )) {
+	// check special marks in cells. They have to be present
+	bool itemsOk = true;
+
+	int infotableRow, infotableColumn;
+	int codeRow, codeColumn;
+	int numberRow, numberColumn;
+	int nameRow, nameColumn;
+	int priceRow, priceColumn;
+
+	itemsOk &= FindCellByText( "!infotable!", infotableRow, infotableColumn);
+	//itemsOk &= FindCellByText( "!code!", codeRow, codeColumn);
+	itemsOk &= FindCellByText( "!number!", numberRow, numberColumn);
+	itemsOk &= FindCellByText( "!name!", nameRow, nameColumn);
+	itemsOk &= FindCellByText( "!price!", priceRow, priceColumn);
+
+	if ((numberRow != nameRow) || (numberRow != priceRow)) {
+		itemsOk = false;
+	}
+
+	if (!itemsOk) {
 		error_str += "file does not contain special marks";
 		throw runtime_error( error_str );
 	}
 	
 	// Read seller info
-	seller.name = m_sheet.Cell( 3, 2 ).GetText();
-	seller.shortcode = m_sheet.Cell( 4, 2 ).GetText();
-	seller.note = m_sheet.Cell( 5, 2 ).GetText();
-	
+	try {
+		seller.name = m_sheet.Cell( infotableRow + 1, infotableColumn ).GetText();
+		
+		string note;
+		note = m_sheet.Cell( infotableRow + 2, infotableColumn ).GetText();
+		note += " ";
+		note += m_sheet.Cell( infotableRow + 3, infotableColumn ).GetText();
+		seller.note = note;
+
+		seller.shortcode = m_sheet.Cell( infotableRow + 3, infotableColumn + 1 ).GetText();
+	}
+	catch(std::out_of_range& e) {
+		error_str += "could not read seller info";
+		throw runtime_error( error_str );
+	}
+
 	// read stock
 	int num;
-	int row = 8;
+	int row = numberRow;
 	string s;
 	
 	while( true ) {
-		if (( m_sheet.Cell( row, 1 ) == "" ) || ( m_sheet.Cell( row, 2 ) == "" )) {
+
+		if (( m_sheet.Cell( row, nameColumn ) == "" ) || 
+			( m_sheet.Cell( row, priceColumn ) == "" )) {
 			break;
 		}
 		
-		s = m_sheet.Cell( row, 1 );
+		s = m_sheet.Cell( row, numberColumn );
 		num = atoi( s.c_str() );
 		
-		if (( num < 1 ) || ( num > 50 )) {
+		if (( num < 1 ) || ( num > 1000 )) {
 			error_str += ConvFuncs::FormatStdStr( "item at line %i does not have item number but instead '%s'", 
 				row, s.c_str() );
 			throw runtime_error( error_str );
 		}
 		
-		s = m_sheet.Cell( row, 2 );
-		if ( m_sheet.Cell( row, 4 ) != "" ) {
-			s += " (";
-			s += m_sheet.Cell( row, 4 );
-			s += ")";
+		string price = m_sheet.Cell( row, priceColumn ).GetText();
+		for( int i=0; i<price.size(); ++i ) {
+			if ( price[ i ] == ',' )
+				price[ i ] = '.';
 		}
-		
-		items.push_back(ItemData( s, num, atof( m_sheet.Cell( row, 3 ).GetText().c_str() ), 0, not_in_stock_yet ));
+
+		items.push_back(ItemData(
+			m_sheet.Cell( row, nameColumn ), 
+			num, 
+			atof( price.c_str() ), 
+			0, 
+			not_in_stock_yet ));
 		
 		row++;
 	} ;
 }
-
-

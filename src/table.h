@@ -113,7 +113,7 @@ public:
 			}
 	}
 	
-	TableCell& Cell( const unsigned int row, const unsigned int column ) 
+	T& Cell( const unsigned int row, const unsigned int column ) 
 		throw( std::out_of_range )
 	{
 		if (( row >= m_rows ) ||
@@ -124,7 +124,7 @@ public:
 		return m_cells[ i ];
 	}
 	
-	TableCell& CellByIndex( const unsigned int index ) 
+	T& CellByIndex( const unsigned int index ) 
 		throw( std::out_of_range )
 	{
 		if ( index >= m_cells_count )

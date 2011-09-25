@@ -42,7 +42,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(ProjectDir)..\&quot;;&quot;$(ProjectDir)..\lib\libharu\include&quot;;&quot;$(ProjectDir)..\lib\libXL\include&quot;;&quot;$(ProjectDir)..\lib\pqxx\include\&quot;"
+				AdditionalIncludeDirectories="&quot;$(ProjectDir)..\&quot;;&quot;$(ProjectDir)..\lib\libharu\include&quot;;&quot;$(ProjectDir)..\lib\libXL\include&quot;;&quot;$(ProjectDir)..\lib\pqxx\include\&quot;;&quot;$(ProjectDir)..\src\irrXml&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -123,7 +123,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="&quot;$(ProjectDir)..\&quot;;&quot;$(ProjectDir)..\lib\libharu\include&quot;;&quot;$(ProjectDir)..\lib\libXL\include&quot;;&quot;$(ProjectDir)..\lib\pqxx\include\&quot;"
+				AdditionalIncludeDirectories="&quot;$(ProjectDir)..\&quot;;&quot;$(ProjectDir)..\lib\libharu\include&quot;;&quot;$(ProjectDir)..\lib\libXL\include&quot;;&quot;$(ProjectDir)..\lib\pqxx\include\&quot;;&quot;$(ProjectDir)..\src\irrXml&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -239,6 +239,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\format.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\format.h"
+				>
+			</File>
+			<File
 				RelativePath="..\src\log.cpp"
 				>
 			</File>
@@ -246,6 +254,54 @@
 				RelativePath="..\src\log.h"
 				>
 			</File>
+			<File
+				RelativePath="..\src\myassert.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\xmltool.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\xmltool.h"
+				>
+			</File>
+			<Filter
+				Name="irrXml"
+				>
+				<File
+					RelativePath="..\src\irrxml\CXMLReaderImpl.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\irrxml\fast_atof.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\irrxml\heapsort.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\irrxml\irrArray.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\irrxml\irrString.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\irrxml\irrTypes.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\irrxml\irrXML.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\src\irrxml\irrXML.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="dialogs"
