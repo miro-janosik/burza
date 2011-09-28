@@ -22,7 +22,7 @@ using namespace Burza;
 
 namespace BurzaExcel {
 	
-class ExcelFileWrapper{
+class ExcelFileWrapper {
 public:
 	ExcelFileWrapper();
 	~ExcelFileWrapper();
@@ -32,13 +32,22 @@ public:
 public:
 	void ReadSeller( string filename, SellerData& seller, ItemDataArray& items ) throw( runtime_error );
 	
-private:
+protected:
 	//! reads up xls file into m_table.
-	void ReadSheetIntoTable( string filename ) throw( runtime_error );
+	virtual void ReadSheetIntoTable( string filename ) throw( runtime_error ) = 0;
 	bool FindCellByText( const char* text, int& row, int& column);
 	
 };
 
+class ExcelFileXlWrapper : public ExcelFileWrapper {
+protected:
+	virtual void ReadSheetIntoTable( string filename ) throw( runtime_error );
 };
+
+class BasicExcelFileWrapper : public ExcelFileWrapper {
+	virtual void ReadSheetIntoTable( string filename ) throw( runtime_error );
+};
+
+} // namespace
 
 #endif

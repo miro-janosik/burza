@@ -1369,12 +1369,20 @@ int ConvFuncs::DoDeleteFile( const char* src )
 	return 0;
 }
 
-const char*	ConvFuncs::GetExecutableFilePathName( void )
+#ifdef UNICODE
+const wchar_t*	ConvFuncs::GetExecutableFilePathName( void )
+#else
+const char* ConvFuncs::GetExecutableFilePathName( void )
+#endif
 {
 	enum {
 		str_len = 512,
 	} ;
-	static char	filename[ str_len ];
+#ifdef UNICODE
+	static wchar_t	filename[ str_len ];
+#else
+	static char filename[ str_len ];
+#endif
 
 	filename[ 0 ] = 0;
 	

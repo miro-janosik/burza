@@ -1,7 +1,7 @@
 #ifndef LIBXL_CPP_H
 #define LIBXL_CPP_H
 
-#define LIBXL_VERSION 0x03010000
+#define LIBXL_VERSION 0x03020200
 
 #include "IBookT.h"
 #include "ISheetT.h"

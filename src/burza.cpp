@@ -60,8 +60,8 @@ int main2( int argc, char **argv )
 	Centrala::Dialogs().SetupDialogs();
 	
 	try {
-		// pcentrala->Register().m_storage = new CachedDataTextfile( Centrala::Settings().m_data_dir_path );
-		pcentrala->Register().m_storage = new DataPostgresPqxx();
+		pcentrala->Register().m_storage = new CachedDataTextfile( Centrala::Settings().m_data_dir_path );
+		// pcentrala->Register().m_storage = new DataPostgresPqxx();
 	}
 	catch(...) {
 		return 0;
@@ -74,7 +74,6 @@ int main2( int argc, char **argv )
 	std::string exceptionMessage;
 	
 	try {
-		//Gtk::Main::run( * pcentrala->Dialogy()->m_pWndRegister );
 		Gtk::Main::run();
 	}
 	catch (std::exception& ex) {

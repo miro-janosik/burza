@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE glade-interface SYSTEM "glade-2.0.dtd">
-<!--Generated with glade3 3.4.3 on Sun Sep 25 22:49:40 2011 -->
+<!--Generated with glade3 3.4.3 on Mon Sep 26 00:16:17 2011 -->
 <glade-interface>
   <widget class="GtkWindow" id="Pokladna">
     <property name="title" translatable="yes" comments="Cash-out">Pokladňa</property>
@@ -685,6 +685,18 @@
             <property name="column_spacing">5</property>
             <property name="row_spacing">5</property>
             <child>
+              <widget class="GtkEntry" id="sellerNote">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+              </widget>
+              <packing>
+                <property name="left_attach">1</property>
+                <property name="right_attach">2</property>
+                <property name="top_attach">2</property>
+                <property name="bottom_attach">3</property>
+              </packing>
+            </child>
+            <child>
               <widget class="GtkLabel" id="sellerNote1">
                 <property name="visible">True</property>
                 <property name="label" translatable="yes">Poznámka</property>
@@ -712,22 +724,9 @@
               <widget class="GtkLabel" id="sellerName1">
                 <property name="visible">True</property>
                 <property name="label" translatable="yes">Meno</property>
-                <property name="justify">GTK_JUSTIFY_RIGHT</property>
               </widget>
               <packing>
                 <property name="x_options">GTK_FILL</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkEntry" id="sellerNote">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-              </widget>
-              <packing>
-                <property name="left_attach">1</property>
-                <property name="right_attach">2</property>
-                <property name="top_attach">2</property>
-                <property name="bottom_attach">3</property>
               </packing>
             </child>
             <child>

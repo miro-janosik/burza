@@ -6,16 +6,19 @@
 
 #include "excelwrap.h"
 
-#include <libxl.h>
 #include <exception>
 #include "convfncs.h"
 #include "table.h"
+
+#include <libxl.h>
+#include "ExcelFormat.h"
 
 using namespace BurzaExcel;
 using namespace BurzaTable;
 using namespace Burza;
 using namespace libxl;
 using namespace std;
+using namespace YExcel;
 
 ExcelFileWrapper::ExcelFileWrapper()
 {
@@ -26,8 +29,9 @@ ExcelFileWrapper::~ExcelFileWrapper()
 {
 }
 
-void ExcelFileWrapper::ReadSheetIntoTable( string filename ) throw( runtime_error )
+void ExcelFileXlWrapper::ReadSheetIntoTable( string filename ) throw( runtime_error )
 {
+	/*
 	Book *xls_book = xlCreateBook();
 	string result_str;
 	
@@ -90,7 +94,61 @@ void ExcelFileWrapper::ReadSheetIntoTable( string filename ) throw( runtime_erro
 		xls_book->release();
 		throw runtime_error( result_str );
 	}
+	*/
+}
+
+void BasicExcelFileWrapper::ReadSheetIntoTable( string filename ) throw( runtime_error )
+{
+	BasicExcel xls;
+	if (! xls.Load(filename.c_str())) {
+		throw runtime_error("Could not open file.");
+	}
+
+	if (xls.GetTotalWorkSheets() < 1 ) {
+		throw runtime_error("XLS contains no sheets");
+	}
+
+	BasicExcelWorksheet* sheet = xls.GetWorksheet(0);
+	if ( sheet== NULL )
+		throw runtime_error( "Error retrieving sheet" );
 	
+	int rmin = 0;
+	int rmax = sheet->GetTotalRows();
+	int cmin = 0;
+	int cmax = sheet->GetTotalCols();
+#ifdef _WIN32
+	wstring str;
+#else
+	string str;
+#endif
+
+	m_sheet.Resize( rmax-rmin, cmax-cmin );
+	
+	for( int row=rmin; row<rmax; ++row )
+		for( int col=cmin; col<cmax; ++col ) {
+
+			const BasicExcelCell* cell = sheet->Cell( row, col );
+			
+			switch( cell->Type() ) {
+			case BasicExcelCell::INT:
+				str = ConvFuncs::FormatStdStr( "%i", cell->GetInteger() );
+				break;
+			case BasicExcelCell::DOUBLE:
+				str = ConvFuncs::FormatStdStr( "%0.2f", cell->GetDouble() );
+				break;
+			case BasicExcelCell::STRING:
+				str = cell->GetString();
+				break;
+			case BasicExcelCell::WSTRING:
+				str = cell->GetWString();
+				break;
+			default:
+				str = "";
+				break;
+			}
+			
+			m_sheet.Cell( row, col ) = str;
+		}
 }
 
 bool ExcelFileWrapper::FindCellByText( const char* text, int& row, int& column)
@@ -168,7 +226,7 @@ void ExcelFileWrapper::ReadSeller( string filename, SellerData& seller, ItemData
 
 	// read stock
 	int num;
-	int row = numberRow;
+	int row = numberRow + 1;
 	string s;
 	
 	while( true ) {

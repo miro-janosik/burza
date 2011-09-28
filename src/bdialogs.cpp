@@ -493,7 +493,6 @@ void BurzaDialogs::FillSellerCombos( void )
 
 void BurzaDialogs::RegisterButtonImportSeller( void )
 {
-	ExcelFileWrapper	x;
 	Gtk::FileChooserDialog dialog("Select importer file", Gtk::FILE_CHOOSER_ACTION_OPEN );
 
 	dialog.set_transient_for( *m_pWndRegister );
@@ -541,7 +540,7 @@ void BurzaDialogs::RegisterButtonImportSeller( void )
 		}
 		if (ext == "xls" ) {
 			knownType = true;
-			BurzaExcel::ExcelFileWrapper	excelFile;
+			BurzaExcel::BasicExcelFileWrapper	excelFile;
 			excelFile.ReadSeller( filename, seller, items );
 		}
 

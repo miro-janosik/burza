@@ -1,5 +1,5 @@
-#ifndef IFONTT_H
-#define IFONTT_H
+#ifndef LIBXL_IFONTT_H
+#define LIBXL_IFONTT_H
 
 #include "setup.h"
 #include "enum.h"

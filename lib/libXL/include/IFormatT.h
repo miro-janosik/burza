@@ -1,5 +1,5 @@
-#ifndef IFORMATT_H
-#define IFORMATT_H
+#ifndef LIBXL_IFORMATT_H
+#define LIBXL_IFORMATT_H
 
 #include "setup.h"
 #include "enum.h"
