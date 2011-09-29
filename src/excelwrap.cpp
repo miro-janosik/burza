@@ -12,6 +12,7 @@
 
 #include <libxl.h>
 #include "ExcelFormat.h"
+#include "stringencoding.h"
 
 using namespace BurzaExcel;
 using namespace BurzaTable;
@@ -116,11 +117,8 @@ void BasicExcelFileWrapper::ReadSheetIntoTable( string filename ) throw( runtime
 	int rmax = sheet->GetTotalRows();
 	int cmin = 0;
 	int cmax = sheet->GetTotalCols();
-#ifdef _WIN32
-	wstring str;
-#else
 	string str;
-#endif
+	wstring wstr;
 
 	m_sheet.Resize( rmax-rmin, cmax-cmin );
 	
@@ -140,7 +138,8 @@ void BasicExcelFileWrapper::ReadSheetIntoTable( string filename ) throw( runtime
 				str = cell->GetString();
 				break;
 			case BasicExcelCell::WSTRING:
-				str = cell->GetWString();
+				wstr = cell->GetWString();
+				str = StringEncoding::WStringToUTF8( wstr );
 				break;
 			default:
 				str = "";
@@ -226,7 +225,8 @@ void ExcelFileWrapper::ReadSeller( string filename, SellerData& seller, ItemData
 
 	// read stock
 	int num;
-	int row = numberRow + 1;
+	// from numberRow skip 2 lines - info codes + item table header
+	int row = numberRow + 2;
 	string s;
 	
 	while( true ) {

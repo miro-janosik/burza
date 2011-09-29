@@ -35,6 +35,8 @@ public:
 	m_EncodingTranslatorTables.
 	*/
 	
+	static std::string		WStringToUTF8(std::wstring &str);
+	static std::wstring		StringToWString(std::string &str);
 	
 };
 

@@ -22,7 +22,7 @@
 			IntermediateDirectory="$(SolutionDir)\..\temp\$(ConfigurationName)"
 			ConfigurationType="1"
 			InheritedPropertySheets="..\..\gtkmm\MSVC\gtkmm-vc90-d-2_4.vsprops"
-			CharacterSet="1"
+			CharacterSet="0"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"

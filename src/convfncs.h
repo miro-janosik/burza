@@ -353,7 +353,6 @@ public:
 	// and time into string. returns pointer to DateTimeString
 	static char*	CurDateTimeString( void );
 	
-	
 	// retrieves current date and time and fills it into structure [datetime]
 	static void		GetDateTime( void );
 
