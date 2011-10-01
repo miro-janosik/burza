@@ -8,6 +8,7 @@
 #define BURZASTRINGENCODING_H
 
 #include <string>
+#include <vector>
 
 namespace Burza {
 
@@ -22,7 +23,8 @@ public:
 	// Removes all non-ASCII characters from the string.
 	static void		UTF8toASCII( std::string& str );
 	// Converts non-ASCII characters to ISO8859_2 chars.
-	static void		UTF8toISO8859_2( std::string& str );
+	static void		UTF8ToISO8859_2( std::string& str );
+	static void		ISO8859_2ToUTF8( std::string& str );
 	/*
 	struct EncodingTranslatorTable {
 			unsigned char UTF8[2];
@@ -35,9 +37,12 @@ public:
 	m_EncodingTranslatorTables.
 	*/
 	
-	static std::string		WStringToUTF8(std::wstring &str);
+	static std::string WStringToUTF8(std::wstring &str);
 	static std::wstring		StringToWString(std::string &str);
-	
+
+private:
+	static std::vector<char> OneToAnother( const char* src, int sizeinbytes, const std::string& from, const std::string& to );
+
 };
 
 }

@@ -12,6 +12,11 @@ using namespace Burza;
 using namespace BurzaTable;
 using namespace std;
 
+float Recipees::marginTop = 10;
+float Recipees::marginBottom = 88;
+float Recipees::marginLeft = 10;
+float Recipees::marginRight = 90;
+
 void Recipees::PrintSellerStatus( PdfWrapperBase& pdf, SELLER_ID id )
 {
 	SellerData seller = Centrala::Storage().GetSeller( id );
@@ -57,7 +62,7 @@ void Recipees::PrintSellerStatus( PdfWrapperBase& pdf, SELLER_ID id )
 	PdfWrapperBase::TableStyle	style;
 	style.rowHeight = pdf.GetFontHeight() * 1.2;
 
-	pdf.DrawTable( 10, 20, style, items, columns );
+	DrawTableSplitOnPages( pdf, 10, 20, items, columns );
 }
 
 void Recipees::AddProgramPageHeaderAndFooter( PdfWrapperBase& pdf )
@@ -86,6 +91,33 @@ void Recipees::AddProgramPageHeaderAndFooter( PdfWrapperBase& pdf )
 		__DATE__,
 		"Miro Jánošík",
 		"Srdiečko"));
+}
+
+void Recipees::DrawTableSplitOnPages( PdfWrapperBase& pdf, float fx, float fy, TableOfCells& table, TableColumnSpecs& columns )
+{
+	PdfWrapperBase::TableStyle	style;
+	style.rowHeight = style.headerRowHeight = pdf.GetFontHeight() * 1.2;
+
+	int firstRowToPrint, rowsToPrint, lastRowToPrint;
+	firstRowToPrint = 0;
+	
+	do {
+		rowsToPrint = ( marginBottom - fy ) / style.rowHeight;
+		lastRowToPrint = firstRowToPrint + rowsToPrint;
+		if ( lastRowToPrint > table.Rows() ) {
+			lastRowToPrint = table.Rows();
+		}
+		
+		pdf.DrawTable( fx, fy, style, table, columns, firstRowToPrint, lastRowToPrint );
+		
+		if ( lastRowToPrint < table.Rows() ) {
+			pdf.NewPage( pdf.GetCurrentPageTitle() );
+			AddProgramPageHeaderAndFooter( pdf );
+			fy = marginTop;
+			firstRowToPrint = lastRowToPrint + 1;
+			continue;
+		}
+	} while( false );
 }
 
 void Recipees::PrintRecipeeAtEndOfCheckout( ItemDataArray& items, PdfWrapperBase& pdf )
@@ -148,7 +180,7 @@ void Recipees::PrintRecipeeAtEndOfCheckout( ItemDataArray& items, PdfWrapperBase
 		PdfWrapperBase::TableStyle	style;
 		style.rowHeight = pdf.GetFontHeight() * 1.2;
 		
-		pdf.DrawTable( 10, 20, style, table, columns );
+		DrawTableSplitOnPages( pdf, 10, 20, table, columns );
 		
 	} catch( runtime_error& e ) {
 		errorMessage = "PDF error:";

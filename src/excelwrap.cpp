@@ -136,6 +136,7 @@ void BasicExcelFileWrapper::ReadSheetIntoTable( string filename ) throw( runtime
 				break;
 			case BasicExcelCell::STRING:
 				str = cell->GetString();
+				StringEncoding::ISO8859_2ToUTF8( str );
 				break;
 			case BasicExcelCell::WSTRING:
 				wstr = cell->GetWString();
