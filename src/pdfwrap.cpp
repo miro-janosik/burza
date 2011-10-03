@@ -220,6 +220,8 @@ float HPDFWrapper::HeightToPercent( int height )
 
 void HPDFWrapper::DrawTable( float fx, float fy, TableStyle& style, TableOfCells& t, TableColumnSpecs& c, int firstRow, int lastRow )
 {
+	SetFontSize( style.fontSize );
+
 	int posxPx, posyPx, rowHeightPx;
 	PercentToPos( fx, fy, posxPx, posyPx );
 	rowHeightPx = PercentToHeight( style.rowHeight );
@@ -228,7 +230,7 @@ void HPDFWrapper::DrawTable( float fx, float fy, TableStyle& style, TableOfCells
 		firstRow = 0;
 	}
 	if (( lastRow < 0 ) || ( lastRow < firstRow )) {
-		lastRow = t.Rows();
+		lastRow = t.Rows() - 1;
 	}
 
 	unsigned int pos, table_width, tableBottomPx;
@@ -245,18 +247,14 @@ void HPDFWrapper::DrawTable( float fx, float fy, TableStyle& style, TableOfCells
 		w = PercentToPosX( c.m_columns[ i ].m_width );
 		table_width += w;
 	}
-	tableBottomPx = PercentToPosY( 
-		fy + 
-		( lastRow - firstRow ) * style.rowHeight + 
-		( firstRow == 0 ) ? style.headerRowHeight : 0 );
-	
+
 	// draw lines
-	HPDF_Page_SetLineWidth( m_current_page, 0.5);
+	HPDF_Page_SetLineWidth( m_current_page, 0.5 );
 	
 	// have to draw 2 extra lines = header row + bottom line
 	// but draw lines depending on the size of header row, number of rows, etc.
 
-	// draw header row if we're drawing first row
+	// horizontal lines - draw header row if we're drawing first row
 	float py = fy;
 	if ( firstRow == 0 ) {
 		int y = PercentToPosY( py );
@@ -268,8 +266,8 @@ void HPDFWrapper::DrawTable( float fx, float fy, TableStyle& style, TableOfCells
 		py += style.headerRowHeight;
 	}
 
-	// draw lines for rest of rows, +1 = bottom line
-	for ( unsigned int i = firstRow; i < 1 + lastRow; ++i )
+	// horizontal lines - draw lines for rest of rows, +1 = bottom line
+	for ( unsigned int i = firstRow; i <= 1 + lastRow; ++i )
 	{
 		int y = PercentToPosY( py );
 
@@ -285,14 +283,18 @@ void HPDFWrapper::DrawTable( float fx, float fy, TableStyle& style, TableOfCells
 	int topPx, topWithoutHeaderPx;
 	float px = fx;
 	topPx = posyPx;
-	topWithoutHeaderPx = posyPx + PercentToHeight( style.headerRowHeight );
+	topWithoutHeaderPx = posyPx - PercentToHeight( style.headerRowHeight );
+	tableBottomPx = posyPx - PercentToHeight( 
+		( lastRow - firstRow + 1 ) * style.rowHeight + 
+		(( firstRow == 0 ) ? style.headerRowHeight : 0 ));
 
 	for ( unsigned int i = 0; i <= c.Columns(); ++i )
 	{
 		int x = PercentToPosX( px );
 		
 		if (( i < c.Columns() ) &&
-			( c.m_columns[ i ].m_merge_header_cell_to_right )) {
+			( c.m_columns[ i ].m_merge_header_cell_to_right ) &&
+			( firstRow == 0 )) {
 			HPDF_Page_MoveTo( m_current_page, x, topWithoutHeaderPx );
 		} else {
 			HPDF_Page_MoveTo( m_current_page, x, topPx );
@@ -326,7 +328,7 @@ void HPDFWrapper::DrawTable( float fx, float fy, TableStyle& style, TableOfCells
 	}
 
 	// print out cell text
-	for ( unsigned int iy = firstRow; iy < lastRow; ++iy ) {
+	for ( unsigned int iy = firstRow; iy <= lastRow; ++iy ) {
 		
 		tx = fx + cellTextLeftMarginPerc;
 		

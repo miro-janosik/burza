@@ -13,7 +13,7 @@ using namespace BurzaTable;
 using namespace std;
 
 float Recipees::marginTop = 10;
-float Recipees::marginBottom = 88;
+float Recipees::marginBottom = 80;
 float Recipees::marginLeft = 10;
 float Recipees::marginRight = 90;
 
@@ -59,9 +59,6 @@ void Recipees::PrintSellerStatus( PdfWrapperBase& pdf, SELLER_ID id )
 		items.Cell( i, 5 ) = DataAccessInterface::ItemStatus2String( sellerItems[ i ].status );
 	}
 
-	PdfWrapperBase::TableStyle	style;
-	style.rowHeight = pdf.GetFontHeight() * 1.2;
-
 	DrawTableSplitOnPages( pdf, 10, 20, items, columns );
 }
 
@@ -96,7 +93,9 @@ void Recipees::AddProgramPageHeaderAndFooter( PdfWrapperBase& pdf )
 void Recipees::DrawTableSplitOnPages( PdfWrapperBase& pdf, float fx, float fy, TableOfCells& table, TableColumnSpecs& columns )
 {
 	PdfWrapperBase::TableStyle	style;
-	style.rowHeight = style.headerRowHeight = pdf.GetFontHeight() * 1.2;
+	style.fontSize = 1.3;
+	style.headerRowHeight = style.fontSize * 1.5;
+	style.rowHeight = style.fontSize * 1.2;
 
 	int firstRowToPrint, rowsToPrint, lastRowToPrint;
 	firstRowToPrint = 0;
@@ -104,20 +103,21 @@ void Recipees::DrawTableSplitOnPages( PdfWrapperBase& pdf, float fx, float fy, T
 	do {
 		rowsToPrint = ( marginBottom - fy ) / style.rowHeight;
 		lastRowToPrint = firstRowToPrint + rowsToPrint;
-		if ( lastRowToPrint > table.Rows() ) {
-			lastRowToPrint = table.Rows();
+		if ( lastRowToPrint >= table.Rows() ) {
+			lastRowToPrint = table.Rows() - 1;
 		}
 		
 		pdf.DrawTable( fx, fy, style, table, columns, firstRowToPrint, lastRowToPrint );
 		
-		if ( lastRowToPrint < table.Rows() ) {
-			pdf.NewPage( pdf.GetCurrentPageTitle() );
-			AddProgramPageHeaderAndFooter( pdf );
-			fy = marginTop;
-			firstRowToPrint = lastRowToPrint + 1;
-			continue;
+		if ( lastRowToPrint >= table.Rows() - 1 ) {
+			break;
 		}
-	} while( false );
+
+		pdf.NewPage( pdf.GetCurrentPageTitle() );
+		AddProgramPageHeaderAndFooter( pdf );
+		fy = marginTop;
+		firstRowToPrint = lastRowToPrint + 1;
+	} while( true );
 }
 
 void Recipees::PrintRecipeeAtEndOfCheckout( ItemDataArray& items, PdfWrapperBase& pdf )
@@ -174,11 +174,6 @@ void Recipees::PrintRecipeeAtEndOfCheckout( ItemDataArray& items, PdfWrapperBase
 			table.Cell( index, 2 ) = str;
 			table.Cell( index, 3 ) = ConvFuncs::FormatStdStr( "%0.2f", it->price );
 		}
-		
-		pdf.SetFontSize( 2.5 );
-
-		PdfWrapperBase::TableStyle	style;
-		style.rowHeight = pdf.GetFontHeight() * 1.2;
 		
 		DrawTableSplitOnPages( pdf, 10, 20, table, columns );
 		

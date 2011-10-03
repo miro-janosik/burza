@@ -52,6 +52,9 @@ public:
 
 		//! rowHeight : height of the row in percentage of page height.
 		float	headerRowHeight;
+
+		//! size of the font
+		float	fontSize;
 	};
 	
 	//! x, y : left top position on the page in percentage, 0 - 100%
