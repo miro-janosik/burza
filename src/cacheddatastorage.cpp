@@ -28,8 +28,7 @@ CachedDataTextfile::CachedDataTextfile( string& datapath )
 	bool found;
 	found = ConvFuncsInstance->Find_FirstFile( predajca_pat.c_str() );
 	while( found ) {
-		found = ConvFuncsInstance->Find_NextFile();
-		
+	
 		filename = DataPath;
 		filename += ConvFuncsInstance->Find_CurrentFileName();
 		
@@ -51,6 +50,8 @@ CachedDataTextfile::CachedDataTextfile( string& datapath )
 			LogS( InfoError, "Error loading cached file, error: %s\n", e.what() );
 			continue;
 		}
+
+		found = ConvFuncsInstance->Find_NextFile();
 	}
 }
 

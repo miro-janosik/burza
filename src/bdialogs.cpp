@@ -1028,6 +1028,7 @@ bool BurzaDialogs::DisplayYesNoMessageBox( string message, string title )
 void BurzaDialogs::RegisterStartDialogEditProduct( ITEM_ID itemid )
 {
 	ItemData item;
+	item.seller_id = RegisterGetSelectedSellerId();
 	
 	if ( itemid != ITEM_ID_NONE ) {
 		try {
@@ -1054,17 +1055,41 @@ void BurzaDialogs::RegisterStartDialogEditProduct( ITEM_ID itemid )
 	m_pItemeditStatusCombo->set_active( item.status );
 	
 	m_EditedItem = item;
+	m_EditedSeller = Centrala::Storage().GetSeller( item.seller_id );
+	
 	m_pWndItem->show();
+	HighlightEditItemOff();
+}
+
+void BurzaDialogs::HighlightWidgetRed( Gtk::Widget& widget )
+{
+	widget.signal_focus_in_event();
+	widget.drag_highlight();
+	Gdk::Color red( "red" );
+	Gdk::Color pink( "pink" );
+	widget.modify_bg(Gtk::STATE_NORMAL, red);
+	widget.modify_base(Gtk::STATE_NORMAL, pink);
+}
+
+void BurzaDialogs::HighlightWidgetOff( Gtk::Widget& widget )
+{
+	Gdk::Color white( "white" );
+	Gdk::Color black( "black" );
+	widget.modify_bg(Gtk::STATE_NORMAL, black);
+	widget.modify_base(Gtk::STATE_NORMAL, white);
 }
 
 void BurzaDialogs::RegisterButtonItemEditOk( void )
 {
 	// validate
 	bool validate_needed = false;
+	HighlightEditItemOff();
 	string str;
 	
 	if ( m_pItemeditName->get_text().empty() ) {
-		m_pItemeditName->set_text( _("item name") );
+		m_pItemeditName->set_text( _("Popis predmetu") );
+
+		HighlightWidgetRed( *m_pItemeditName );
 		validate_needed = true;
 	}
 	
@@ -1078,28 +1103,36 @@ void BurzaDialogs::RegisterButtonItemEditOk( void )
 		} else {
 			m_pItemeditPrice->set_text( "1.0" );
 		}
+
+		HighlightWidgetRed( *m_pItemeditPrice );
 		validate_needed = true;
 	} else {
 		
 		if ( atof( str.c_str() ) < 0 ) {
 			m_pItemeditPrice->set_text( "1.0" );
+			HighlightWidgetRed( *m_pItemeditPrice );
 			validate_needed = true;
 		}
 	}
 	
 	if ( m_pItemeditName->get_text().empty() ) {
 		m_pItemeditName->set_text( _("item name") );
+		HighlightWidgetRed( *m_pItemeditName );
 		validate_needed = true;
 	}
 	
 	// number
 	str = m_pItemeditNumber->get_text();
 	int num = atoi( str.c_str() );
+	if ( num < 1 ) {
+		num = 1;
+	}
 	
 	num = Centrala::Register().VerifyItemNumber( m_EditedItem, num );
 	string str2 = ConvFuncs::FormatStdStr( "%i", num );
 	if ( str != str2 ) {
 		m_pItemeditNumber->set_text( str2 );
+		HighlightWidgetRed( *m_pItemeditNumber );
 		validate_needed = true;
 	}
 	
@@ -1128,17 +1161,17 @@ void BurzaDialogs::RegisterButtonItemEditOk( void )
 	switch ( action ) {
 	case ea_add:
 		m_EditedItem.id = Centrala::Storage().AddItem(m_EditedItem, m_EditedSeller.id);
+
+		// after adding new item - start adding another one.
+		RegisterStartDialogEditProduct( ITEM_ID_NONE );
 		break;
 		
 	case ea_modify:
 		Centrala::Storage().ModifyItem(m_EditedItem.id, m_EditedItem);
 		break;
 	}
-	
+
 	RegisterDisplaySeller( m_EditedSeller );
-	
-	// after adding new item - start adding another one.
-	RegisterStartDialogEditProduct( ITEM_ID_NONE );
 }
 
 void BurzaDialogs::RegisterButtonItemEditCancel( void )
@@ -1152,6 +1185,21 @@ bool BurzaDialogs::RegisterButtonItemEditClose( GdkEventAny* )
 {
 	RegisterButtonItemEditCancel(); 
 	return true; 
+}
+
+void BurzaDialogs::HighlightEditItemOff( void )
+{
+	HighlightWidgetOff( *m_pItemeditName );
+	HighlightWidgetOff( *m_pItemeditPrice );
+	HighlightWidgetOff( *m_pItemeditName );
+	HighlightWidgetOff( *m_pItemeditNumber );
+}
+
+void BurzaDialogs::HighlightEditSellerOff( void )
+{
+	HighlightWidgetOff( *m_pSellerEditName );
+	HighlightWidgetOff( *m_pSellerEditCode );
+	HighlightWidgetOff( *m_pSellerEditNote );
 }
 
 void BurzaDialogs::RegisterComboItemEditStatusChanged( void )
@@ -1173,6 +1221,8 @@ void BurzaDialogs::RegisterStartDialogEditSeller( SELLER_ID id )
 	m_pSellerEditCode->set_text( seller.shortcode );
 	m_pSellerEditNote->set_text( seller.note );
 	
+	HighlightEditSellerOff();
+
 	m_EditedSeller = seller;
 	m_pWndSeller->show();
 }
@@ -1184,6 +1234,7 @@ void BurzaDialogs::RegisterButtonSellerEditOk( void )
 	
 	if ( m_pSellerEditName->get_text().empty() ) {
 		m_pSellerEditName->set_text( _( "Nový predajca" ) );
+		HighlightWidgetRed( *m_pSellerEditName );
 		return;
 	}
 	
@@ -1194,6 +1245,7 @@ void BurzaDialogs::RegisterButtonSellerEditOk( void )
 	if ( m_EditedSeller.shortcode != str ) {
 		m_pSellerEditCode->set_text( m_EditedSeller.shortcode );
 		m_EditedSeller.shortcode = sellerOriginalCode;
+		HighlightWidgetRed( *m_pSellerEditCode );
 		return;
 	}
 	
@@ -1212,6 +1264,8 @@ void BurzaDialogs::RegisterButtonSellerEditOk( void )
 	RegisterSellerModified( m_EditedSeller );
 	
 	// start adding items right away !
+	m_SelectedSellerId = m_EditedSeller.id;
+
 	if ( action == ea_add ) {
 		// uses m_EditedSeller
 		RegisterStartDialogEditProduct( ITEM_ID_NONE );

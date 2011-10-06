@@ -2,6 +2,9 @@
 1*Montérky modré*1.5*a*s
 2*Čapica zelená*1.0*a*s
 3*šál farebný*2.0*a*s
-4*Sedačka modrá per perego*20.0*b*s
+4*Sedačka modrá per perego*20.0*a*s
 7*šálka biela s obrázkom*1.3*a*s
-8*reproduktory čierne*18.0*a*s
+8*Popis predmetu*1.0*a*s
+9*Čierna čiapočka zimná s zelenými štvorčekmi*1.2*a*s
+10*Mikulášska čiapka detská*0.5*a*s
+11*Bicyklík malý čierno-biely*8.0*a*o

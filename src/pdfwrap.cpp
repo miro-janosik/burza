@@ -328,21 +328,23 @@ void HPDFWrapper::DrawTable( float fx, float fy, TableStyle& style, TableOfCells
 	}
 
 	// print out cell text
-	for ( unsigned int iy = firstRow; iy <= lastRow; ++iy ) {
-		
-		tx = fx + cellTextLeftMarginPerc;
-		
-		for ( unsigned int ix = 0; ix < t.Columns(); ++ix ) {
+	if (( firstRow <= lastRow ) && ( t.Columns() > 0 )) {
+		for ( unsigned int iy = firstRow; iy <= lastRow; ++iy ) {
 			
-			if ( t.Cell( iy, ix ).GetText().empty() )
-				continue;
+			tx = fx + cellTextLeftMarginPerc;
 			
-			WriteSingleTextIntoWidth( tx, ty, c.m_columns[ ix ].m_width - cellTextLeftMarginPerc * 2, t.Cell( iy, ix ).GetText() );
-			
-			tx += c.m_columns[ ix ].m_width;
-		}
+			for ( unsigned int ix = 0; ix < t.Columns(); ++ix ) {
+				
+				if ( t.Cell( iy, ix ).GetText().empty() )
+					continue;
+				
+				WriteSingleTextIntoWidth( tx, ty, c.m_columns[ ix ].m_width - cellTextLeftMarginPerc * 2, t.Cell( iy, ix ).GetText() );
+				
+				tx += c.m_columns[ ix ].m_width;
+			}
 
-		ty += style.rowHeight;
+			ty += style.rowHeight;
+		}
 	}
 }
 

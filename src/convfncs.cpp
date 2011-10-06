@@ -629,6 +629,9 @@ int ConvFuncs::IsNumber( const char *text )
 	int			i;
 	int			num_dots;
 
+	if ( strlen(text) == 0 )
+		return 0;
+
 	i = 0;
 	num_dots = 0;
 	

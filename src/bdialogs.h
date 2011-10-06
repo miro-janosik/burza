@@ -54,6 +54,16 @@ public:
 	void RegisterStartDialogEditSeller( SELLER_ID id );
 	void RegisterSellerModified( Burza::SellerData& seller );
 	
+	//! highlights widget's background and edge color
+	void HighlightWidgetRed( Gtk::Widget& widget );
+
+	//! returns widget's color to normal
+	void HighlightWidgetOff( Gtk::Widget& widget );
+
+	//! stop highlighting items on the control
+	void HighlightEditSellerOff( void );
+	void HighlightEditItemOff( void );
+	
 public:
 	
 	// "register" dialog functions
@@ -101,7 +111,7 @@ public:
 	void RegisterButtonItemEditCancel( void );
 	bool RegisterButtonItemEditClose( GdkEventAny* );
 	void RegisterComboItemEditStatusChanged( void );
-	
+
 	// "seller" edit dialog
 	void RegisterButtonSellerEditOk( void );
 	void RegisterButtonSellerEditCancel( void );
