@@ -212,6 +212,14 @@
 				RelativePath="..\src\datatextfile.h"
 				>
 			</File>
+			<File
+				RelativePath="..\src\itemsearch.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\itemsearch.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="tools"
@@ -250,6 +258,14 @@
 			</File>
 			<File
 				RelativePath="..\src\myassert.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\stringencoding.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\stringencoding.h"
 				>
 			</File>
 			<File
@@ -298,26 +314,6 @@
 			</Filter>
 		</Filter>
 		<Filter
-			Name="dialogs"
-			>
-			<File
-				RelativePath="..\src\bdialogs.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\src\bdialogs.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\burza.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\src\burza.h"
-				>
-			</File>
-		</Filter>
-		<Filter
 			Name="pdf"
 			>
 			<File
@@ -337,14 +333,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\stringencoding.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\src\stringencoding.h"
-				>
-			</File>
-			<File
 				RelativePath="..\src\table.h"
 				>
 			</File>
@@ -358,6 +346,14 @@
 			</File>
 			<File
 				RelativePath="..\src\excelwrap.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\odswrap.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\odswrap.h"
 				>
 			</File>
 			<Filter
@@ -381,6 +377,26 @@
 				</File>
 			</Filter>
 		</Filter>
+		<Filter
+			Name="dialogs"
+			>
+			<File
+				RelativePath="..\src\bdialogs.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\bdialogs.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\burza.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\burza.h"
+				>
+			</File>
+		</Filter>
 		<File
 			RelativePath="..\src\burzadata.cpp"
 			>
@@ -399,14 +415,6 @@
 		</File>
 		<File
 			RelativePath="..\src\errhandler.h"
-			>
-		</File>
-		<File
-			RelativePath="..\src\odswrap.cpp"
-			>
-		</File>
-		<File
-			RelativePath="..\src\odswrap.h"
 			>
 		</File>
 		<File

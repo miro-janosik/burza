@@ -29,6 +29,7 @@
 #include "recipees.h"
 #include "xmltool.h"
 #include "errhandler.h"
+#include "itemsearch.h"
 
 #include "datatextfile.h"
 #include "cacheddatastorage.h"
@@ -70,6 +71,8 @@ int main2( int argc, char **argv )
 	// Centrala::Register().NacitajVsetkychPredajcov();
 	Centrala::Dialogs().FillSellerCombos();
 	Centrala::Dialogs().RegisterDisplaySellerByIndex( 0 );
+
+	Centrala::Search().FetchLatestItemData();
 	
 	std::string exceptionMessage;
 	
@@ -377,6 +380,7 @@ Centrala* Centrala::Instance( void )
 		m_instance = new Centrala;
 		
 		m_instance->mp_dialogs = new BurzaDialogs();
+		m_instance->itemSearch = new ItemSearch();
 	}
 	
 	return m_instance;

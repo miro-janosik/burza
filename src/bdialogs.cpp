@@ -15,6 +15,8 @@
 #include "datatextfile.h"
 #include "cacheddatastorage.h"
 #include "translate.h"
+#include "itemsearch.h"
+
 #include <gtkmm-2.4/gtkmm/filechooserdialog.h>
 
 using namespace Burza;
@@ -399,6 +401,8 @@ int BurzaDialogs::SetupDialogs( void )
 		DisplayErrorMessageBox( error, "Error initing dialog." );
 		return -1;
 	}
+
+	return 0;
 }
 
 void BurzaDialogs::RegisterDisplaySeller( const char* kod )
@@ -1116,7 +1120,7 @@ void BurzaDialogs::RegisterButtonItemEditOk( void )
 	}
 	
 	if ( m_pItemeditName->get_text().empty() ) {
-		m_pItemeditName->set_text( _("item name") );
+		m_pItemeditName->set_text( _("Popis predmetu") );
 		HighlightWidgetRed( *m_pItemeditName );
 		validate_needed = true;
 	}
@@ -1344,4 +1348,17 @@ void BurzaDialogs::CashoutEditSearchChanged( void )
 
 void BurzaDialogs::CashoutEditSearchEntryChanged( void )
 {
+	vector<ItemData> foundItems;
+	string str;
+	string text = m_pCashoutComboSearchEntry->get_text();
+
+	foundItems = Centrala::Search().LookForSimilairItems( text );
+
+	m_pCashoutComboSearch->clear();
+	
+	for( int i=0; i<foundItems.size(); ++i ) {
+		str = foundItems[ i ].name;
+
+		m_pCashoutComboSearch->append_text( str );
+	}
 }

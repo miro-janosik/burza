@@ -40,6 +40,8 @@ public:
 	static std::string WStringToUTF8(std::wstring &str);
 	static std::wstring		StringToWString(std::string &str);
 
+	static void UTF8RemoveAccents( std::string& str );
+
 private:
 	static std::vector<char> OneToAnother( const char* src, int sizeinbytes, const std::string& from, const std::string& to );
 

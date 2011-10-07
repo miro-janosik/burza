@@ -125,4 +125,19 @@ std::wstring StringEncoding::StringToWString(std::string &str)
 	return wstring();
 }
 
+void StringEncoding::UTF8RemoveAccents( std::string& str )
+{
+	// plans - using library ICU
+	string from =	"áÁäÄèÈïÏéÉíÍåÅ¾¼òÒóÓôÔàÀøØšŠúÚıİ";
+	string to =		"aAaAcCdDeEiIlLlLnNoOoOrRrRsStTuUyYzZ";
+	string::size_type pos;
+
+	for( string::iterator it = str.begin(); it != str.end(); ++it ) {
+		pos = from.find( *it );
+		if ( pos != string::npos ) {
+			*it = to[ pos ];
+		}
+	}
+}
+
 }

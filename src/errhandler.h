@@ -9,10 +9,10 @@ class ErrorHandling {
 public:
 	
   //! handles the exception. If exception can't be handled it will be thrown again
-  static void HandlePostgresException(std::exception& e);
+  static void HandlePostgresException(const std::exception& e);
   
   //! handles the exception. If exception can't be handled it will be thrown again
-  static void HandleException(std::exception& e);
+  static void HandleException(const std::exception& e);
   
 } ;
 
