@@ -213,6 +213,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\generator.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\generator.h"
+				>
+			</File>
+			<File
 				RelativePath="..\src\itemsearch.cpp"
 				>
 			</File>
@@ -397,14 +405,6 @@
 				>
 			</File>
 		</Filter>
-		<File
-			RelativePath="..\src\burzadata.cpp"
-			>
-		</File>
-		<File
-			RelativePath="..\src\burzadata.h"
-			>
-		</File>
 		<File
 			RelativePath="..\src\burzamain.cpp"
 			>

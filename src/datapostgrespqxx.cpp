@@ -367,6 +367,7 @@ ITEM_ID DataPostgresPqxx::AddItem(ItemData& item, SELLER_ID id)
 	
 	try {
 		item.id = GetNewItemId();
+		item.seller_id = id;
 		
 		work dbGetSellers(*dbConnection, "add item" );
 		string query = ConvFuncs::FormatStdStr( 

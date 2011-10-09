@@ -5,6 +5,8 @@
 #include <string>
 #include "dataaccess.h"
 
+using namespace std;
+
 namespace Burza {
 
 class ItemSearch
@@ -13,10 +15,13 @@ public:
 	ItemSearch(void);
 	~ItemSearch(void);
 
-	//! Returns array of items that match part of the name with stemming algorythm.
+	//! Returns array of items that match the partOfName string
+	//! partOfName: one or more words where each is separately 
 	//! sellerId: if specified, then only items of that seller are searched.
 	//! Return: items are sorted, first are those most similair
-	std::vector<ItemData> LookForSimilairItems( std::string& partOfName, SELLER_ID sellerId = SELLER_ID_NONE );
+	vector<ItemData> LookForItemsContainingWords( string& partOfName, SELLER_ID sellerId = SELLER_ID_NONE );
+
+	vector<ItemData> LookForItemsStemmming( string& partOfName, SELLER_ID sellerId );
 
 	//! Loads the items from the data storage. Call if you think that data were updated.
 	void FetchLatestItemData( void );
@@ -28,7 +33,7 @@ public:
 
 private:
 
-	std::vector< ItemData > items;
+	vector< ItemData > items;
 };
 
 }

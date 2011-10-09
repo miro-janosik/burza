@@ -259,3 +259,56 @@ SELLER_ID DataAccessInterface::GetNewSellerId( void )
 	
 	return biggestId + 1;
 }
+
+string DataAccessInterface::GenerateSellerUniqueCode( string sellerName, string firstTryCode )
+{
+	// if its empty try to generate it from name
+	if ( firstTryCode.empty() ) {
+		std::vector<std::string> tokens;
+		ConvFuncs::Tokenize( sellerName, tokens );
+		
+		for( int i=0; i<tokens.size(); ++i ) {
+			firstTryCode += tokens[ i ][ 0 ];
+		}
+	}
+	
+	// minimum length 2
+	while ( firstTryCode.size() < 2 ) {
+		firstTryCode += "A";
+	}
+	
+	// run through all the sellers to see if its unique
+	// if its not, generate first that is.
+	int sellerIndex;
+	int tries = 0;
+	SellerDataArray	sellers = GetSellers();
+	
+	while( true ) {
+		
+		ConvFuncs::StdStringToUpper( firstTryCode );
+		sellerIndex = DataAccessInterface::FindSellerIndexByCode( sellers, firstTryCode );
+		if ( sellerIndex == -1 )
+			break;
+		
+		// inc characters, AB => AC, AZ => BA
+		int char_pos = firstTryCode.size() - 1;
+		while( char_pos >= 0 ) {
+			if ( firstTryCode[ char_pos ] >= 'Z' ) {
+				firstTryCode[ char_pos ] = 'A';
+				char_pos--;
+			} else {
+				firstTryCode[ char_pos ]++;
+				break;
+			}
+		}
+		
+		// Wooh, I could loop like this forever. Just help it if its too much
+		tries++;
+		if ( tries > 600 ) {
+			firstTryCode += "A";
+			tries = 0;
+		}
+	}
+	
+	return firstTryCode;
+}

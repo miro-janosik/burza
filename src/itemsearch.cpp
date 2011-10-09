@@ -65,9 +65,57 @@ void ItemSearch::FetchLatestItemData( void )
 	}
 }
 
-vector<ItemData> ItemSearch::LookForSimilairItems( string& partOfName, SELLER_ID sellerId )
+vector<ItemData> ItemSearch::LookForItemsContainingWords( string& partOfName, SELLER_ID sellerId )
 {
 	vector<ItemData> result;
+
+	if ( partOfName.size() <= 3 ) {
+		return result;
+	}
+
+	const unsigned int limit = 5;
+	unsigned int matches;
+	vector<ItemData> preResults[ limit ];
+	int i, c, w;
+	vector<string> words;
+
+	StringEncoding::UTF8RemoveAccents( partOfName );
+	ConvFuncs::Tokenize( partOfName, words );
+	
+	for( c = items.size(), i = 0; i < c; ++i ) {
+
+		matches = 0;
+
+		for( w = 0; w < words.size(); ++w ) {
+			if ( items[ i ].name.find( words[ w ] ) != string::npos ) {
+
+				matches++;
+			}
+		}
+
+		if ( matches > 0 ) {
+			if (matches >= limit) {
+				matches = limit - 1;
+			}
+
+			items[ i ].name += ConvFuncs::FormatStdStr( " - %i", matches );
+			preResults[ matches ].push_back( items[ i ] );
+		}
+	}
+
+	for( int i = limit - 1; i >= 0; --i ) {
+		for( int j = 0; j < preResults[ i ].size(); ++j ) {
+			result.push_back( preResults[ i ][ j ] );
+		}
+	}
+
+	return result;
+}
+
+vector<ItemData> ItemSearch::LookForItemsStemmming( string& partOfName, SELLER_ID sellerId )
+{
+	vector<ItemData> result;
+	/*
 
 	if ( partOfName.size() <= 3 ) {
 		return result;
@@ -80,25 +128,10 @@ vector<ItemData> ItemSearch::LookForSimilairItems( string& partOfName, SELLER_ID
 	vector<string> words;
 
 	StringEncoding::UTF8RemoveAccents( partOfName );
-	ConvFuncs::Tokenize( partOfName, words );
 	
 	for( c = items.size(), i = 0; i < c; ++i ) {
 
-		//distance = levenshtein_distance<string>( partOfName, items[ i ].name );
-
-		distance = limit + 1;
-		for( w = 0; w < words.size(); ++w ) {
-			if ( items[ i ].name.find( words[ w ] ) != string::npos ) {
-
-				if (distance == limit + 1) {
-					distance = limit - 1;
-				}
-				else {
-					if ( distance > 0 )
-						--distance;
-				}
-			}
-		}
+		distance = levenshtein_distance<string>( partOfName, items[ i ].name );
 
 		if ( distance < limit ) {
 
@@ -112,6 +145,7 @@ vector<ItemData> ItemSearch::LookForSimilairItems( string& partOfName, SELLER_ID
 			result.push_back( preResults[ i ][ j ] );
 		}
 	}
+	*/
 
 	return result;
 }

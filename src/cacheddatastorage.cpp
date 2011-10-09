@@ -239,6 +239,7 @@ ITEM_ID CachedDataTextfile::AddItem(ItemData& item, SELLER_ID sellerId)
 	assert( item.id == ITEM_ID_NONE );
 
 	item.id = GetNewItemId();
+	item.seller_id = sellerId;
 	items[ item.id ] = item;
 	
 	SaveSellerFile( sellerId );

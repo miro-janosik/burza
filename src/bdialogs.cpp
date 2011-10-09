@@ -17,6 +17,8 @@
 #include "translate.h"
 #include "itemsearch.h"
 
+#include "generator.h"
+
 #include <gtkmm-2.4/gtkmm/filechooserdialog.h>
 
 using namespace Burza;
@@ -659,6 +661,9 @@ void BurzaDialogs::RegisterButtonCalcRepayment( void )
 		return;
 	}
 
+	DummyDataGenerator::GenerateSellersAndItems( & Centrala::Storage(), 50, 70 );
+	return;
+
 	try {
 	  Recipees recipees;
 	  HPDFWrapper	pdf;
@@ -1245,7 +1250,7 @@ void BurzaDialogs::RegisterButtonSellerEditOk( void )
 	string sellerOriginalCode = m_EditedSeller.shortcode;
 	str = m_pSellerEditCode->get_text();
 	// check new code and set it to seller
-	mp_register->GenerateSellerUniqueCode( m_EditedSeller, str );
+	str = Centrala::Storage().GenerateSellerUniqueCode( m_EditedSeller.name, str );
 	if ( m_EditedSeller.shortcode != str ) {
 		m_pSellerEditCode->set_text( m_EditedSeller.shortcode );
 		m_EditedSeller.shortcode = sellerOriginalCode;
@@ -1352,7 +1357,7 @@ void BurzaDialogs::CashoutEditSearchEntryChanged( void )
 	string str;
 	string text = m_pCashoutComboSearchEntry->get_text();
 
-	foundItems = Centrala::Search().LookForSimilairItems( text );
+	foundItems = Centrala::Search().LookForItemsContainingWords( text );
 
 	m_pCashoutComboSearch->clear();
 	

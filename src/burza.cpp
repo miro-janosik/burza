@@ -61,8 +61,8 @@ int main2( int argc, char **argv )
 	Centrala::Dialogs().SetupDialogs();
 	
 	try {
-		pcentrala->Register().m_storage = new CachedDataTextfile( Centrala::Settings().m_data_dir_path );
-		// pcentrala->Register().m_storage = new DataPostgresPqxx();
+		// pcentrala->Register().m_storage = new CachedDataTextfile( Centrala::Settings().m_data_dir_path );
+		pcentrala->Register().m_storage = new DataPostgresPqxx();
 	}
 	catch(...) {
 		return 0;
@@ -214,22 +214,6 @@ void BurzaRegister::GenerateSellerUniqueCode( SellerData& seller, std::string tr
 	
 	seller.shortcode = try_this_code;
 }
-
-/*
-		HPDFWrapper	pdf;
-		string pdfFileName = Centrala::Instancia->Nastavenia()->m_data_dir_path;
-		pdfFileName += "ucet_";
-		
-		ConvFuncs::GetDateTime();
-		ConvFuncs::s_datetime *dt = &ConvFuncs::datetime;
-		pdfFileName += ConvFuncs::FormatStdStr( "%i_%i_%i-%i_%i",
-			dt->year, dt->month, dt->day, dt->hour, dt->minute );
-		pdfFileName += ".pdf";
-		
-		pdf.CreatePDF( pdfFileName );
-		
-
-*/
 
 void BurzaRegister::FinishCheckout( ItemDataArray& items )
 {
