@@ -162,59 +162,6 @@ SellerData BurzaRegister::NajdiPredajcuPodlaKodu( const char* kod )
 // ==============================================
 // ==============================================
 
-void BurzaRegister::GenerateSellerUniqueCode( SellerData& seller, std::string try_this_code )
-{
-	// if its empty try to generate it from name
-	if ( try_this_code.empty() ) {
-		std::vector<std::string> tokens;
-		ConvFuncs::Tokenize( seller.name, tokens );
-		
-		for( int i=0; i<tokens.size(); ++i ) {
-			try_this_code += tokens[ i ][ 0 ];
-		}
-	}
-	
-	// minimum length 2
-	while ( try_this_code.size() < 2 ) {
-		try_this_code += "A";
-	}
-	
-	// run through all the sellers to see if its unique
-	// if its not, generate first that is.
-	int sellerIndex;
-	int tries = 0;
-	SellerDataArray	sellers = m_storage->GetSellers();
-	
-	while( true ) {
-		
-		ConvFuncs::StdStringToUpper( try_this_code );
-		sellerIndex = DataAccessInterface::FindSellerIndexByCode( sellers, try_this_code );
-		if ( sellerIndex == -1 )
-			break;
-		
-		// inc characters, AB => AC, AZ => BA
-		int char_pos = try_this_code.size() - 1;
-		while( char_pos >= 0 ) {
-			if ( try_this_code[ char_pos ] >= 'Z' ) {
-				try_this_code = 'A';
-				char_pos--;
-			} else {
-				try_this_code[ char_pos ]++;
-				break;
-			}
-		}
-		
-		// Wooh, I could loop like this forever. Just help it if its too much
-		tries++;
-		if ( tries > 100 ) {
-			try_this_code += "A";
-			tries = 0;
-		}
-	}
-	
-	seller.shortcode = try_this_code;
-}
-
 void BurzaRegister::FinishCheckout( ItemDataArray& items )
 {
 	double sum = CalcPriceOfProducts( items );

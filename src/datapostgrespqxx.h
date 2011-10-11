@@ -69,6 +69,7 @@ class DataPostgresPqxx : public DataAccessInterface
 
 	//! function that converts time structure into database format string holding 'date + time + timezone'
 	string TimestampToString(ConvFuncs::s_datetime& time );
+	string ValidateTimestampToString(ConvFuncs::s_datetime& time );
 	
 	//! function that parses one result row that queried for a seller into the SellerData
 	void DbDataToSellerData( const result::tuple& sellerResult, SellerData& sellerData );

@@ -7,6 +7,7 @@
 #include "convfncs.h"
 #include "stringencoding.h"
 #include "translate.h"
+#include "errhandler.h"
 
 using namespace Burza;
 using namespace BurzaTable;
@@ -19,9 +20,17 @@ float Recipees::marginRight = 90;
 
 void Recipees::PrintSellerStatus( PdfWrapperBase& pdf, SELLER_ID id )
 {
-	SellerData seller = Centrala::Storage().GetSeller( id );
+	SellerData seller;
+
+	try {
+		seller = Centrala::Storage().GetSeller( id );
+	}
+	catch(exception& e)
+	{
+		ErrorHandling::HandleException(e);
+	}
 	
-	pdf.NewPage( ConvFuncs::FormatStdStr( _("Predávajúci %s"), seller.name.c_str() ) );
+	pdf.NewPage( ConvFuncs::FormatStdStr( _("%s - %s"), seller.shortcode.c_str(), seller.name.c_str() ) );
 	AddProgramPageHeaderAndFooter( pdf );
 	
 	pdf.SetFontSize(2);

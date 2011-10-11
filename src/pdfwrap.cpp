@@ -6,6 +6,9 @@
 
 #include "pdfwrap.h"
 #include <string>
+#include <stdexcept>
+#include <exception>
+
 #include "hpdf.h"
 #include "convfncs.h"
 #include "stringencoding.h"
@@ -164,6 +167,16 @@ float HPDFWrapper::GetFontHeightBase( void )
 	return HeightToPercent( m_current_font_size );
 }
 
+void HPDFWrapper::ConvertUTF8ToISO8859_2orErrorString( std::string& str )
+{
+	try {
+		StringEncoding::UTF8ToISO8859_2( str );
+	}
+	catch(std::runtime_error e) {
+		str = e.what();
+	}
+}
+
 void HPDFWrapper::NewPage( string name )
 {
 	m_current_page = HPDF_AddPage( m_pdf );
@@ -177,7 +190,7 @@ void HPDFWrapper::NewPage( string name )
 
 	currentPageTitle = name;
 	string str = name;
-	StringEncoding::UTF8ToISO8859_2( str );
+	ConvertUTF8ToISO8859_2orErrorString( str );
 	outline = HPDF_CreateOutline( m_pdf, m_outline_root, str.c_str(), NULL);
 	dst = HPDF_Page_CreateDestination( m_current_page );
 	HPDF_Destination_SetXYZ(dst, 0, HPDF_Page_GetHeight( m_current_page ), 1);
@@ -354,7 +367,7 @@ void HPDFWrapper::WriteSingleText( float x, float y, string text )
 	PercentToPos( x, y, px, py );
 
 	string str = text;
-	StringEncoding::UTF8ToISO8859_2( str );
+	ConvertUTF8ToISO8859_2orErrorString( str );
 	
 	HPDF_Page_BeginText( m_current_page );
 	HPDF_Page_MoveTextPos( m_current_page, px, py );
@@ -368,7 +381,7 @@ void HPDFWrapper::WriteSingleTextIntoWidth( float x, float y, float width, strin
 	PercentToPos( x, y, px, py );
 
 	string str = text;
-	StringEncoding::UTF8ToISO8859_2( str );
+	ConvertUTF8ToISO8859_2orErrorString( str );
 	
 	int width_pixels = PercentToPosX( width );
 	

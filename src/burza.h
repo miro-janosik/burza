@@ -87,7 +87,6 @@ public:
 public:
 	
 	unsigned int GenerateSellerUniqueId( void );
-	void GenerateSellerUniqueCode( SellerData& seller, std::string try_this_code );
 
 	//! Returns valid number for item. Looks through seller item numbers, and if other item
 	//! has the same number, new item number is calculated.

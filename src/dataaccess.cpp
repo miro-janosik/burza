@@ -260,7 +260,7 @@ SELLER_ID DataAccessInterface::GetNewSellerId( void )
 	return biggestId + 1;
 }
 
-string DataAccessInterface::GenerateSellerUniqueCode( string sellerName, string firstTryCode )
+string DataAccessInterface::GenerateSellerUniqueCode( string sellerName, string firstTryCode, SELLER_ID sellerId )
 {
 	// if its empty try to generate it from name
 	if ( firstTryCode.empty() ) {
@@ -287,7 +287,13 @@ string DataAccessInterface::GenerateSellerUniqueCode( string sellerName, string 
 		
 		ConvFuncs::StdStringToUpper( firstTryCode );
 		sellerIndex = DataAccessInterface::FindSellerIndexByCode( sellers, firstTryCode );
+
+		// if there is no user with such code, we're OK
 		if ( sellerIndex == -1 )
+			break;
+
+		// if there is seller with such code and that is me, its OK too
+		if ( sellers[ sellerIndex ].id == sellerId )
 			break;
 		
 		// inc characters, AB => AC, AZ => BA

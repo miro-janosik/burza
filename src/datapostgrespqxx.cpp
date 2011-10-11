@@ -126,6 +126,10 @@ SellerData DataPostgresPqxx::GetSeller(SELLER_ID id)
 	try {
 	  sellers = QueryForSellers( query, "getting sellers", true );
 	}
+	catch(WrongSellerException e)
+	{
+		throw;
+	}
 	catch(exception& e)
 	{
 		HandlePostgresqlException(e);
@@ -222,7 +226,7 @@ ItemData DataPostgresPqxx::GetSellerItem(SELLER_ID id, int item_number)
 ItemData DataPostgresPqxx::GetItem(ITEM_ID id)
 {
 	ItemDataArray items;
-	string query = ConvFuncs::FormatStdStr( "SELECT * FROM items WHERE \"ID\" = %i", id );
+	string query = ConvFuncs::FormatStdStr( "SELECT * FROM items WHERE \"ITEM_ID\" = %i", id );
 	
 	try {
 		items = QueryForItems( query, "getting item by id", true );
@@ -317,12 +321,19 @@ SellerData DataPostgresPqxx::GetSellerByCode(string& code)
 	try {
 		sellers = QueryForSellers( query, "getting seller by code", true );
 	}
+	catch(WrongSellerException e)
+	{
+		throw e;
+	}
 	catch(exception& e)
 	{
 		HandlePostgresqlException( e );
-		throw new WrongSellerException();
+		throw WrongSellerException();
 	}
-	
+
+	if (sellers.empty())
+		throw WrongSellerException();
+
 	return sellers[ 0 ];
 }
 
@@ -417,10 +428,10 @@ void DataPostgresPqxx::RemoveItem(ITEM_ID id)
 ITEM_ID DataPostgresPqxx::GetNewItemId( void )
 {
 	ItemDataArray items;
-	string query = ConvFuncs::FormatStdStr( "SELECT * FROM items" );
+	string query = ConvFuncs::FormatStdStr( "SELECT * FROM items ORDER BY \"ITEM_ID\" DESC LIMIT 1" );
 
 	try {
-		items = QueryForItems( query, "getting all items", false);
+		items = QueryForItems( query, "getting item with greatest ID", false);
 	}
 	catch(exception& e)
 	{
@@ -428,15 +439,7 @@ ITEM_ID DataPostgresPqxx::GetNewItemId( void )
 		throw e;
 	}
 	
-	SELLER_ID biggestId = -2;
-	int i = 0, c = items.size();
-	
-	for( ; i < c; ++i ) {
-		if ( items[ i ].id > biggestId) {
-			biggestId = items[ i ].id;
-		}
-	}
-	
+	SELLER_ID biggestId = items.empty() ? 1 : items[ 0 ].id;
 	return biggestId + 1;
 }
 	
@@ -448,6 +451,19 @@ string DataPostgresPqxx::TimestampToString(ConvFuncs::s_datetime& time )
 		time.hour, time.minute, time.second );
 		
 	return res;
+}
+
+string DataPostgresPqxx::ValidateTimestampToString(ConvFuncs::s_datetime& time )
+{
+	if ((time.year < 1900) || (time.month == 0) || (time.day == 0) ||
+		(time.hour > 23) || (time.minute > 59) || (time.second > 59)) 
+	{
+		LogS( InfoError, "Invalid date, reformatting to current date.");
+		ConvFuncs::GetDateTime();
+		time = ConvFuncs::datetime;
+	}
+
+	return TimestampToString( time );
 }
 
 ConvFuncs::s_datetime DataPostgresPqxx::StringToTimestamp( string time )
@@ -588,6 +604,11 @@ SellerDataArray DataPostgresPqxx::QueryForSellers( string query, string queryNam
 	string timeString;
 
 	if (( singleSellers ) && ( c != 1 )) {
+
+		if ( c == 0 ) {
+			throw WrongSellerException();
+		}
+		
 		HandleException(new runtime_error( 
 			ConvFuncs::FormatStdStr( 
 			"DataPostgresPqxx::QueryForSellers no single item: '%s' => '%s'.", queryName.c_str(), query.c_str() )));
@@ -609,7 +630,7 @@ string DataPostgresPqxx::SellerToQueryValuesString( SellerData& seller )
 		"( %i, '%s', '%s', '%s', %s, '%s', %i, '%s')",
 		seller.id, seller.shortcode.c_str(), seller.name.c_str(),
 		seller.note.c_str(), "false", "-", 
-		-1, TimestampToString( seller.last_update ).c_str() );
+		-1, ValidateTimestampToString( seller.last_update ).c_str() );
 	return values;
 }
 
@@ -620,7 +641,7 @@ string DataPostgresPqxx::ItemToQueryNewValuesString( ItemData& item )
 		item.id, item.name.c_str(), item.seller_id, item.price, 
 		"false", "-", -1, 
 		item.number, (int)item.status,
-		TimestampToString( item.last_update ).c_str() );
+		ValidateTimestampToString( item.last_update ).c_str() );
 	return values;
 }
 
@@ -632,7 +653,7 @@ string DataPostgresPqxx::ItemToQueryUpdateValuesString( ItemData& item )
 \"MODIFIED\"= '%s'",
 		item.name.c_str(), item.seller_id, item.price, 
 		"false", "-", item.category, item.number, item.status,
-		TimestampToString( item.last_update ).c_str() );
+		ValidateTimestampToString( item.last_update ).c_str() );
 	return values;
 }
 
@@ -641,7 +662,7 @@ string DataPostgresPqxx::SellerToQueryUpdateValuesString( SellerData& data )
 	string values = ConvFuncs::FormatStdStr( 
 		"\"SHORT_CODE\"='%s', \"NAME\"='%s', \"COMMENT\"='%s', \"CHANGING\"='%s', \"CHANGED_BY\"='%s', \"SELLER_CATEGORY_ID\"=%i, \"MODIFIED\"='%s'",
 		data.shortcode.c_str(), data.name.c_str(), data.note.c_str(), 
-		"false", "", data.category, TimestampToString( data.last_update ).c_str() );
+		"false", "", data.category, ValidateTimestampToString( data.last_update ).c_str() );
 	return values;
 }
 

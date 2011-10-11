@@ -103,9 +103,18 @@ vector<ItemData> ItemSearch::LookForItemsContainingWords( string& partOfName, SE
 		}
 	}
 
+	/*
 	for( int i = limit - 1; i >= 0; --i ) {
 		for( int j = 0; j < preResults[ i ].size(); ++j ) {
 			result.push_back( preResults[ i ][ j ] );
+		}
+	}
+	*/
+
+	// return the items that have most matches
+	for( int i = limit - 1; i >= 0; --i ) {
+		if ( ! preResults[ i ].empty() ) {
+			return preResults[ i ];
 		}
 	}
 

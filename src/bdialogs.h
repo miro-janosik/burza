@@ -64,6 +64,9 @@ public:
 	void HighlightEditSellerOff( void );
 	void HighlightEditItemOff( void );
 	
+	//! Compares two sellers by their short code and returns true if a > b
+	static bool OrderSellerByShortCode(const SellerData& a, const SellerData& b);
+
 public:
 	
 	// "register" dialog functions

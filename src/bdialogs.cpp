@@ -6,6 +6,7 @@
 
 #include <assert.h>
 #include <exception>
+#include <algorithm>
 #include "bdialogs.h"
 #include "convfncs.h"
 
@@ -16,6 +17,7 @@
 #include "cacheddatastorage.h"
 #include "translate.h"
 #include "itemsearch.h"
+#include "errhandler.h"
 
 #include "generator.h"
 
@@ -59,7 +61,13 @@ bool BurzaDialogs::RegisterAnySelectedSeller( void )
 
 SellerData BurzaDialogs::RegisterGetSelectedSeller( void )
 { 
-	return Centrala::Storage().GetSeller( m_SelectedSellerId );
+	try {
+		return Centrala::Storage().GetSeller( m_SelectedSellerId );
+	}
+	catch(exception& e)
+	{
+		ErrorHandling::HandleException(e);
+	}
 }
 
 SELLER_ID BurzaDialogs::RegisterGetSelectedSellerId( void )
@@ -69,12 +77,24 @@ SELLER_ID BurzaDialogs::RegisterGetSelectedSellerId( void )
 
 SellerData BurzaDialogs::CashoutGetSelectedSeller( void )
 { 
-	return Centrala::Storage().GetSeller( m_CashoutSelectedSellerId );
+	try {
+		return Centrala::Storage().GetSeller( m_CashoutSelectedSellerId );
+	}
+	catch(exception& e)
+	{
+		ErrorHandling::HandleException(e);
+	}
 }
 
 ItemData BurzaDialogs::CashoutGetSelectedItem( void )
 {
-	return Centrala::Storage().GetItem( m_CashoutSelectedItemId );
+	try {
+		return Centrala::Storage().GetItem( m_CashoutSelectedItemId );
+	}
+	catch(exception& e)
+	{
+		ErrorHandling::HandleException(e);
+	}
 }
 
 int BurzaDialogs::SetupDialogs( void )
@@ -566,7 +586,7 @@ void BurzaDialogs::RegisterButtonImportSeller( void )
 	try {
 		storage.GetSellerByCode( seller.shortcode );
 	}
-	catch( WrongSellerException ) {
+	catch( WrongSellerException e) {
 		sellerExists = false;
 	}
 	
@@ -579,6 +599,8 @@ void BurzaDialogs::RegisterButtonImportSeller( void )
 	
 	seller.id = storage.AddSeller( seller );
 	storage.AddItems( items, seller.id );
+
+	FillSellerCombos();
 }
 
 void BurzaDialogs::RegisterButtonAddSeller( void )
@@ -636,7 +658,16 @@ void BurzaDialogs::RegisterButtonRemoveItem( void )
 		Centrala::Storage().RemoveItem( productIdsToDelete[ i ] );
 	}
 	
-	SellerData seller = Centrala::Storage().GetSeller( m_SelectedSellerId );
+	SellerData seller;
+
+	try {
+		seller = Centrala::Storage().GetSeller( m_SelectedSellerId );
+	}
+	catch(exception& e)
+	{
+		ErrorHandling::HandleException(e);
+	}
+
 	RegisterDisplaySeller( seller );
 }
 
@@ -645,8 +676,17 @@ void BurzaDialogs::RegisterButtonCalcFee( void )
 	if ( !RegisterAnySelectedSeller() )
 		return;
 	
-	ItemDataArray items = Centrala::Storage().GetSellerItems( m_SelectedSellerId );
-	SellerData seller = Centrala::Storage().GetSeller( m_SelectedSellerId );
+	ItemDataArray items;
+	SellerData seller;
+	try {
+		items = Centrala::Storage().GetSellerItems( m_SelectedSellerId );
+		seller = Centrala::Storage().GetSeller( m_SelectedSellerId );
+	}
+	catch(exception& e)
+	{
+		ErrorHandling::HandleException(e);
+	}
+
 	double fee = Centrala::Register().CalculateFee( seller, items );
 	
 	m_pLabelFee->set_text( ConvFuncs::FormatStdStr( "%0.2f %s", fee, 
@@ -722,6 +762,11 @@ void BurzaDialogs::RegisterButtonSwitchToCashout( void )
 	m_pWndCashOut->set_focus_chain( cashoutFocusList );
 }
 
+bool BurzaDialogs::OrderSellerByShortCode(const SellerData& a, const SellerData& b)
+{ 
+	return (a.shortcode.compare( b.shortcode ) < 0); 
+}
+
 void BurzaDialogs::RegisterButtonReviewOfSellers( void )
 {
 	// offer save dialog with location of the document
@@ -756,6 +801,8 @@ void BurzaDialogs::RegisterButtonReviewOfSellers( void )
 		
 		SellerDataArray sellers = Centrala::Storage().GetSellers();
 		
+		std::sort( sellers.begin(), sellers.end(), OrderSellerByShortCode);
+
 		for( unsigned int i=0; i<sellers.size(); i++ ) {
 			recipees.PrintSellerStatus( pdf, sellers[ i ].id );
 		}
@@ -1043,7 +1090,7 @@ void BurzaDialogs::RegisterStartDialogEditProduct( ITEM_ID itemid )
 		try {
 			item = Centrala::Storage().GetItem( itemid );
 		}
-		catch(WrongItemException)
+		catch(WrongItemException*)
 		{
 			throw runtime_error( "BurzaDialogs::RegisterStartDialogEditProduct item not in list" );
 		}
@@ -1064,7 +1111,13 @@ void BurzaDialogs::RegisterStartDialogEditProduct( ITEM_ID itemid )
 	m_pItemeditStatusCombo->set_active( item.status );
 	
 	m_EditedItem = item;
-	m_EditedSeller = Centrala::Storage().GetSeller( item.seller_id );
+	try {
+		m_EditedSeller = Centrala::Storage().GetSeller( item.seller_id );
+	}
+	catch(exception& e)
+	{
+		ErrorHandling::HandleException(e);
+	}
 	
 	m_pWndItem->show();
 	HighlightEditItemOff();
@@ -1220,10 +1273,18 @@ void BurzaDialogs::RegisterStartDialogEditSeller( SELLER_ID id )
 	SellerData seller; 
 	
 	if ( id != SELLER_ID_NONE ) {
-		seller = Centrala::Storage().GetSeller( id );
+		try {
+			seller = Centrala::Storage().GetSeller( id );
+		}
+		catch(exception& e)
+		{
+			ErrorHandling::HandleException(e);
+		}
+
 		Centrala::Storage().ModifySellerStart( id );
 	} else {
 		seller.name = _( "Nový predajca" );
+		seller.id = SELLER_ID_NONE;
 	}
 	
 	m_pSellerEditName->set_text( seller.name );
@@ -1250,16 +1311,17 @@ void BurzaDialogs::RegisterButtonSellerEditOk( void )
 	string sellerOriginalCode = m_EditedSeller.shortcode;
 	str = m_pSellerEditCode->get_text();
 	// check new code and set it to seller
-	str = Centrala::Storage().GenerateSellerUniqueCode( m_EditedSeller.name, str );
-	if ( m_EditedSeller.shortcode != str ) {
+	str = Centrala::Storage().GenerateSellerUniqueCode( m_EditedSeller.name, str, m_EditedSeller.id );
+	if ( m_pSellerEditCode->get_text() != str ) {
+		m_EditedSeller.shortcode = str;
 		m_pSellerEditCode->set_text( m_EditedSeller.shortcode );
-		m_EditedSeller.shortcode = sellerOriginalCode;
 		HighlightWidgetRed( *m_pSellerEditCode );
 		return;
 	}
 	
 	m_EditedSeller.name = m_pSellerEditName->get_text();
 	m_EditedSeller.note = m_pSellerEditNote->get_text();
+	m_EditedSeller.shortcode = m_pSellerEditCode->get_text();
 	
 	m_pWndSeller->hide();
 	
@@ -1366,4 +1428,6 @@ void BurzaDialogs::CashoutEditSearchEntryChanged( void )
 
 		m_pCashoutComboSearch->append_text( str );
 	}
+
+	do komba = + seller short code, item number. Odstran match number
 }

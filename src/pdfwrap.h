@@ -109,6 +109,8 @@ public:
 	
 	virtual string GetCurrentPageTitle( void );
 
+	static void ConvertUTF8ToISO8859_2orErrorString( std::string& str );
+
 private:
 
 	//! size : height of the font in percentage of page height

@@ -75,7 +75,7 @@ void CachedDataTextfile::ModifySellerEnd(SELLER_ID id, SellerData& seller)
 	
 	SellerMap::iterator it = sellers.find( id );
 	if ( it == sellers.end() ) {
-		throw new WrongSellerException();
+		throw WrongSellerException();
 	}
 	
 	sellers[ id ] = seller;
@@ -86,7 +86,7 @@ void CachedDataTextfile::ModifySellerEnd(SELLER_ID id, SellerData& seller)
 void CachedDataTextfile::RemoveSeller(SELLER_ID id)
 {
 	if ( sellers.find(id) == sellers.end()) {
-		throw new WrongSellerException();
+		throw WrongSellerException();
 	}
 
 	DataTextfile::RemoveSeller( id );
@@ -113,7 +113,7 @@ ItemData CachedDataTextfile::GetSellerItem(SELLER_ID id, int item_number)
 {
 	SellerMap::iterator sellerit = sellers.find( id );
 	if ( sellerit == sellers.end() ) {
-		throw new WrongSellerException();
+		throw WrongSellerException();
 	}
 	
 	for( ItemMap::iterator itemit = items.begin(), itemend = items.end(); 
@@ -141,7 +141,7 @@ SellerData CachedDataTextfile::GetSeller(SELLER_ID id)
 {
 	SellerMap::iterator	sit = sellers.find( id );
 	if ( sit == sellers.end() ) {
-		throw new WrongSellerException();
+		throw WrongSellerException();
 	}
 	
 	return sit->second;
@@ -208,7 +208,7 @@ ItemDataArray CachedDataTextfile::GetSellerItems(SELLER_ID id)
 {
 	SellerMap::iterator sellerit = sellers.find( id );
 	if ( sellerit == sellers.end() ) {
-		throw new WrongSellerException();
+		throw WrongSellerException();
 	}
 	
 	ItemDataArray result;

@@ -55,7 +55,7 @@ void DummyDataGenerator::GenerateSellersAndItems(
 		
 		for( int sellerIdx = 0; sellerIdx < numberOfSellers; ++sellerIdx ) {
 			
-			string sellerCode = storage->GenerateSellerUniqueCode( "", "AA" );
+			string sellerCode = storage->GenerateSellerUniqueCode( "", "AA", SELLER_ID_NONE );
 			string sellerName = "Predajca";
 			string note = "Poznamka - ";
 			note += sellerCode;
