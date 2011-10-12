@@ -37,12 +37,13 @@ unsigned int ItemSearch::levenshtein_distance(const T &s1, const T & s2)
     return prevCol[len2];
 }
 
-void ItemSearch::FetchLatestItemData( void )
+void ItemSearch::FetchLatestData( void )
 {
 	items.clear();
+	sellers.clear();
 
 	try {
-		SellerDataArray sellers = Centrala::Storage().GetSellers();
+		sellers = Centrala::Storage().GetSellers();
 
 		SellerDataIterator it = sellers.begin(), ite = sellers.end();
 		for( ; it != ite; ++it ) {
@@ -60,7 +61,7 @@ void ItemSearch::FetchLatestItemData( void )
 		ErrorHandling::HandleException(e);
 	}
 	catch(...) {
-		exception e("ItemSearch::FetchLatestItemData");
+		exception e("ItemSearch::FetchLatestData");
 		ErrorHandling::HandleException(e);
 	}
 }
@@ -98,12 +99,12 @@ vector<ItemData> ItemSearch::LookForItemsContainingWords( string& partOfName, SE
 				matches = limit - 1;
 			}
 
-			items[ i ].name += ConvFuncs::FormatStdStr( " - %i", matches );
 			preResults[ matches ].push_back( items[ i ] );
 		}
 	}
 
 	/*
+	// return all matches sorted by matches count
 	for( int i = limit - 1; i >= 0; --i ) {
 		for( int j = 0; j < preResults[ i ].size(); ++j ) {
 			result.push_back( preResults[ i ][ j ] );
@@ -121,7 +122,7 @@ vector<ItemData> ItemSearch::LookForItemsContainingWords( string& partOfName, SE
 	return result;
 }
 
-vector<ItemData> ItemSearch::LookForItemsStemmming( string& partOfName, SELLER_ID sellerId )
+vector<ItemData> ItemSearch::LookForItemsDistance( string& partOfName, SELLER_ID sellerId )
 {
 	vector<ItemData> result;
 	/*
@@ -157,4 +158,15 @@ vector<ItemData> ItemSearch::LookForItemsStemmming( string& partOfName, SELLER_I
 	*/
 
 	return result;
+}
+
+SellerData ItemSearch::GetSeller( SELLER_ID sellerId )
+{
+	SellerDataIterator it;
+
+	for( it = sellers.begin(); it != sellers.end(); ++it )
+		if ( it->id == sellerId )
+			return *it;
+
+	throw WrongSellerException();
 }

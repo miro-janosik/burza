@@ -72,8 +72,6 @@ int main2( int argc, char **argv )
 	Centrala::Dialogs().FillSellerCombos();
 	Centrala::Dialogs().RegisterDisplaySellerByIndex( 0 );
 
-	Centrala::Search().FetchLatestItemData();
-	
 	std::string exceptionMessage;
 	
 	try {

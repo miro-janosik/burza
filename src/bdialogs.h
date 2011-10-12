@@ -269,6 +269,10 @@ public:
 	
 	//! array of items; array is non-sorted so it can be assigned to visual list.
 	ShoppingCartArray			m_shoppingCart;
+
+	// array of the items linked with the m_pCashoutComboSearch combo-box.
+	// all the data that are in the combo box, are also here, in same order.
+	ItemDataArray	cashoutComboSearchItemDatas;
 	
 } ;
 

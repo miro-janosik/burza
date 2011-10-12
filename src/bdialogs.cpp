@@ -760,6 +760,8 @@ void BurzaDialogs::RegisterButtonSwitchToCashout( void )
 	cashoutFocusList.push_back( m_pButtonRegister );
 	
 	m_pWndCashOut->set_focus_chain( cashoutFocusList );
+
+	Centrala::Search().FetchLatestData();
 }
 
 bool BurzaDialogs::OrderSellerByShortCode(const SellerData& a, const SellerData& b)
@@ -1409,25 +1411,60 @@ void BurzaDialogs::CashoutEditLookupItemChanged( void )
 
 void BurzaDialogs::CashoutEditSearchChanged( void )
 {
-	// m_pCashoutComboLookupItem
-	//m_pCashoutComboSearch
+	int selectedItemIdx = m_pCashoutComboSearch->property_active();
+
+	if ( selectedItemIdx == -1 ) {
+		return;
+	}
+
+	// get the selected item data
+	if (( selectedItemIdx < 0 ) || ( selectedItemIdx >= cashoutComboSearchItemDatas.size() )) {
+		assert( false );
+	}
+
+	ItemData item = cashoutComboSearchItemDatas[ selectedItemIdx ];
+
+	try {
+		SellerData seller = Centrala::Storage().GetSeller( item.seller_id );
+		
+		m_pCashoutEntryLookupSeller->set_text( seller.shortcode );
+		m_pCashoutEntryLookupItem->set_text( ConvFuncs::FormatCstr( "%i", item.number ) );
+	}
+	catch(exception& e)
+	{
+		ErrorHandling::HandleException(e);
+	}
 }
 
 void BurzaDialogs::CashoutEditSearchEntryChanged( void )
 {
 	vector<ItemData> foundItems;
 	string str;
-	string text = m_pCashoutComboSearchEntry->get_text();
-
-	foundItems = Centrala::Search().LookForItemsContainingWords( text );
+	ItemSearch& search = Centrala::Search();
+	SellerData sellerOfItem;
 
 	m_pCashoutComboSearch->clear();
-	
+	cashoutComboSearchItemDatas.clear();
+
+	string text = m_pCashoutComboSearchEntry->get_text();
+	foundItems = search.LookForItemsContainingWords( text );
+
 	for( int i=0; i<foundItems.size(); ++i ) {
-		str = foundItems[ i ].name;
+
+		sellerOfItem = search.GetSeller( foundItems[ i ].seller_id );
+
+		str = ConvFuncs::FormatStdStr("%s - %i - %s",
+			sellerOfItem.shortcode.c_str(), 
+			foundItems[ i ].number, 
+			foundItems[ i ].name.c_str() );
 
 		m_pCashoutComboSearch->append_text( str );
+		cashoutComboSearchItemDatas.push_back( foundItems[ i ] );
 	}
 
-	do komba = + seller short code, item number. Odstran match number
+	if ( ! foundItems.empty() ) {
+		m_pCashoutComboSearch->popup();
+	}
+	m_pCashoutComboSearchEntry->activate();
+	m_pCashoutComboSearchEntry->grab_focus();
 }
