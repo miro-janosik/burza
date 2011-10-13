@@ -5,11 +5,8 @@
 
 #include <exception>
 #include "convfncs.h"
-#ifdef _linux
+
 #include "pqxx/pqxx"
-#else
-#include "pqxx\pqxx"
-#endif
 
 using namespace pqxx;
 using namespace std;

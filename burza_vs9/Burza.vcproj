@@ -100,7 +100,7 @@
 			OutputDirectory="$(SolutionDir)\..\run"
 			IntermediateDirectory="$(SolutionDir)\..\temp\$(ConfigurationName)"
 			ConfigurationType="1"
-			InheritedPropertySheets="..\..\gtkmm\MSVC\gtkmm-vc90-d-2_4.vsprops"
+			InheritedPropertySheets="..\..\gtkmm\MSVC\gtkmm-vc90-2_4.vsprops"
 			CharacterSet="0"
 			WholeProgramOptimization="1"
 			>
@@ -142,7 +142,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libxl.lib pqxx.lib libhpdf.lib"
+				AdditionalDependencies="libxl.lib libpqxx.lib libhpdf.lib"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="&quot;$(ProjectDir)/../lib/libXL&quot;;&quot;$(ProjectDir)/../lib/pqxx&quot;;&quot;$(ProjectDir)/../lib/libharu&quot;"
 				GenerateDebugInformation="true"

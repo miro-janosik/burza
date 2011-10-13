@@ -257,7 +257,7 @@ void ExcelFileWrapper::ReadSeller( string filename, SellerData& seller, ItemData
 			num, 
 			atof( price.c_str() ), 
 			0, 
-			not_in_stock_yet ));
+			on_stock ));
 		
 		row++;
 	} ;

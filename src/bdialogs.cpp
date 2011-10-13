@@ -504,6 +504,8 @@ void BurzaDialogs::FillSellerCombos( void )
 	m_DisplayedSellers = Centrala::Storage().GetSellers();
 	std::string		str;
 	
+	sort( m_DisplayedSellers.begin(), m_DisplayedSellers.end(), OrderSellerByShortCode );
+	
 	m_pComboSeller->clear();
 	m_pCashoutComboLookupSeller->clear();
 	
@@ -908,6 +910,13 @@ void BurzaDialogs::CashoutButtonAddItem( void )
 		return;
 	}
 	
+	if ( CashoutGetSelectedItem().status != on_stock ) {
+		if ( DisplayYesNoMessageBox( 
+			_("Tento tovar nieje označený že je na sklade"), 
+			_("Chcete ho naozaj predať?") ) == false )
+			return;
+	}
+
 	// ked nieje, tak pridaj
 	ItemData item = CashoutGetSelectedItem();
 	ItemCategory itemcat = Centrala::Storage().GetItemCategory( item.category );
@@ -1029,6 +1038,12 @@ void BurzaDialogs::CashoutSelectedItemChanged( void )
 		CashoutGetSelectedItem().price, 
 		DataAccessInterface::ItemStatus2String( CashoutGetSelectedItem().status ) );
 	m_pCashoutLabelItemPrice->set_text( str );
+
+	if ( CashoutGetSelectedItem().status == on_stock ) {
+		HighlightWidgetOff( *m_pCashoutLabelItemPrice );
+	} else {
+		HighlightWidgetRed( *m_pCashoutLabelItemPrice );
+	}
 }
 
 void BurzaDialogs::CashoutSellerChanged( void )
@@ -1370,7 +1385,7 @@ void BurzaDialogs::CashoutEditLookupSellerChanged( void )
 
 void BurzaDialogs::CashoutDisplaySeller( const char* shortcode )
 {
-	int idx = mp_register->NajdiPredajcuPodlaKoduIndex( shortcode );
+	int idx = DataAccessInterface::FindSellerIndexByCode( m_DisplayedSellers, shortcode );
 	
 	m_pCashoutComboLookupItem->clear();
 	m_CashoutDisplayedItems.clear();
@@ -1462,9 +1477,11 @@ void BurzaDialogs::CashoutEditSearchEntryChanged( void )
 		cashoutComboSearchItemDatas.push_back( foundItems[ i ] );
 	}
 
+	/*
 	if ( ! foundItems.empty() ) {
 		m_pCashoutComboSearch->popup();
 	}
 	m_pCashoutComboSearchEntry->activate();
 	m_pCashoutComboSearchEntry->grab_focus();
+	*/
 }

@@ -142,10 +142,9 @@ void BurzaRegister::PridajNovehoPredajcu( const char* kod, const char* meno, con
 
 int BurzaRegister::NajdiPredajcuPodlaKoduIndex( const char* kod )
 {
-	SellerDataArray sellers = m_storage->GetSellers();
-	string codeString(kod);
-	
-	return DataAccessInterface::FindSellerIndexByCode( sellers, codeString );
+	// obsolete
+	assert( false );
+	return -1;
 }
 
 SellerData BurzaRegister::NajdiPredajcuPodlaKodu( const char* kod )
@@ -162,31 +161,17 @@ SellerData BurzaRegister::NajdiPredajcuPodlaKodu( const char* kod )
 
 void BurzaRegister::FinishCheckout( ItemDataArray& items )
 {
-	double sum = CalcPriceOfProducts( items );
-	/*
-	// mark items in register as sold
-	ItemDataIterator it, ite;
-	
-	for( it = items.begin(), ite = items.end(); it != ite; ++it ) {
-
-		ItemData item;
-		try {
-			item = m_storage->GetItem(it->id);
-		}
-		catch(WrongItemException ex) {
-			throw runtime_error( "BurzaRegister::FinishCheckout: Item not found" );
-		}
-		
-		item.status = sold;
-		m_storage->ModifyItem(item.id, item);
-	}
-	*/
 	try {
 	  
 	  Recipees recipees;
 	  HPDFWrapper	pdf;
-	  pdf.CreatePDF( "/home/mirex/tmp/a.pdf" );
-	  
+	  string filename = Centrala::Settings().m_document_ouput_directory;
+	  filename += ConvFuncs::FormatStdStr( "%s_%02i-%02i-%02i_%02i-%02i.pdf",
+		_("Predaj"),
+		ConvFuncs::datetime.year % 100, ConvFuncs::datetime.month, ConvFuncs::datetime.day,
+		ConvFuncs::datetime.hour, ConvFuncs::datetime.minute );
+	  pdf.CreatePDF( filename );
+
 	  recipees.PrintRecipeeAtEndOfCheckout( items, pdf );
 	  
 	  pdf.ClosePDF();
@@ -197,6 +182,15 @@ void BurzaRegister::FinishCheckout( ItemDataArray& items )
 		Centrala::Dialogs().DisplayErrorMessageBox( "PDF out of range error", e.what() );
 	} catch( ... ) {
 		Centrala::Dialogs().DisplayErrorMessageBox( "PDF error" );
+	}
+
+	// mark items in register as sold
+	ItemDataIterator it, ite;
+	
+	for( it = items.begin(), ite = items.end(); it != ite; ++it ) {
+
+		it->status = sold;
+		m_storage->ModifyItem(it->id, *it);
 	}
 }
 
@@ -324,3 +318,8 @@ void Centrala::Zmaz( void )
 	}
 }
 
+DB backup, install na NB
+
+tlaciaren - nainstaluj ju ku notebooku.
+taby - presuvanie pri predaji
+makcene na windowse

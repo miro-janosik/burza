@@ -136,7 +136,7 @@ int DataAccessInterface::FindSellerIndexByCode( SellerDataArray& list, string co
 	for( it = list.begin(), ite = list.end(), index = 0; 
 	  it != ite; 
 	  ++it, ++index ) {
-		 if (it->shortcode == code )
+		  if ( stricmp( it->shortcode.c_str(), code.c_str() ) == 0 )
 			return index;
 	}
 	

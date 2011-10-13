@@ -144,7 +144,6 @@ void Recipees::PrintRecipeeAtEndOfCheckout( ItemDataArray& items, PdfWrapperBase
 		title += ConvFuncs::FormatStdStr( "%i-%i-%i %i:%i",
 			dt->year, dt->month, dt->day, dt->hour, dt->minute );
 		
-		//StringEncoding::UTF8toISO8859_2( title );
 		pdf.NewPage( title );
 		AddProgramPageHeaderAndFooter( pdf );
 		
