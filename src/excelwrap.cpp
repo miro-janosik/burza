@@ -13,6 +13,7 @@
 #include <libxl.h>
 #include "ExcelFormat.h"
 #include "stringencoding.h"
+#include "translate.h"
 
 using namespace BurzaExcel;
 using namespace BurzaTable;
