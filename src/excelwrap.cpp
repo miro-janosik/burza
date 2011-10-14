@@ -172,9 +172,9 @@ bool ExcelFileWrapper::FindCellByText( const char* text, int& row, int& column)
 void ExcelFileWrapper::ReadSeller( string filename, SellerData& seller, ItemDataArray& items ) throw( runtime_error )
 {
 	string error_str;
-	error_str = "Could not read seller from file '";
+	error_str = _("Nepodarilo sa mi naËÌtaù s˙bor s predajcom '");
 	error_str += filename;
-	error_str += "' because ";
+	error_str += _("' pretoûe ");
 	
 	try {
 		ReadSheetIntoTable( filename );
@@ -203,7 +203,7 @@ void ExcelFileWrapper::ReadSeller( string filename, SellerData& seller, ItemData
 	}
 
 	if (!itemsOk) {
-		error_str += "file does not contain special marks";
+		error_str += _("s˙bor neobsahuje öpeci·lne znaky");
 		throw runtime_error( error_str );
 	}
 	
@@ -220,28 +220,34 @@ void ExcelFileWrapper::ReadSeller( string filename, SellerData& seller, ItemData
 		seller.shortcode = m_sheet.Cell( infotableRow + 3, infotableColumn + 1 ).GetText();
 	}
 	catch(std::out_of_range& e) {
-		error_str += "could not read seller info";
+		error_str += _("zo s˙boru sa nepodarilo sa naËÌtaù ˙daje predajcu");
 		throw runtime_error( error_str );
 	}
 
 	// read stock
 	int num;
 	// from numberRow skip 2 lines - info codes + item table header
-	int row = numberRow + 2;
+	int row = numberRow + 1;
 	string s;
 	
 	while( true ) {
+		row++;
+
+		if (( m_sheet.Cell( row, numberColumn ) == "" ) &&
+			( m_sheet.Cell( row, nameColumn ) == "" ) &&
+			( m_sheet.Cell( row, priceColumn ) == "" )) 
+			break;
 
 		if (( m_sheet.Cell( row, nameColumn ) == "" ) || 
 			( m_sheet.Cell( row, priceColumn ) == "" )) {
-			break;
+			continue;
 		}
 		
 		s = m_sheet.Cell( row, numberColumn );
 		num = atoi( s.c_str() );
 		
 		if (( num < 1 ) || ( num > 1000 )) {
-			error_str += ConvFuncs::FormatStdStr( "item at line %i does not have item number but instead '%s'", 
+			error_str += ConvFuncs::FormatStdStr( _("Tovar na riadku %i m· namiesto ËÌsla text '%s'"), 
 				row, s.c_str() );
 			throw runtime_error( error_str );
 		}
@@ -258,7 +264,5 @@ void ExcelFileWrapper::ReadSeller( string filename, SellerData& seller, ItemData
 			atof( price.c_str() ), 
 			0, 
 			on_stock ));
-		
-		row++;
 	} ;
 }

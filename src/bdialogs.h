@@ -49,6 +49,7 @@ public:
 	static void DisplayErrorMessageBox( const char* msg, const char* msg_title = NULL );
 	//! returns true if Yes is pressed, false otherwise (you can expect that either No or 'x' was pressed.
 	bool DisplayYesNoMessageBox( string message, string title );
+	void DisplayOkMessageBox( string message, string title );
 	
 	void RegisterStartDialogEditProduct( ITEM_ID item );
 	void RegisterStartDialogEditSeller( SELLER_ID id );

@@ -598,11 +598,20 @@ void BurzaDialogs::RegisterButtonImportSeller( void )
 				seller.shortcode.c_str() ) );
 		return;
 	}
+
+	// imported items have to be checked by hand. Take note that these were not.
+	seller.note += _(" za MC prijal: !zatiaľ neprebrané!");
 	
 	seller.id = storage.AddSeller( seller );
 	storage.AddItems( items, seller.id );
 
+	DisplayOkMessageBox( 
+		_( "Predajca načítaný"),
+		ConvFuncs::FormatStdStr( _("Kód: %s Meno: %s Počet položiek: %i"), 
+			seller.shortcode.c_str(), seller.name.c_str(), items.size() ));
+
 	FillSellerCombos();
+	RegisterDisplaySeller( seller );
 }
 
 void BurzaDialogs::RegisterButtonAddSeller( void )
@@ -1096,6 +1105,15 @@ bool BurzaDialogs::DisplayYesNoMessageBox( string message, string title )
 	dialog.set_secondary_text( title );
 	int res = dialog.run();
 	return ( res == Gtk::RESPONSE_YES );
+}
+
+void BurzaDialogs::DisplayOkMessageBox( string message, string title )
+{
+	Gtk::MessageDialog dialog( message, false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_OK, true );
+	
+	dialog.set_title( title );
+	dialog.set_secondary_text( title );
+	int res = dialog.run();
 }
 
 void BurzaDialogs::RegisterStartDialogEditProduct( ITEM_ID itemid )

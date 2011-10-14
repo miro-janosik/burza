@@ -162,9 +162,9 @@ template<> struct char_traits<unsigned char>
 #if defined(PQXX_PQ_STATIC)
 #ifdef _DEBUG
 //#pragma comment(lib, "libpqd")
-#pragma comment(lib, "libpq")
+//#pragma comment(lib, "libpq")
 #else
-#pragma comment(lib, "libpq")
+//#pragma comment(lib, "libpq")
 #endif
 #else
 #ifdef _DEBUG

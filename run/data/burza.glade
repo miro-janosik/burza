@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE glade-interface SYSTEM "glade-2.0.dtd">
-<!--Generated with glade3 3.4.3 on Mon Sep 26 00:16:17 2011 -->
+<!--Generated with glade3 3.4.3 on Fri Oct 14 22:06:03 2011 -->
 <glade-interface>
   <widget class="GtkWindow" id="Pokladna">
     <property name="title" translatable="yes" comments="Cash-out">Pokladňa</property>
@@ -20,6 +20,8 @@
         <child>
           <widget class="GtkVBox" id="vbox1">
             <property name="visible">True</property>
+            <property name="orientation">GTK_ORIENTATION_VERTICAL</property>
+            <property name="orientation">GTK_ORIENTATION_VERTICAL</property>
             <child>
               <widget class="GtkFixed" id="fixed2">
                 <property name="height_request">20</property>
@@ -140,7 +142,11 @@
                   <widget class="GtkLabel" id="label item price">
                     <property name="width_request">100</property>
                     <property name="visible">True</property>
+                    <property name="xpad">5</property>
                     <property name="label" translatable="yes">cena a stav</property>
+                    <property name="justify">GTK_JUSTIFY_CENTER</property>
+                    <property name="selectable">True</property>
+                    <property name="single_line_mode">True</property>
                   </widget>
                   <packing>
                     <property name="expand">False</property>
@@ -155,39 +161,9 @@
               </packing>
             </child>
             <child>
-              <widget class="GtkLabel" id="label2">
-                <property name="visible">True</property>
-                <property name="xalign">0.10000000149011612</property>
-                <property name="label" translatable="yes">Nájdi tovar</property>
-              </widget>
-              <packing>
-                <property name="expand">False</property>
-                <property name="position">7</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkComboBoxEntry" id="comboboxentry_search">
-                <property name="visible">True</property>
-                <child internal-child="entry">
-                  <widget class="GtkEntry" id="comboboxentry-entry1">
-                  </widget>
-                </child>
-              </widget>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">8</property>
-              </packing>
-            </child>
-            <child>
               <widget class="GtkHBox" id="hbox3">
                 <property name="height_request">40</property>
                 <property name="visible">True</property>
-                <child>
-                  <widget class="GtkFixed" id="fixed6">
-                    <property name="visible">True</property>
-                  </widget>
-                </child>
                 <child>
                   <widget class="GtkButton" id="button cashout add item">
                     <property name="visible">True</property>
@@ -197,18 +173,13 @@
                     <property name="label" translatable="yes" comments="add to bill">Pridaj do nákupu</property>
                     <property name="response_id">0</property>
                   </widget>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">False</property>
-                    <property name="position">1</property>
-                  </packing>
                 </child>
                 <child>
                   <widget class="GtkFixed" id="fixed8">
                     <property name="visible">True</property>
                   </widget>
                   <packing>
-                    <property name="position">2</property>
+                    <property name="position">1</property>
                   </packing>
                 </child>
                 <child>
@@ -222,9 +193,8 @@
                     <property name="response_id">0</property>
                   </widget>
                   <packing>
-                    <property name="expand">False</property>
                     <property name="fill">False</property>
-                    <property name="position">3</property>
+                    <property name="position">2</property>
                   </packing>
                 </child>
                 <child>
@@ -232,8 +202,42 @@
                     <property name="visible">True</property>
                   </widget>
                   <packing>
-                    <property name="position">4</property>
+                    <property name="expand">False</property>
+                    <property name="position">3</property>
                   </packing>
+                </child>
+                <child>
+                  <widget class="GtkFixed" id="fixed6">
+                    <property name="visible">True</property>
+                  </widget>
+                  <packing>
+                    <property name="position">7</property>
+                  </packing>
+                </child>
+              </widget>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">7</property>
+              </packing>
+            </child>
+            <child>
+              <widget class="GtkLabel" id="label2">
+                <property name="visible">True</property>
+                <property name="xalign">0.10000000149011612</property>
+                <property name="label" translatable="yes">Nájdi tovar</property>
+              </widget>
+              <packing>
+                <property name="expand">False</property>
+                <property name="position">8</property>
+              </packing>
+            </child>
+            <child>
+              <widget class="GtkComboBoxEntry" id="comboboxentry_search">
+                <property name="visible">True</property>
+                <child internal-child="entry">
+                  <widget class="GtkEntry" id="comboboxentry-entry1">
+                  </widget>
                 </child>
               </widget>
               <packing>
@@ -367,6 +371,7 @@
         <child>
           <widget class="GtkVBox" id="vbox2">
             <property name="visible">True</property>
+            <property name="orientation">GTK_ORIENTATION_VERTICAL</property>
             <child>
               <widget class="GtkFixed" id="fixed10">
                 <property name="height_request">20</property>
@@ -676,6 +681,7 @@
       <widget class="GtkVBox" id="vbox3">
         <property name="visible">True</property>
         <property name="orientation">GTK_ORIENTATION_VERTICAL</property>
+        <property name="orientation">GTK_ORIENTATION_VERTICAL</property>
         <child>
           <widget class="GtkTable" id="table1">
             <property name="visible">True</property>
@@ -733,7 +739,7 @@
               <widget class="GtkEntry" id="sellerCode">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="max_length">2</property>
+                <property name="editable">False</property>
               </widget>
               <packing>
                 <property name="left_attach">1</property>

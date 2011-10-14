@@ -317,9 +317,3 @@ void Centrala::Zmaz( void )
 		m_instance = NULL;
 	}
 }
-
-DB backup, install na NB
-
-tlaciaren - nainstaluj ju ku notebooku.
-taby - presuvanie pri predaji
-makcene na windowse
