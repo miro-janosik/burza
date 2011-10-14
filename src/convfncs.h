@@ -264,7 +264,11 @@ public:
 
 	//! returns string filled with full path and filename of executable
 	//! works for unix and win32
-	const char*		GetExecutableFilePathName( void );
+#ifdef UNICODE
+	const wchar_t*	GetExecutableFilePathName( void );
+#else
+	const char* GetExecutableFilePathName( void );
+#endif
 
 	// moves file to different directory and renames file
 	//! comment: changed name of functions because MSVC 9.0 express has some 
@@ -348,7 +352,6 @@ public:
 	// calls function GetDateTime() to fetch current time. Formats the date 
 	// and time into string. returns pointer to DateTimeString
 	static char*	CurDateTimeString( void );
-	
 	
 	// retrieves current date and time and fills it into structure [datetime]
 	static void		GetDateTime( void );

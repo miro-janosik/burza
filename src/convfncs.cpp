@@ -138,11 +138,6 @@ ConvFuncs::~ConvFuncs()
 	if ( FindFileHandle != -1 ) {
 		_findclose( FindFileHandle );
 	}
-	if ( DirPtr != NULL ) {
-		closedir( DirPtr );
-		memset( &DirEntry, 0, sizeof( DirEntry ) );
-		DirPtr = NULL;
-	}
 #elif ( defined( _MAC ) || defined( _UNIX ))
 	// release resources first
 	if ( DirPtr != NULL ) {
@@ -633,6 +628,9 @@ int ConvFuncs::IsNumber( const char *text )
 	char		FloatNumberChars[] = "0123456789.";
 	int			i;
 	int			num_dots;
+
+	if ( strlen(text) == 0 )
+		return 0;
 
 	i = 0;
 	num_dots = 0;
@@ -1374,12 +1372,20 @@ int ConvFuncs::DoDeleteFile( const char* src )
 	return 0;
 }
 
-const char*	ConvFuncs::GetExecutableFilePathName( void )
+#ifdef UNICODE
+const wchar_t*	ConvFuncs::GetExecutableFilePathName( void )
+#else
+const char* ConvFuncs::GetExecutableFilePathName( void )
+#endif
 {
 	enum {
 		str_len = 512,
 	} ;
-	static char	filename[ str_len ];
+#ifdef UNICODE
+	static wchar_t	filename[ str_len ];
+#else
+	static char filename[ str_len ];
+#endif
 
 	filename[ 0 ] = 0;
 	

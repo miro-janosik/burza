@@ -69,7 +69,7 @@ struct SellerData {
 	SELLER_CATEGORY_ID		category;
 
 	ConvFuncs::s_datetime	last_update;
-	// ID generated through Register::GenerateSellerUniqueCode()
+	// ID generated through GetNewSellerId
 	SELLER_ID				id;
 
 public:
@@ -321,7 +321,12 @@ public:
 
   //! returns unique non-used item ID
   virtual ITEM_ID GetNewItemId( void ) = 0;
-  
+
+  //! calls GetSellers() and finds next free seller code. Starts from code [firstTryCode]
+  //! and continues through the character combinations until there is unused combination.
+  //! It might for example move from code 'ZZ' to code 'AAA' if there is no free 2-character code.
+  virtual string GenerateSellerUniqueCode( string sellerName, string firstTryCode, SELLER_ID sellerId );
+
   //! Calls AddItem on multiple items. Sets item id's
   virtual void AddItems( ItemDataArray& items, SELLER_ID id );
   

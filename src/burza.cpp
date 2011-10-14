@@ -27,12 +27,16 @@
 #include "table.h"
 #include "translate.h"
 #include "recipees.h"
+#include "xmltool.h"
+#include "errhandler.h"
+#include "itemsearch.h"
 
 #include "datatextfile.h"
 #include "cacheddatastorage.h"
 #include "datapostgrespqxx.h"
 
 using namespace Burza;
+using namespace XmlWrapperTool;
 
 Centrala* Centrala::m_instance = NULL;
 
@@ -41,9 +45,6 @@ int main2( int argc, char **argv )
 {
 	Centrala		*pcentrala = Centrala::Instance();
 
-	// pcentrala->Register().m_storage = new CachedDataTextfile( Centrala::Settings().m_data_dir_path );
-	pcentrala->Register().m_storage = new DataPostgresPqxx();
-	
 	//TODO: dispose dataStorage in destructor somehow.
 	//	DataTextfile dataStorage = new DataTextfile( Centrala::Instancia()->Nastavenia()->m_data_dir_path );
 	//	m_storage = new CachedDataStorage(*dataStorage);
@@ -59,14 +60,21 @@ int main2( int argc, char **argv )
 	
 	Centrala::Dialogs().SetupDialogs();
 	
+	try {
+		// pcentrala->Register().m_storage = new CachedDataTextfile( Centrala::Settings().m_data_dir_path );
+		pcentrala->Register().m_storage = new DataPostgresPqxx();
+	}
+	catch(...) {
+		return 0;
+	}
+
 	// Centrala::Register().NacitajVsetkychPredajcov();
 	Centrala::Dialogs().FillSellerCombos();
 	Centrala::Dialogs().RegisterDisplaySellerByIndex( 0 );
-	
+
 	std::string exceptionMessage;
 	
 	try {
-		//Gtk::Main::run( * pcentrala->Dialogy()->m_pWndRegister );
 		Gtk::Main::run();
 	}
 	catch (std::exception& ex) {
@@ -93,59 +101,6 @@ int main2( int argc, char **argv )
 // ==============================================
 // ==============================================
 
-/*
-void Seller::PridajTovar( int cislo, const char* nazov, double cena, char kategoria, e_product_status stav )
-{
-	Product	t;
-
-	t.m_cena = cena;
-	t.m_cislo = cislo;
-	t.m_kategoria = kategoria;
-	t.m_nazov = nazov;
-	t.m_stav = stav;
-	
-	// generate 'cislo'
-	if ( t.m_cislo == -1 ) {
-		
-		int max = 0;
-		for( int i=0; i<m_products.size(); ++i ) {
-			if ( max < m_products[ i ].m_cislo )
-				max = m_products[ i ].m_cislo;
-		}
-		
-		t.m_cislo = max + 1;
-	}
-	
-	m_products.push_back( t );
-	
-	
-}
-
-void Seller::ZmazTovar( int cislo )
-{
-	for( int i=0; i<m_products.size(); ++i ) {
-		if ( cislo == m_products[ i ].m_cislo ) {
-			m_products.erase( m_products.begin() + i );
-			return;
-		}
-	}
-	
-	throw runtime_error( "Seller::ZmazTovar : invalid number." );
-}
-
-int Seller::NajdiTovarIndex( int cislo )
-{
-	for( unsigned int i=0; i<m_products.size(); ++i ) {
-		if ( cislo == m_products[ i ].m_cislo ) {
-			return i;
-		}
-	}
-	
-	return -1;
-}
-
-*/
-
 double BurzaRegister::CalculateFee( SellerData& seller, ItemDataArray& items )
 {
 	double fee = 0;
@@ -161,6 +116,8 @@ double BurzaRegister::CalculateFee( SellerData& seller, ItemDataArray& items )
 	SellerCategory scat = m_storage->GetSellerCategory(seller.category);
 	
 	fee += scat.seller_fee;
+
+	return -4.0;
 }
 
 // ==============================================
@@ -177,82 +134,17 @@ BurzaRegister::~BurzaRegister()
 }
 
 
-	/*
-void BurzaRegister::NacitajVsetkychPredajcov( void )
-{
-	m_storage->GetSellers();
-	
-	for(SellerDataIterator sc=sellers.begin(), se=sellers.end(); sc != se; ++sc ) {
-		Seller	s;
-		s.m_kod 		= sc->shortcode;
-		s.m_meno 		= sc->name;
-		s.m_poznamka	= sc->note;
-		s.m_kategoria	= sc->category;
-		s.m_unique_id	= sc->unique_id;
-		
-		ItemDataArray items;
-		items = m_storage->GetSellerItems( sc->unique_id );
-		
-		for( ItemDataIterator ic=items.begin(), ie=items.end(); ic != ie; ++ic ) {
-			Product	p;
-			
-			p.m_cena		= ic->price;
-			p.m_cislo		= ic->number;
-			p.m_kategoria	= ic->category;
-			p.m_nazov		= ic->name;
-			p.m_stav		= ic->status;
-			
-			s.m_products.push_back(p);
-		}
-	}
-}
-	*/
-
 void BurzaRegister::PridajNovehoPredajcu( const char* kod, const char* meno, const char* poznamka )
-{
-	/*
-	Seller	p;
-
-	p.m_kod = kod;
-	p.m_meno = meno;
-	p.m_poznamka = poznamka;
-	
-	m_predajcovia.push_back( p );
-	*/
-	
+{	
 	SellerData newseller(meno, kod, poznamka, 'a');
 	m_storage->AddSeller(newseller);
 }
 
-	/*
-BurzaRegister::t_predajcovia::iterator BurzaRegister::NajdiPredajcuPodlaKoduIt( const char* kod )
-{
-	std::vector< Seller >::iterator	it;
-	Seller	*p;
-	
-	for( it = m_predajcovia.begin(); it != m_predajcovia.end(); it++ ) {
-	
-		p = &( *it );
-	
-		if ( p->m_kod == kod )
-			return it;
-	}
-	
-	return it;
-	
-	string codeString( kod );
-	SellerData seller = m_storage->GetSellerByCode(codeString);
-	
-	return x;
-}
-	*/
-
 int BurzaRegister::NajdiPredajcuPodlaKoduIndex( const char* kod )
 {
-	SellerDataArray sellers = m_storage->GetSellers();
-	string codeString(kod);
-	
-	return DataAccessInterface::FindSellerIndexByCode( sellers, codeString );
+	// obsolete
+	assert( false );
+	return -1;
 }
 
 SellerData BurzaRegister::NajdiPredajcuPodlaKodu( const char* kod )
@@ -267,102 +159,19 @@ SellerData BurzaRegister::NajdiPredajcuPodlaKodu( const char* kod )
 // ==============================================
 // ==============================================
 
-void BurzaRegister::GenerateSellerUniqueCode( SellerData& seller, std::string try_this_code )
-{
-	// if its empty try to generate it from name
-	if ( try_this_code.empty() ) {
-		std::vector<std::string> tokens;
-		ConvFuncs::Tokenize( seller.name, tokens );
-		
-		for( int i=0; i<tokens.size(); ++i ) {
-			try_this_code += tokens[ i ][ 0 ];
-		}
-	}
-	
-	// minimum length 2
-	while ( try_this_code.size() < 2 ) {
-		try_this_code += "A";
-	}
-	
-	// run through all the sellers to see if its unique
-	// if its not, generate first that is.
-	int sellerIndex;
-	int tries = 0;
-	SellerDataArray	sellers = m_storage->GetSellers();
-	
-	while( true ) {
-		
-		ConvFuncs::StdStringToUpper( try_this_code );
-		sellerIndex = DataAccessInterface::FindSellerIndexByCode( sellers, try_this_code );
-		if ( sellerIndex == -1 )
-			break;
-		
-		// inc characters, AB => AC, AZ => BA
-		int char_pos = try_this_code.size() - 1;
-		while( char_pos >= 0 ) {
-			if ( try_this_code[ char_pos ] >= 'Z' ) {
-				try_this_code = 'A';
-				char_pos--;
-			} else {
-				try_this_code[ char_pos ]++;
-				break;
-			}
-		}
-		
-		// Wooh, I could loop like this forever. Just help it if its too much
-		tries++;
-		if ( tries > 100 ) {
-			try_this_code += "A";
-			tries = 0;
-		}
-	}
-	
-	seller.shortcode = try_this_code;
-}
-
-/*
-		HPDFWrapper	pdf;
-		string pdfFileName = Centrala::Instancia->Nastavenia()->m_data_dir_path;
-		pdfFileName += "ucet_";
-		
-		ConvFuncs::GetDateTime();
-		ConvFuncs::s_datetime *dt = &ConvFuncs::datetime;
-		pdfFileName += ConvFuncs::FormatStdStr( "%i_%i_%i-%i_%i",
-			dt->year, dt->month, dt->day, dt->hour, dt->minute );
-		pdfFileName += ".pdf";
-		
-		pdf.CreatePDF( pdfFileName );
-		
-
-*/
-
 void BurzaRegister::FinishCheckout( ItemDataArray& items )
 {
-	double sum = CalcPriceOfProducts( items );
-	/*
-	// mark items in register as sold
-	ItemDataIterator it, ite;
-	
-	for( it = items.begin(), ite = items.end(); it != ite; ++it ) {
-
-		ItemData item;
-		try {
-			item = m_storage->GetItem(it->id);
-		}
-		catch(WrongItemException ex) {
-			throw runtime_error( "BurzaRegister::FinishCheckout: Item not found" );
-		}
-		
-		item.status = sold;
-		m_storage->ModifyItem(item.id, item);
-	}
-	*/
 	try {
 	  
 	  Recipees recipees;
 	  HPDFWrapper	pdf;
-	  pdf.CreatePDF( "/home/mirex/tmp/a.pdf" );
-	  
+	  string filename = Centrala::Settings().m_document_ouput_directory;
+	  filename += ConvFuncs::FormatStdStr( "%s_%02i-%02i-%02i_%02i-%02i.pdf",
+		_("Predaj"),
+		ConvFuncs::datetime.year % 100, ConvFuncs::datetime.month, ConvFuncs::datetime.day,
+		ConvFuncs::datetime.hour, ConvFuncs::datetime.minute );
+	  pdf.CreatePDF( filename );
+
 	  recipees.PrintRecipeeAtEndOfCheckout( items, pdf );
 	  
 	  pdf.ClosePDF();
@@ -373,6 +182,15 @@ void BurzaRegister::FinishCheckout( ItemDataArray& items )
 		Centrala::Dialogs().DisplayErrorMessageBox( "PDF out of range error", e.what() );
 	} catch( ... ) {
 		Centrala::Dialogs().DisplayErrorMessageBox( "PDF error" );
+	}
+
+	// mark items in register as sold
+	ItemDataIterator it, ite;
+	
+	for( it = items.begin(), ite = items.end(); it != ite; ++it ) {
+
+		it->status = sold;
+		m_storage->ModifyItem(it->id, *it);
 	}
 }
 
@@ -433,6 +251,38 @@ NastaveniaProgramu::NastaveniaProgramu()
 	
 	m_computer_name = "PC123";
 	m_name_of_the_sale = "Jesenna burza 2011";
+
+	CXmlTreeSingleNode configRoot;
+	string confFilename = exePath + "burza.xml";
+	if ( CXmlWrapperTools::ReadTreeFromDiskFile( confFilename.c_str(), configRoot ) == 1 ) {
+		ErrorHandling::HandleException( *new std::exception(_("Súbor s nastavením nenájdený")) );
+	} else {
+		CXmlTreeSingleNode* server = configRoot.GetChild("burza")->GetChild("config")->GetChild("server");
+		if (server->IsValid()) {
+
+			CXmlTreeSingleNode* node;
+			
+			node = server->GetAttribute("address");
+			if (node->IsValid())
+				dbAddress = node->GetValue();
+
+			node = server->GetAttribute("user");
+			if (node->IsValid())
+				dbUser = node->GetValue();
+
+			node = server->GetAttribute("password");
+			if (node->IsValid())
+				dbPassword = node->GetValue();
+
+			node = server->GetAttribute("dbname");
+			if (node->IsValid())
+				dbName = node->GetValue();
+
+			node = server->GetAttribute("port");
+			if (node->IsValid())
+				dbPort = node->GetValueInt();
+		}
+	}
 }
 
 // ==============================================
@@ -453,6 +303,7 @@ Centrala* Centrala::Instance( void )
 		m_instance = new Centrala;
 		
 		m_instance->mp_dialogs = new BurzaDialogs();
+		m_instance->itemSearch = new ItemSearch();
 	}
 	
 	return m_instance;
@@ -466,4 +317,3 @@ void Centrala::Zmaz( void )
 		m_instance = NULL;
 	}
 }
-

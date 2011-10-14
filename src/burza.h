@@ -23,6 +23,7 @@ int main2( int argc, char **argv );
 namespace Burza {
 	
 	class PdfWrapperBase;
+	class ItemSearch;
 	
 class NastaveniaProgramu {
 public:
@@ -44,49 +45,14 @@ public:
 	
 	//! directory where files are output
 	std::string		m_document_ouput_directory;
-} ;
 
-/*
-class SellerXXX {
-public:
-	std::string		m_kod;
-	std::string		m_meno;
-	std::string		m_poznamka;
-	char					m_kategoria;
-	// ID generated through Register::GenerateSellerUniqueCode()
-	unsigned int	m_unique_id;
-	
-	typedef		std::vector< Product >	t_products;
-	
-	t_products	m_products;
-	
-	
-	Seller();
-	
-	/// ! if [cislo] == -1  it is replaced by next number
-	void PridajTovar( int cislo, const char* nazov, double cena, char kategoria, e_product_status stav );
-	void ZmazTovar( int cislo );
-	int NajdiTovarIndex( int cislo );
-	void ZmenStavTovaru( int cislo, e_product_status stav );
-	int VerifikujCisloTovaru( Product& p, int newNumber = -1 );
-	
-	void SaveToTxtFile( CConvFile& file );
-	void LoadFromTxtFile( CConvFile& file );
-	void Save( void );
-	
-	void ReplaceCharactersInString( std::string& str, std::string& from, char to );
-	void ReplaceCharactersInString( std::string& str, const char* from, char to );
-	
-	void PrintProductsToPDF( PdfWrapperBase& pdf );
-	double CalculateFee( void );
-	
-	// key: category character; value: number of items of that category
-	typedef std::map< char, int > t_items_in_categories;
-	
-	
-	static char file_field_delimiters[];
+	//! PostgreSql connection
+	std::string		dbAddress;
+	std::string		dbUser;
+	std::string		dbPassword;
+	std::string		dbName;
+	int				dbPort;
 } ;
-*/
 
 // ==============================================
 // ==============================================
@@ -104,32 +70,8 @@ public:
 public:
 	
 	SellerDataArray	m_predajcovia;
-
-	/* shouldn't be used anymore
-	// typedef		std::vector< Seller >	t_predajcovia;
-	typedef		std::map< char, ProductCategory >	t_productCategories;
-	typedef		std::map< char, SellerCategory >	t_sellerCategories;
-
-	t_productCategories	m_productCategories;
-	t_sellerCategories	m_sellerCategories;
-	
-	struct SellerProduct {
-		string sellerCode;
-		int productNumber;
-		
-		bool operator==(const SellerProduct& other) const
-		{
-			return (( sellerCode == other.sellerCode ) && ( productNumber == other.productNumber ));
-		}
-	} ;
-	*/
-	
-	// typedef std::vector< SellerProduct > t_sellerProducts;
 	
 	void PridajNovehoPredajcu( const char* kod, const char* meno, const char* poznamka );
-	// void NacitajVsetkychPredajcov( void );
-	
-	// t_predajcovia::iterator NajdiPredajcuPodlaKoduIt( const char* kod );
 	
 	//! returns -1 if not found, or index of seller.
 	int NajdiPredajcuPodlaKoduIndex( const char* kod );
@@ -145,7 +87,6 @@ public:
 public:
 	
 	unsigned int GenerateSellerUniqueId( void );
-	void GenerateSellerUniqueCode( SellerData& seller, std::string try_this_code );
 
 	//! Returns valid number for item. Looks through seller item numbers, and if other item
 	//! has the same number, new item number is calculated.
@@ -178,10 +119,12 @@ public:
 	static BurzaDialogs& Dialogs( void ) { return * Instance()->mp_dialogs; }
 	static BurzaRegister& Register( void ) { return Instance()->m_register; }
 	static DataAccessInterface& Storage( void ) { return * Instance()->m_register.m_storage; }
+	static ItemSearch& Search( void ) { return * Instance()->itemSearch; }
 	
 	NastaveniaProgramu		m_settings;
 	BurzaDialogs			*mp_dialogs;
 	BurzaRegister			m_register;
+	ItemSearch				*itemSearch;
 } ;
 	
 	

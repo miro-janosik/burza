@@ -8,6 +8,8 @@
 #define BURZA_PDFWRAP_H
 
 #include <string>
+
+#define HPDF_DLL
 #include "hpdf.h"
 #include "table.h"
 
@@ -42,14 +44,23 @@ public:
 	virtual float GetFontHeightBase( void ) = 0;
 
 	struct TableStyle {
+		TableStyle();
+		void Reset( void );
+
 		//! rowHeight : height of the row in percentage of page height.
 		float	rowHeight;
+
+		//! rowHeight : height of the row in percentage of page height.
+		float	headerRowHeight;
+
+		//! size of the font
+		float	fontSize;
 	};
 	
 	//! x, y : left top position on the page in percentage, 0 - 100%
 	//! column width is defined in TableColumnSpecs.
 	//! text of headers and cells : text in unicode
-	virtual void DrawTable( float x, float y, TableStyle& style, TableOfCells& t, TableColumnSpecs& c ) = 0;
+	virtual void DrawTable( float x, float y, TableStyle& style, TableOfCells& t, TableColumnSpecs& c, int firstRow = -1, int lastRow = -1 ) = 0;
 	
 	//! converts position in page size percentage to position of the pdf engine
 	virtual void PercentToPos( float percentx, float percenty, int& posx, int& posy );
@@ -62,6 +73,8 @@ public:
 	virtual float PosToPercentX( int posx ) = 0;
 	virtual float PosToPercentY( int posy ) = 0;
 	virtual float HeightToPercent( int height ) = 0;
+
+	virtual string GetCurrentPageTitle( void ) = 0;
 };
 
 class HPDFWrapper : public PdfWrapperBase {
@@ -82,7 +95,7 @@ public:
 	void WriteSingleText( float x, float y, string text );
 	void WriteSingleTextIntoWidth( float x, float y, float width, string text );
 	
-	void DrawTable( float x, float y, TableStyle& style, TableOfCells& t, TableColumnSpecs& c );
+	void DrawTable( float x, float y, TableStyle& style, TableOfCells& t, TableColumnSpecs& c, int firstRow = -1, int lastRow = -1 );
 
 	//! converts position in page size percentage to position of the engine
 	virtual int PercentToPosX( float percentx );
@@ -94,6 +107,10 @@ public:
 	virtual float PosToPercentY( int posy );
 	virtual float HeightToPercent( int height );
 	
+	virtual string GetCurrentPageTitle( void );
+
+	static void ConvertUTF8ToISO8859_2orErrorString( std::string& str );
+
 private:
 
 	//! size : height of the font in percentage of page height
@@ -124,6 +141,8 @@ private:
 	
 	// function to test out size of font and its position on the page.
 	void FontPrintTest( void );
+
+	string		currentPageTitle;
 } ;
 
 }; // namespace

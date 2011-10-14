@@ -209,7 +209,7 @@ string DataTextfile::GetSellerFilenameExisting( SELLER_ID id )
 		return ConvFuncsInstance->Find_CurrentFileName();
 	}
 	
-	throw WrongSellerException();
+	return "";
 }
 
 string DataTextfile::GetSellerFilenameNew( SellerData& seller )
@@ -227,6 +227,7 @@ string DataTextfile::GetSellerFilenameNew( SellerData& seller )
 
 bool DataTextfile::ModifySellerStart(SELLER_ID id)
 {
+	return true;
 }
  
 void DataTextfile::ModifySellerEnd(SELLER_ID id, SellerData& seller)

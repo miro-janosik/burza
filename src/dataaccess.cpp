@@ -136,7 +136,7 @@ int DataAccessInterface::FindSellerIndexByCode( SellerDataArray& list, string co
 	for( it = list.begin(), ite = list.end(), index = 0; 
 	  it != ite; 
 	  ++it, ++index ) {
-		 if (it->shortcode == code )
+		  if ( stricmp( it->shortcode.c_str(), code.c_str() ) == 0 )
 			return index;
 	}
 	
@@ -258,4 +258,63 @@ SELLER_ID DataAccessInterface::GetNewSellerId( void )
 	}
 	
 	return biggestId + 1;
+}
+
+string DataAccessInterface::GenerateSellerUniqueCode( string sellerName, string firstTryCode, SELLER_ID sellerId )
+{
+	// if its empty try to generate it from name
+	if ( firstTryCode.empty() ) {
+		std::vector<std::string> tokens;
+		ConvFuncs::Tokenize( sellerName, tokens );
+		
+		for( int i=0; i<tokens.size(); ++i ) {
+			firstTryCode += tokens[ i ][ 0 ];
+		}
+	}
+	
+	// minimum length 2
+	while ( firstTryCode.size() < 2 ) {
+		firstTryCode += "A";
+	}
+	
+	// run through all the sellers to see if its unique
+	// if its not, generate first that is.
+	int sellerIndex;
+	int tries = 0;
+	SellerDataArray	sellers = GetSellers();
+	
+	while( true ) {
+		
+		ConvFuncs::StdStringToUpper( firstTryCode );
+		sellerIndex = DataAccessInterface::FindSellerIndexByCode( sellers, firstTryCode );
+
+		// if there is no user with such code, we're OK
+		if ( sellerIndex == -1 )
+			break;
+
+		// if there is seller with such code and that is me, its OK too
+		if ( sellers[ sellerIndex ].id == sellerId )
+			break;
+		
+		// inc characters, AB => AC, AZ => BA
+		int char_pos = firstTryCode.size() - 1;
+		while( char_pos >= 0 ) {
+			if ( firstTryCode[ char_pos ] >= 'Z' ) {
+				firstTryCode[ char_pos ] = 'A';
+				char_pos--;
+			} else {
+				firstTryCode[ char_pos ]++;
+				break;
+			}
+		}
+		
+		// Wooh, I could loop like this forever. Just help it if its too much
+		tries++;
+		if ( tries > 600 ) {
+			firstTryCode += "A";
+			tries = 0;
+		}
+	}
+	
+	return firstTryCode;
 }

@@ -1,22 +1,27 @@
-tery.install.txt
+	=== Windows - development ===
 
-so you want to use .so library from internet.
-first - library is probably not stored in system path.
-use 'locate thatlib.so'. If nothing is printed - it is not in the system.
-Add it:
+Instal packages:
+	* gtkmm-win32-devel-2.16.0-2.exe
+	* pqxx: more complicated. Libraries are present, but in case of problems they
+	have to be recompiled. You need PostgreSql8.3 (or "postgresql-9.1.0-1-windows.exe") 
+	and libpqxx-win32.32368.zip (from lib dir or from http://www.kirit.com/libpqxx-win32) which 
+	contains sources with msvc solution. If you build shared DLLs they have some problems
+	running (stack corruption on connecting to DB), but building static DLL works
+	if you add dependencies: wsock32.lib Ws2_32.lib , prefix PQXX_PQ_STATIC and set Burza to MDd.
+	RUN dir has to contain PostgreSql dll's (from installed DB program), they are already there.
 
-sudo ln -s $PWD/libmylib.so.666 /usr/lib/libmylib.so
+	=== Linux - development ===
 
-then fix up the locator:
+Install packages:
+	* pqxx
 
-sudo updatedb
+	=== PostgreSQL server on Linux ===
+edit /etc/postgresql/8.4/main/postgresql.conf
+change listen_addresses from 'localhost' to '*' (so anyone can connect not only server programs).
 
-and test locator
+edit pg_hba.conf
+add line:
+host	all	all	192.168.1.0	255.255.255.0	trust
 
-locate libmylib.so
-
-you can also try to see if its dependencies are met:
-
-ldd libmylib.so
-
-That's it.
+restart server:
+/etc/init.d/postgresql-8.4 restart

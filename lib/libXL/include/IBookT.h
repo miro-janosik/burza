@@ -1,5 +1,5 @@
-#ifndef IBOOKT_H
-#define IBOOKT_H
+#ifndef LIBXL_IBOOKT_H
+#define LIBXL_IBOOKT_H
 
 #include <stddef.h>
 #include "setup.h"
@@ -21,6 +21,7 @@ namespace libxl {
         virtual             bool XLAPIENTRY saveRaw(const char** data, unsigned* size) = 0;
 
         virtual  ISheetT<TCHAR>* XLAPIENTRY addSheet(const TCHAR* name, ISheetT<TCHAR>* initSheet = 0) = 0;
+        virtual  ISheetT<TCHAR>* XLAPIENTRY insertSheet(int index, const TCHAR* name, ISheetT<TCHAR>* initSheet = 0) = 0;
         virtual  ISheetT<TCHAR>* XLAPIENTRY getSheet(int index) const = 0;
         virtual             bool XLAPIENTRY delSheet(int index) = 0;
         virtual              int XLAPIENTRY sheetCount() const = 0;
@@ -45,18 +46,26 @@ namespace libxl {
         virtual              int XLAPIENTRY activeSheet() const = 0;
         virtual             void XLAPIENTRY setActiveSheet(int index) = 0;
 
+        virtual              int XLAPIENTRY pictureSize() const = 0;
+        virtual      PictureType XLAPIENTRY getPicture(int index, const char** data, unsigned* size) const = 0;
+
         virtual              int XLAPIENTRY addPicture(const TCHAR* filename) = 0;
         virtual              int XLAPIENTRY addPicture2(const char* data, unsigned size) = 0;
 
         virtual     const TCHAR* XLAPIENTRY defaultFont(int* fontSize) = 0;
         virtual             void XLAPIENTRY setDefaultFont(const TCHAR* fontName, int fontSize) = 0;
 
-        virtual             void XLAPIENTRY setKey(const wchar_t* name, const wchar_t* key) = 0;
+        virtual             bool XLAPIENTRY refR1C1() const = 0;
+        virtual             void XLAPIENTRY setRefR1C1(bool refR1C1 = true) = 0;
+
+        virtual             void XLAPIENTRY setKey(const TCHAR* name, const TCHAR* key) = 0;
 
         virtual             bool XLAPIENTRY rgbMode() = 0;
         virtual             void XLAPIENTRY setRgbMode(bool rgbMode = true) = 0;
 
-        virtual             void XLAPIENTRY setLocale(const char* locale) = 0;
+        virtual              int XLAPIENTRY biffVersion() const = 0;
+
+        virtual             bool XLAPIENTRY setLocale(const char* locale) = 0;
         virtual      const char* XLAPIENTRY errorMessage() const = 0;
 
         virtual             void XLAPIENTRY release() = 0;

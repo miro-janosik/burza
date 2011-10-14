@@ -1,5 +1,5 @@
-#ifndef ISHEETT_H
-#define ISHEETT_H
+#ifndef LIBXL_ISHEETT_H
+#define LIBXL_ISHEETT_H
 
 #include "setup.h"
 #include "enum.h"
@@ -55,8 +55,18 @@ namespace libxl
         virtual             bool XLAPIENTRY setMerge(int rowFirst, int rowLast, int colFirst, int colLast) = 0;
         virtual             bool XLAPIENTRY delMerge(int row, int col) = 0;
 
+        virtual              int XLAPIENTRY pictureSize() const = 0;
+        virtual              int XLAPIENTRY getPicture(int index, int* rowTop = 0, int* colLeft = 0, int* rowBottom = 0, int* colRight = 0,
+                                                                  int* width = 0, int* height = 0, int* offset_x = 0, int* offset_y = 0) const = 0;
+
         virtual             void XLAPIENTRY setPicture(int row, int col, int pictureId, double scale = 1.0, int offset_x = 0, int offset_y = 0) = 0;
-        virtual             void XLAPIENTRY setPicture2(int row, int col, int pictureId, int width, int height, int offset_x = 0, int offset_y = 0) = 0;
+        virtual             void XLAPIENTRY setPicture2(int row, int col, int pictureId, int width = -1, int height = -1, int offset_x = 0, int offset_y = 0) = 0;
+
+        virtual             int XLAPIENTRY getHorPageBreak(int index) const = 0;
+        virtual             int XLAPIENTRY getHorPageBreakSize() const = 0;
+
+        virtual             int XLAPIENTRY getVerPageBreak(int index) const = 0;
+        virtual             int XLAPIENTRY getVerPageBreakSize() const = 0;
 
         virtual             bool XLAPIENTRY setHorPageBreak(int row, bool pageBreak = true) = 0;
         virtual             bool XLAPIENTRY setVerPageBreak(int col, bool pageBreak = true) = 0;
@@ -72,7 +82,7 @@ namespace libxl
         virtual             bool XLAPIENTRY groupSummaryRight() const = 0;
         virtual             void XLAPIENTRY setGroupSummaryRight(bool right) = 0;
 
-        virtual             bool XLAPIENTRY clear(int rowFirst = 0, int rowLast = 65535, int colFirst = 0, int colLast = 255) = 0;
+        virtual             bool XLAPIENTRY clear(int rowFirst = 0, int rowLast = 1048575, int colFirst = 0, int colLast = 16383) = 0;
 
         virtual             bool XLAPIENTRY insertCol(int colFirst, int colLast) = 0;
         virtual             bool XLAPIENTRY insertRow(int rowFirst, int rowLast) = 0;
@@ -90,13 +100,16 @@ namespace libxl
         virtual             void XLAPIENTRY setDisplayGridlines(bool show = true) = 0;
 
         virtual             bool XLAPIENTRY printGridlines() const = 0;
-        virtual             void XLAPIENTRY setPrintGridLines(bool print = true) = 0;
+        virtual             void XLAPIENTRY setPrintGridlines(bool print = true) = 0;
 
         virtual              int XLAPIENTRY zoom() const = 0;
         virtual             void XLAPIENTRY setZoom(int zoom) = 0;
 
         virtual              int XLAPIENTRY printZoom() const = 0;
         virtual             void XLAPIENTRY setPrintZoom(int zoom) = 0;
+
+        virtual             bool XLAPIENTRY getPrintFit(int* wPages, int* hPages) const = 0;
+        virtual             void XLAPIENTRY setPrintFit(int wPages = 1, int hPages = 1) = 0;
 
         virtual             bool XLAPIENTRY landscape() const = 0;
         virtual             void XLAPIENTRY setLandscape(bool landscape = true) = 0;
@@ -140,8 +153,12 @@ namespace libxl
         virtual             void XLAPIENTRY clearPrintRepeats() = 0;
         virtual             void XLAPIENTRY clearPrintArea() = 0;
 
+        virtual             bool XLAPIENTRY getNamedRange(const TCHAR* name, int* rowFirst, int* rowLast, int* colFirst, int* colLast) = 0;
         virtual             bool XLAPIENTRY setNamedRange(const TCHAR* name, int rowFirst, int rowLast, int colFirst, int colLast) = 0;
         virtual             bool XLAPIENTRY delNamedRange(const TCHAR* name) = 0;
+
+        virtual              int XLAPIENTRY namedRangeSize() const = 0;
+        virtual     const TCHAR* XLAPIENTRY namedRange(int index, int* rowFirst, int* rowLast, int* colFirst, int* colLast) = 0;
 
         virtual     const TCHAR* XLAPIENTRY name() const = 0;
         virtual             void XLAPIENTRY setName(const TCHAR* name) = 0;

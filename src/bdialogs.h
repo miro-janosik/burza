@@ -49,11 +49,25 @@ public:
 	static void DisplayErrorMessageBox( const char* msg, const char* msg_title = NULL );
 	//! returns true if Yes is pressed, false otherwise (you can expect that either No or 'x' was pressed.
 	bool DisplayYesNoMessageBox( string message, string title );
+	void DisplayOkMessageBox( string message, string title );
 	
 	void RegisterStartDialogEditProduct( ITEM_ID item );
 	void RegisterStartDialogEditSeller( SELLER_ID id );
 	void RegisterSellerModified( Burza::SellerData& seller );
 	
+	//! highlights widget's background and edge color
+	void HighlightWidgetRed( Gtk::Widget& widget );
+
+	//! returns widget's color to normal
+	void HighlightWidgetOff( Gtk::Widget& widget );
+
+	//! stop highlighting items on the control
+	void HighlightEditSellerOff( void );
+	void HighlightEditItemOff( void );
+	
+	//! Compares two sellers by their short code and returns true if a > b
+	static bool OrderSellerByShortCode(const SellerData& a, const SellerData& b);
+
 public:
 	
 	// "register" dialog functions
@@ -101,7 +115,7 @@ public:
 	void RegisterButtonItemEditCancel( void );
 	bool RegisterButtonItemEditClose( GdkEventAny* );
 	void RegisterComboItemEditStatusChanged( void );
-	
+
 	// "seller" edit dialog
 	void RegisterButtonSellerEditOk( void );
 	void RegisterButtonSellerEditCancel( void );
@@ -256,6 +270,10 @@ public:
 	
 	//! array of items; array is non-sorted so it can be assigned to visual list.
 	ShoppingCartArray			m_shoppingCart;
+
+	// array of the items linked with the m_pCashoutComboSearch combo-box.
+	// all the data that are in the combo box, are also here, in same order.
+	ItemDataArray	cashoutComboSearchItemDatas;
 	
 } ;
 

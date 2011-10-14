@@ -5,13 +5,13 @@
 
 using namespace Burza;
 
-void ErrorHandling::HandleException(std::exception& e)
+void ErrorHandling::HandleException(const std::exception& e)
 {
 	LogS( InfoError, "HandleException: %s", e.what() );
 	BurzaDialogs::DisplayErrorMessageBox( e.what(), _("Program nemohol vykonat operaciu.") );
 }
 
-void ErrorHandling::HandlePostgresException(std::exception& e)
+void ErrorHandling::HandlePostgresException(const std::exception& e)
 {
 	LogS( InfoError, "HandlePostgresException: %s", e.what() );
 	BurzaDialogs::DisplayErrorMessageBox( e.what(), _("Problem s databazou, prosim skuste opat.") );

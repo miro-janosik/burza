@@ -1,0 +1,12 @@
+<burza>
+	<config>
+		<!--	address="192.168.1.106" password="heslo" -->
+
+		<server 
+			address="127.0.0.1" 
+			user="postgres" 
+			password="p4ssw0rd" 
+			dbname="burzadb" 
+			port="5432" />
+	</config>
+</burza>

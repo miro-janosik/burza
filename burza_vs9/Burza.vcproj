@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="Burza"
 	ProjectGUID="{2F391BD3-CB0B-489F-92B9-930A4041C07A}"
 	RootNamespace="Burza"
@@ -18,11 +18,11 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)"
+			OutputDirectory="$(SolutionDir)\..\run"
+			IntermediateDirectory="$(SolutionDir)\..\temp\$(ConfigurationName)"
 			ConfigurationType="1"
 			InheritedPropertySheets="..\..\gtkmm\MSVC\gtkmm-vc90-d-2_4.vsprops"
-			CharacterSet="1"
+			CharacterSet="0"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -42,11 +42,13 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
+				AdditionalIncludeDirectories="&quot;$(ProjectDir)..\&quot;;&quot;$(ProjectDir)..\lib\libharu\include&quot;;&quot;$(ProjectDir)..\lib\libXL\include&quot;;&quot;$(ProjectDir)..\lib\pqxx\include\&quot;;&quot;$(ProjectDir)..\src\irrXml&quot;;&quot;$(ProjectDir)..\src\BasicExcelFormat&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="1"
-				UsePrecompiledHeader="2"
+				RuntimeLibrary="3"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderThrough=""
 				WarningLevel="3"
 				DebugInformationFormat="4"
 			/>
@@ -61,7 +63,12 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="libxl.lib libpqxxD.lib libhpdf.lib"
+				OutputFile="$(OutDir)\$(ProjectName)D.exe"
 				LinkIncremental="2"
+				AdditionalLibraryDirectories="&quot;$(ProjectDir)/../lib/libXL&quot;;&quot;$(ProjectDir)/../lib/pqxx&quot;;&quot;$(ProjectDir)/../lib/libharu&quot;"
+				IgnoreAllDefaultLibraries="false"
+				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				TargetMachine="1"
@@ -90,11 +97,11 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)"
+			OutputDirectory="$(SolutionDir)\..\run"
+			IntermediateDirectory="$(SolutionDir)\..\temp\$(ConfigurationName)"
 			ConfigurationType="1"
 			InheritedPropertySheets="..\..\gtkmm\MSVC\gtkmm-vc90-2_4.vsprops"
-			CharacterSet="1"
+			CharacterSet="0"
 			WholeProgramOptimization="1"
 			>
 			<Tool
@@ -116,10 +123,11 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
+				AdditionalIncludeDirectories="&quot;$(ProjectDir)..\&quot;;&quot;$(ProjectDir)..\lib\libharu\include&quot;;&quot;$(ProjectDir)..\lib\libXL\include&quot;;&quot;$(ProjectDir)..\lib\pqxx\include\&quot;;&quot;$(ProjectDir)..\src\irrXml&quot;;&quot;$(ProjectDir)..\src\BasicExcelFormat&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
-				UsePrecompiledHeader="2"
+				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"
 			/>
@@ -134,7 +142,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="libxl.lib libpqxx.lib libhpdf.lib"
 				LinkIncremental="1"
+				AdditionalLibraryDirectories="&quot;$(ProjectDir)/../lib/libXL&quot;;&quot;$(ProjectDir)/../lib/pqxx&quot;;&quot;$(ProjectDir)/../lib/libharu&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				OptimizeReferences="2"
@@ -168,65 +178,251 @@
 	</References>
 	<Files>
 		<Filter
-			Name="Source Files"
-			Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
-			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
+			Name="data"
 			>
 			<File
-				RelativePath=".\Burza.cpp"
+				RelativePath="..\src\cacheddatastorage.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\convfile.cpp"
+				RelativePath="..\src\cacheddatastorage.h"
 				>
 			</File>
 			<File
-				RelativePath=".\stdafx.cpp"
+				RelativePath="..\src\dataaccess.cpp"
 				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="1"
-					/>
-				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\src\dataaccess.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\datapostgrespqxx.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\datapostgrespqxx.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\datatextfile.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\datatextfile.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\generator.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\generator.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\itemsearch.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\itemsearch.h"
+				>
 			</File>
 		</Filter>
 		<Filter
-			Name="Header Files"
-			Filter="h;hpp;hxx;hm;inl;inc;xsd"
-			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
+			Name="tools"
 			>
 			<File
-				RelativePath=".\convfile.h"
+				RelativePath="..\src\convfile.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\stdafx.h"
+				RelativePath="..\src\convfile.h"
 				>
 			</File>
 			<File
-				RelativePath=".\targetver.h"
+				RelativePath="..\src\convfncs.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\convfncs.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\format.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\format.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\log.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\log.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\myassert.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\stringencoding.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\stringencoding.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\xmltool.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\xmltool.h"
+				>
+			</File>
+			<Filter
+				Name="irrXml"
+				>
+				<File
+					RelativePath="..\src\irrxml\CXMLReaderImpl.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\irrxml\fast_atof.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\irrxml\heapsort.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\irrxml\irrArray.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\irrxml\irrString.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\irrxml\irrTypes.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\irrxml\irrXML.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\src\irrxml\irrXML.h"
+					>
+				</File>
+			</Filter>
+		</Filter>
+		<Filter
+			Name="pdf"
+			>
+			<File
+				RelativePath="..\src\pdfwrap.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\pdfwrap.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\recipees.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\recipees.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\table.h"
 				>
 			</File>
 		</Filter>
 		<Filter
-			Name="Resource Files"
-			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
-			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
+			Name="xls"
 			>
+			<File
+				RelativePath="..\src\excelwrap.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\excelwrap.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\odswrap.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\odswrap.h"
+				>
+			</File>
+			<Filter
+				Name="BasicExcelFormat"
+				>
+				<File
+					RelativePath="..\src\BasicExcelFormat\BasicExcel.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\src\BasicExcelFormat\BasicExcel.hpp"
+					>
+				</File>
+				<File
+					RelativePath="..\src\BasicExcelFormat\ExcelFormat.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\src\BasicExcelFormat\ExcelFormat.h"
+					>
+				</File>
+			</Filter>
+		</Filter>
+		<Filter
+			Name="dialogs"
+			>
+			<File
+				RelativePath="..\src\bdialogs.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\bdialogs.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\burza.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\burza.h"
+				>
+			</File>
 		</Filter>
 		<File
+			RelativePath="..\src\burzamain.cpp"
+			>
+		</File>
+		<File
+			RelativePath="..\src\errhandler.cpp"
+			>
+		</File>
+		<File
+			RelativePath="..\src\errhandler.h"
+			>
+		</File>
+		<File
 			RelativePath=".\ReadMe.txt"
+			>
+		</File>
+		<File
+			RelativePath="..\src\translate.h"
 			>
 		</File>
 	</Files>

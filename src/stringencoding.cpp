@@ -9,9 +9,9 @@
 #include <stdexcept>
 #include <exception>
 #include <errno.h>
+#include <vector>
 
-// #include <glibmm-2.4/glibmm/convert.h>
-// Glib::IConv	iconv;
+#include "convfncs.h"
 
 #ifdef _UNIX
 #include <string.h>
@@ -40,55 +40,104 @@ void StringEncoding::UTF8toASCII( std::string& str )
 	str = s;
 }
 
-void StringEncoding::UTF8toISO8859_2( std::string& str )
+std::vector<char> StringEncoding::OneToAnother( const char* src, int sizeinbytes, const std::string& from, const std::string& to )
 {
 	iconv_t cd;     // conversion descriptor
 	
 	const unsigned int OutBufLen = 1024;
-	char inBuffer[ OutBufLen + 1 ];
 	char outBuffer[ OutBufLen + 1 ];
-	char* inBufferPtr = inBuffer;
+	const char* inBufferPtr = src;
 	char* outBufferPtr = outBuffer;
 	
-	size_t inleft = str.size();
+	size_t inleft = sizeinbytes;
 	size_t outleft = OutBufLen;
+	int printErrno = -1;
 	
-	unsigned int c = str.size();
-	if ( c > OutBufLen ) {
-		c = OutBufLen;
-		// string too long
-		throw std::runtime_error( "StringUTF8toISO8859_2: Input string too long." );
-	}
-	memcpy( inBuffer, str.c_str(), c );
-	inBuffer[ c ] = 0;
-	
-	if ((cd = iconv_open( "ISO_8859-2", "UTF-8")) == (iconv_t)(-1)) 
-	{
-		throw std::runtime_error( "StringUTF8toISO8859_2: Cannot open converter" );
-	}
-	
-	// return code of iconv()
-	int rc = iconv(cd, &inBufferPtr, &inleft, &outBufferPtr, &outleft);
-	if (rc == -1) {
-		std::string errstr;
-		errstr = "StringUTF8toISO8859_2: Error in converting characters;";
+	try {
+		if ( sizeinbytes > OutBufLen ) {
+			sizeinbytes = OutBufLen;
+			// string too long
+			throw std::runtime_error( "Input string too long." );
+		}
 		
-		if(errno == E2BIG)
-				errstr += "errno == E2BIG";
-		if(errno == EILSEQ)
-				errstr += "errno == EILSEQ";
-		if(errno == EINVAL)
-				errstr +="errno == EINVAL";
-
+		if ((cd = iconv_open( to.c_str(), from.c_str() )) == (iconv_t)(-1)) 
+		{
+			printErrno = errno;
+			throw std::runtime_error( "Cannot open converter" );
+		}
+		
+		// return code of iconv()
+		int rc = iconv(cd, &inBufferPtr, &inleft, &outBufferPtr, &outleft);
+		if (rc == -1) {
+			printErrno = errno;
+			iconv_close(cd);
+			throw std::runtime_error( "Error in converting characters" );
+		}
 		iconv_close(cd);
-		throw std::runtime_error( errstr );
 	}
-	iconv_close(cd);
-	
+	catch(std::runtime_error& e) {
+		std::string err;
+
+		err = ConvFuncs::FormatStdStr( 
+			"StringEncoding::OneToAnother(%s => %s): %s",
+			from.c_str(), to.c_str(), e.what() );
+		if ( printErrno != -1 ) {
+			err += ConvFuncs::FormatStdStr( "(errno:%i)", printErrno );
+		}
+
+		throw std::runtime_error( err );
+	}
+
 	*outBufferPtr = 0;
-	str = outBuffer;
+	std::vector<char> outstr;
+	outstr.insert( outstr.end(), outBuffer, outBufferPtr );
+	return outstr;
 }
 
+void StringEncoding::UTF8ToISO8859_2( std::string& str )
+{
+	std::vector<char> result;
+	result = OneToAnother( str.c_str(), str.size(), "UTF-8", "ISO_8859-2" );
+	std::string resultstr( result.begin(), result.end() );
+	str = resultstr;
+}
 
+void StringEncoding::ISO8859_2ToUTF8( std::string& str )
+{
+	std::vector<char> result;
+	result = OneToAnother( str.c_str(), str.size(), "ISO_8859-2", "UTF-8" );
+	std::string resultstr( result.begin(), result.end() );
+	str = resultstr;
+}
+
+std::string StringEncoding::WStringToUTF8(std::wstring &str)
+{
+	std::vector<char> result;
+	const char* cp = (const char*)str.c_str();
+	result = OneToAnother( cp, str.size() * 2, "UCS-2-INTERNAL", "UTF-8" );
+	std::string resultstr( result.begin(), result.end() );
+	
+	return resultstr;
+}
+
+std::wstring StringEncoding::StringToWString(std::string &str)
+{
+	return wstring();
+}
+
+void StringEncoding::UTF8RemoveAccents( std::string& str )
+{
+	// plans - using library ICU
+	string from =	"·¡‰ƒË»ÔœÈ…ÌÕÂ≈æºÚ“Û”Ù‘‡¿¯ÿöäùç˙⁄˝›ûé";
+	string to =		"aAaAcCdDeEiIlLlLnNoOoOrRrRsStTuUyYzZ";
+	string::size_type pos;
+
+	for( string::iterator it = str.begin(); it != str.end(); ++it ) {
+		pos = from.find( *it );
+		if ( pos != string::npos ) {
+			*it = to[ pos ];
+		}
+	}
+}
 
 }

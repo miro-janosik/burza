@@ -7,16 +7,30 @@
 #include "convfncs.h"
 #include "stringencoding.h"
 #include "translate.h"
+#include "errhandler.h"
 
 using namespace Burza;
 using namespace BurzaTable;
 using namespace std;
 
+float Recipees::marginTop = 10;
+float Recipees::marginBottom = 80;
+float Recipees::marginLeft = 10;
+float Recipees::marginRight = 90;
+
 void Recipees::PrintSellerStatus( PdfWrapperBase& pdf, SELLER_ID id )
 {
-	SellerData seller = Centrala::Storage().GetSeller( id );
+	SellerData seller;
+
+	try {
+		seller = Centrala::Storage().GetSeller( id );
+	}
+	catch(exception& e)
+	{
+		ErrorHandling::HandleException(e);
+	}
 	
-	pdf.NewPage( ConvFuncs::FormatStdStr( _("Predávajúci %s"), seller.name.c_str() ) );
+	pdf.NewPage( ConvFuncs::FormatStdStr( _("%s - %s"), seller.shortcode.c_str(), seller.name.c_str() ) );
 	AddProgramPageHeaderAndFooter( pdf );
 	
 	pdf.SetFontSize(2);
@@ -54,10 +68,7 @@ void Recipees::PrintSellerStatus( PdfWrapperBase& pdf, SELLER_ID id )
 		items.Cell( i, 5 ) = DataAccessInterface::ItemStatus2String( sellerItems[ i ].status );
 	}
 
-	PdfWrapperBase::TableStyle	style;
-	style.rowHeight = pdf.GetFontHeight() * 1.2;
-
-	pdf.DrawTable( 10, 20, style, items, columns );
+	DrawTableSplitOnPages( pdf, 10, 20, items, columns );
 }
 
 void Recipees::AddProgramPageHeaderAndFooter( PdfWrapperBase& pdf )
@@ -88,6 +99,36 @@ void Recipees::AddProgramPageHeaderAndFooter( PdfWrapperBase& pdf )
 		"Srdiečko"));
 }
 
+void Recipees::DrawTableSplitOnPages( PdfWrapperBase& pdf, float fx, float fy, TableOfCells& table, TableColumnSpecs& columns )
+{
+	PdfWrapperBase::TableStyle	style;
+	style.fontSize = 1.3;
+	style.headerRowHeight = style.fontSize * 1.5;
+	style.rowHeight = style.fontSize * 1.2;
+
+	int firstRowToPrint, rowsToPrint, lastRowToPrint;
+	firstRowToPrint = 0;
+	
+	do {
+		rowsToPrint = ( marginBottom - fy ) / style.rowHeight;
+		lastRowToPrint = firstRowToPrint + rowsToPrint;
+		if ( lastRowToPrint >= table.Rows() ) {
+			lastRowToPrint = table.Rows() - 1;
+		}
+		
+		pdf.DrawTable( fx, fy, style, table, columns, firstRowToPrint, lastRowToPrint );
+		
+		if ( lastRowToPrint >= table.Rows() - 1 ) {
+			break;
+		}
+
+		pdf.NewPage( pdf.GetCurrentPageTitle() );
+		AddProgramPageHeaderAndFooter( pdf );
+		fy = marginTop;
+		firstRowToPrint = lastRowToPrint + 1;
+	} while( true );
+}
+
 void Recipees::PrintRecipeeAtEndOfCheckout( ItemDataArray& items, PdfWrapperBase& pdf )
 {
 	string errorMessage;
@@ -103,7 +144,6 @@ void Recipees::PrintRecipeeAtEndOfCheckout( ItemDataArray& items, PdfWrapperBase
 		title += ConvFuncs::FormatStdStr( "%i-%i-%i %i:%i",
 			dt->year, dt->month, dt->day, dt->hour, dt->minute );
 		
-		//StringEncoding::UTF8toISO8859_2( title );
 		pdf.NewPage( title );
 		AddProgramPageHeaderAndFooter( pdf );
 		
@@ -143,12 +183,7 @@ void Recipees::PrintRecipeeAtEndOfCheckout( ItemDataArray& items, PdfWrapperBase
 			table.Cell( index, 3 ) = ConvFuncs::FormatStdStr( "%0.2f", it->price );
 		}
 		
-		pdf.SetFontSize( 2.5 );
-
-		PdfWrapperBase::TableStyle	style;
-		style.rowHeight = pdf.GetFontHeight() * 1.2;
-		
-		pdf.DrawTable( 10, 20, style, table, columns );
+		DrawTableSplitOnPages( pdf, 10, 20, table, columns );
 		
 	} catch( runtime_error& e ) {
 		errorMessage = "PDF error:";

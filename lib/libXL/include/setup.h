@@ -1,7 +1,7 @@
-#ifndef SETUP_CPP_H
-#define SETUP_CPP_H
+#ifndef LIBXL_SETUP_CPP_H
+#define LIBXL_SETUP_CPP_H
 
-#ifdef _MSC_VER
+#if !defined(LIBXL_STATIC) && (defined(_MSC_VER) || defined(__WATCOMC__))
 
   #ifdef libxl_EXPORTS
       #define XLAPI __declspec(dllexport)

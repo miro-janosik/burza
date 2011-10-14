@@ -17,6 +17,7 @@
 #ifndef _HPDF_TYPES_H
 #define _HPDF_TYPES_H
 
+/* Modified by MJanosik - HPDF_STDCALL to nothing instead of __stdcall
 #ifndef HPDF_STDCALL
 #ifdef HPDF_DLL_MAKE
 #define HPDF_STDCALL __stdcall
@@ -28,6 +29,8 @@
 #endif
 #endif
 #endif
+*/
+#define HPDF_STDCALL
 
 #include <stdlib.h>
 
