@@ -248,7 +248,7 @@ SELLER_ID DataAccessInterface::GetNewSellerId( void )
 {
 	SellerDataArray sellers = GetSellers();
 	
-	SELLER_ID biggestId = -2;
+	SELLER_ID biggestId = 0;
 	int i = 0, c = sellers.size();
 	
 	for( ; i < c; ++i ) {

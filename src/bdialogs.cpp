@@ -446,7 +446,8 @@ void BurzaDialogs::RegisterDisplaySellerByIndex( unsigned int idx )
 
 	if ( idx >= sellers.size() ) {
 		m_SelectedSellerId = SELLER_ID_NONE;
-		assert( false );
+
+		DisplayOkMessageBox( _("Neexistuje žiaden predajca"), "" );
 		return;
 	}
 
@@ -1129,6 +1130,8 @@ void BurzaDialogs::RegisterStartDialogEditProduct( ITEM_ID itemid )
 		{
 			throw runtime_error( "BurzaDialogs::RegisterStartDialogEditProduct item not in list" );
 		}
+	} else {
+		item.category = 0;
 	}
 
 	ItemCategory cat = Centrala::Storage().GetItemCategory( item.category );
@@ -1319,6 +1322,8 @@ void BurzaDialogs::RegisterStartDialogEditSeller( SELLER_ID id )
 		Centrala::Storage().ModifySellerStart( id );
 	} else {
 		seller.name = _( "Nový predajca" );
+|		seller.note = _( "za MC prijal: !zatiaľ neprebrané!" );
+		seller.category = 0;
 		seller.id = SELLER_ID_NONE;
 	}
 	
