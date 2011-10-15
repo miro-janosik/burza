@@ -216,7 +216,7 @@ public:
 	// ItemDataArray m_RegisterDisplayedItems;
 	
 	// Register
-	SELLER_ID		m_SelectedSellerId;
+	SELLER_ID		m_RegisterSelectedSellerId;
 	
 	bool 	RegisterAnySelectedSeller( void );
 	SellerData 	RegisterGetSelectedSeller( void );

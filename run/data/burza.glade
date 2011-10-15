@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE glade-interface SYSTEM "glade-2.0.dtd">
-<!--Generated with glade3 3.4.3 on Fri Oct 14 22:06:03 2011 -->
+<!--Generated with glade3 3.4.3 on Sat Oct 15 00:48:11 2011 -->
 <glade-interface>
   <widget class="GtkWindow" id="Pokladna">
-    <property name="title" translatable="yes" comments="Cash-out">Pokladňa</property>
-    <property name="modal">True</property>
+    <property name="title" translatable="yes" comments="Cash-out">Burza - Pokladňa</property>
     <child>
       <widget class="GtkHBox" id="hbox1">
         <property name="visible">True</property>
@@ -354,8 +353,7 @@
     </child>
   </widget>
   <widget class="GtkWindow" id="Register">
-    <property name="title" translatable="yes">Register</property>
-    <property name="modal">True</property>
+    <property name="title" translatable="yes">Burza - Register</property>
     <child>
       <widget class="GtkHBox" id="hbox4">
         <property name="visible">True</property>
@@ -371,6 +369,7 @@
         <child>
           <widget class="GtkVBox" id="vbox2">
             <property name="visible">True</property>
+            <property name="orientation">GTK_ORIENTATION_VERTICAL</property>
             <property name="orientation">GTK_ORIENTATION_VERTICAL</property>
             <child>
               <widget class="GtkFixed" id="fixed10">
@@ -691,26 +690,34 @@
             <property name="column_spacing">5</property>
             <property name="row_spacing">5</property>
             <child>
-              <widget class="GtkEntry" id="sellerNote">
+              <widget class="GtkEntry" id="sellerName">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
               </widget>
               <packing>
                 <property name="left_attach">1</property>
                 <property name="right_attach">2</property>
-                <property name="top_attach">2</property>
-                <property name="bottom_attach">3</property>
               </packing>
             </child>
             <child>
-              <widget class="GtkLabel" id="sellerNote1">
+              <widget class="GtkEntry" id="sellerCode">
                 <property name="visible">True</property>
-                <property name="label" translatable="yes">Poznámka</property>
-                <property name="justify">GTK_JUSTIFY_RIGHT</property>
+                <property name="can_focus">True</property>
               </widget>
               <packing>
-                <property name="top_attach">2</property>
-                <property name="bottom_attach">3</property>
+                <property name="left_attach">1</property>
+                <property name="right_attach">2</property>
+                <property name="top_attach">1</property>
+                <property name="bottom_attach">2</property>
+                <property name="x_options">GTK_EXPAND</property>
+              </packing>
+            </child>
+            <child>
+              <widget class="GtkLabel" id="sellerName1">
+                <property name="visible">True</property>
+                <property name="label" translatable="yes">Meno</property>
+              </widget>
+              <packing>
                 <property name="x_options">GTK_FILL</property>
               </packing>
             </child>
@@ -727,36 +734,27 @@
               </packing>
             </child>
             <child>
-              <widget class="GtkLabel" id="sellerName1">
+              <widget class="GtkLabel" id="sellerNote1">
                 <property name="visible">True</property>
-                <property name="label" translatable="yes">Meno</property>
+                <property name="label" translatable="yes">Poznámka</property>
+                <property name="justify">GTK_JUSTIFY_RIGHT</property>
               </widget>
               <packing>
+                <property name="top_attach">2</property>
+                <property name="bottom_attach">3</property>
                 <property name="x_options">GTK_FILL</property>
               </packing>
             </child>
             <child>
-              <widget class="GtkEntry" id="sellerCode">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="editable">False</property>
-              </widget>
-              <packing>
-                <property name="left_attach">1</property>
-                <property name="right_attach">2</property>
-                <property name="top_attach">1</property>
-                <property name="bottom_attach">2</property>
-                <property name="x_options">GTK_EXPAND</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkEntry" id="sellerName">
+              <widget class="GtkEntry" id="sellerNote">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
               </widget>
               <packing>
                 <property name="left_attach">1</property>
                 <property name="right_attach">2</property>
+                <property name="top_attach">2</property>
+                <property name="bottom_attach">3</property>
               </packing>
             </child>
           </widget>
@@ -821,63 +819,47 @@
             <property name="column_spacing">5</property>
             <property name="row_spacing">5</property>
             <child>
-              <widget class="GtkLabel" id="note1">
-                <property name="visible">True</property>
-                <property name="label" translatable="yes">Cena</property>
-              </widget>
-              <packing>
-                <property name="top_attach">3</property>
-                <property name="bottom_attach">4</property>
-                <property name="x_options"></property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkLabel" id="code1">
-                <property name="visible">True</property>
-                <property name="xalign">1</property>
-                <property name="label" translatable="yes">Číslo</property>
-              </widget>
-              <packing>
-                <property name="top_attach">1</property>
-                <property name="bottom_attach">2</property>
-                <property name="x_options"></property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkLabel" id="name1">
-                <property name="visible">True</property>
-                <property name="label" translatable="yes">Názov  tovaru</property>
-              </widget>
-              <packing>
-                <property name="top_attach">2</property>
-                <property name="bottom_attach">3</property>
-                <property name="x_options"></property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkEntry" id="itemPrice">
+              <widget class="GtkEntry" id="itemCategory">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
               </widget>
               <packing>
                 <property name="left_attach">1</property>
                 <property name="right_attach">2</property>
-                <property name="top_attach">3</property>
-                <property name="bottom_attach">4</property>
                 <property name="x_options">GTK_EXPAND</property>
               </packing>
             </child>
             <child>
-              <widget class="GtkEntry" id="itemNumber">
+              <widget class="GtkComboBox" id="itemStatus_combobox">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
               </widget>
               <packing>
                 <property name="left_attach">1</property>
                 <property name="right_attach">2</property>
-                <property name="top_attach">1</property>
-                <property name="bottom_attach">2</property>
+                <property name="top_attach">4</property>
+                <property name="bottom_attach">5</property>
                 <property name="x_options">GTK_EXPAND</property>
+              </packing>
+            </child>
+            <child>
+              <widget class="GtkLabel" id="label4">
+                <property name="visible">True</property>
+                <property name="label" translatable="yes">Kategória</property>
+              </widget>
+              <packing>
+                <property name="x_options"></property>
+              </packing>
+            </child>
+            <child>
+              <widget class="GtkLabel" id="label3">
+                <property name="visible">True</property>
+                <property name="label" translatable="yes">Stav</property>
+              </widget>
+              <packing>
+                <property name="top_attach">4</property>
+                <property name="bottom_attach">5</property>
+                <property name="x_options"></property>
               </packing>
             </child>
             <child>
@@ -895,47 +877,63 @@
               </packing>
             </child>
             <child>
-              <widget class="GtkLabel" id="label3">
-                <property name="visible">True</property>
-                <property name="label" translatable="yes">Stav</property>
-              </widget>
-              <packing>
-                <property name="top_attach">4</property>
-                <property name="bottom_attach">5</property>
-                <property name="x_options"></property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkLabel" id="label4">
-                <property name="visible">True</property>
-                <property name="label" translatable="yes">Kategória</property>
-              </widget>
-              <packing>
-                <property name="x_options"></property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkComboBox" id="itemStatus_combobox">
+              <widget class="GtkEntry" id="itemNumber">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
               </widget>
               <packing>
                 <property name="left_attach">1</property>
                 <property name="right_attach">2</property>
-                <property name="top_attach">4</property>
-                <property name="bottom_attach">5</property>
+                <property name="top_attach">1</property>
+                <property name="bottom_attach">2</property>
                 <property name="x_options">GTK_EXPAND</property>
               </packing>
             </child>
             <child>
-              <widget class="GtkEntry" id="itemCategory">
+              <widget class="GtkEntry" id="itemPrice">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
               </widget>
               <packing>
                 <property name="left_attach">1</property>
                 <property name="right_attach">2</property>
+                <property name="top_attach">3</property>
+                <property name="bottom_attach">4</property>
                 <property name="x_options">GTK_EXPAND</property>
+              </packing>
+            </child>
+            <child>
+              <widget class="GtkLabel" id="name1">
+                <property name="visible">True</property>
+                <property name="label" translatable="yes">Názov  tovaru</property>
+              </widget>
+              <packing>
+                <property name="top_attach">2</property>
+                <property name="bottom_attach">3</property>
+                <property name="x_options"></property>
+              </packing>
+            </child>
+            <child>
+              <widget class="GtkLabel" id="code1">
+                <property name="visible">True</property>
+                <property name="xalign">1</property>
+                <property name="label" translatable="yes">Číslo</property>
+              </widget>
+              <packing>
+                <property name="top_attach">1</property>
+                <property name="bottom_attach">2</property>
+                <property name="x_options"></property>
+              </packing>
+            </child>
+            <child>
+              <widget class="GtkLabel" id="note1">
+                <property name="visible">True</property>
+                <property name="label" translatable="yes">Cena</property>
+              </widget>
+              <packing>
+                <property name="top_attach">3</property>
+                <property name="bottom_attach">4</property>
+                <property name="x_options"></property>
               </packing>
             </child>
           </widget>

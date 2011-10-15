@@ -141,7 +141,7 @@ SellerData DataPostgresPqxx::GetSeller(SELLER_ID id)
 ItemDataArray DataPostgresPqxx::GetSellerItems(SELLER_ID id)
 {
 	ItemDataArray items;
-	string query = ConvFuncs::FormatStdStr( "SELECT * FROM items WHERE \"SELLER_ID\" = %i", id );
+	string query = ConvFuncs::FormatStdStr( "SELECT * FROM items WHERE \"SELLER_ID\" = %i ORDER BY \"NUMBER\"", id );
 
 	try {
 		items = QueryForItems( query, "getting seller items", false);
@@ -269,7 +269,11 @@ ItemCategoryArray DataPostgresPqxx::GetItemsCategories(vector<ITEM_CATEGORY_ID>&
 	ItemCategory cat;
 	vector<ITEM_CATEGORY_ID>::iterator it;
 	
+	cat.fee_per_item = 0.0;
+	cat.letter = 'i';
+
 	for( it = ids.begin(); it != ids.end(); ++it ) {
+		cat.id = *it;
 		cats.push_back(cat);
 	}
 	return cats;
@@ -295,7 +299,11 @@ SellerCategoryArray DataPostgresPqxx::GetSellersCategories(vector<SELLER_CATEGOR
 	SellerCategory cat;
 	int i = 0, c = ids.size();
 	
+	cat.letter = 's';
+	cat.seller_fee = 0.0;
+
 	for( ; i < c; ++i ) {
+		cat.id = ids[ i ];
 		cats.push_back(cat);
 	}
 	return cats;
@@ -628,9 +636,10 @@ string DataPostgresPqxx::SellerToQueryValuesString( SellerData& seller )
 {
 	string values = ConvFuncs::FormatStdStr( 
 		"( %i, '%s', '%s', '%s', %s, '%s', %i, '%s')",
-		seller.id, seller.shortcode.c_str(), seller.name.c_str(),
-		seller.note.c_str(), "false", "-", 
-		-1, ValidateTimestampToString( seller.last_update ).c_str() );
+		seller.id, ApostropheToDouble( seller.shortcode ).c_str(), 
+		ApostropheToDouble( seller.name ).c_str(),
+		ApostropheToDouble( seller.note ).c_str(), "false", "-", 
+		seller.category, ValidateTimestampToString( seller.last_update ).c_str() );
 	return values;
 }
 
@@ -638,8 +647,8 @@ string DataPostgresPqxx::ItemToQueryNewValuesString( ItemData& item )
 {
 	string values = ConvFuncs::FormatStdStr( 
 		"( %i, '%s', %i, %0.4f, '%s', '%s', %i, %i, %i, '%s' )",
-		item.id, item.name.c_str(), item.seller_id, item.price, 
-		"false", "-", -1, 
+		item.id, ApostropheToDouble( item.name ).c_str(), item.seller_id, item.price, 
+		"false", "-", item.category, 
 		item.number, (int)item.status,
 		ValidateTimestampToString( item.last_update ).c_str() );
 	return values;
@@ -651,7 +660,7 @@ string DataPostgresPqxx::ItemToQueryUpdateValuesString( ItemData& item )
 "\"NAME\"= '%s', \"SELLER_ID\"= '%i', \"PRICE\"= '%0.4f', \"CHANGING\"= '%s', \
 \"CHANGED_BY\"= '%s', \"ITEM_CATEGORY_ID\"= '%i', \"NUMBER\"= '%i', \"STATUS\"= '%i', \
 \"MODIFIED\"= '%s'",
-		item.name.c_str(), item.seller_id, item.price, 
+		ApostropheToDouble( item.name ).c_str(), item.seller_id, item.price, 
 		"false", "-", item.category, item.number, item.status,
 		ValidateTimestampToString( item.last_update ).c_str() );
 	return values;
@@ -661,9 +670,25 @@ string DataPostgresPqxx::SellerToQueryUpdateValuesString( SellerData& data )
 {
 	string values = ConvFuncs::FormatStdStr( 
 		"\"SHORT_CODE\"='%s', \"NAME\"='%s', \"COMMENT\"='%s', \"CHANGING\"='%s', \"CHANGED_BY\"='%s', \"SELLER_CATEGORY_ID\"=%i, \"MODIFIED\"='%s'",
-		data.shortcode.c_str(), data.name.c_str(), data.note.c_str(), 
+		ApostropheToDouble( data.shortcode ).c_str(), 
+		ApostropheToDouble( data.name ).c_str(), 
+		ApostropheToDouble( data.note ).c_str(), 
 		"false", "", data.category, ValidateTimestampToString( data.last_update ).c_str() );
 	return values;
+}
+
+string DataPostgresPqxx::ApostropheToDouble( string str )
+{
+	string::const_iterator it;
+	for( it = str.begin(); it != str.end(); ++it ) {
+		if ( *it != '\'' )
+			continue;
+
+		str.insert( it, '\'' );
+		++it;
+	}
+
+	return str;
 }
 
 void DataPostgresPqxx::HandlePostgresqlException( exception& e )

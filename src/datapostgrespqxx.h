@@ -84,6 +84,9 @@ class DataPostgresPqxx : public DataAccessInterface
 	string SellerToQueryUpdateValuesString( SellerData& data );
 	string ItemToQueryNewValuesString( ItemData& item );
 	string ItemToQueryUpdateValuesString( ItemData& item );
+
+	string ApostropheToDouble( string str );
+
 	void HandlePostgresqlException( exception& e );
 	void HandlePostgresqlException( exception* e ) { HandlePostgresqlException( *e ); }
 	void HandleException( exception& e );

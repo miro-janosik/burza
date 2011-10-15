@@ -39,7 +39,7 @@ BurzaDialogs::BurzaDialogs()
 {
 	mp_register = & Centrala::Register();
 	
-	m_SelectedSellerId = SELLER_ID_NONE;
+	m_RegisterSelectedSellerId = SELLER_ID_NONE;
 	
 	m_CashoutSelectedSellerId = SELLER_ID_NONE;
 	m_CashoutSelectedItemId = ITEM_ID_NONE;
@@ -56,13 +56,13 @@ BurzaDialogs::~BurzaDialogs()
 
 bool BurzaDialogs::RegisterAnySelectedSeller( void )
 { 
-	return m_SelectedSellerId != SELLER_ID_NONE; 
+	return m_RegisterSelectedSellerId != SELLER_ID_NONE; 
 }
 
 SellerData BurzaDialogs::RegisterGetSelectedSeller( void )
 { 
 	try {
-		return Centrala::Storage().GetSeller( m_SelectedSellerId );
+		return Centrala::Storage().GetSeller( m_RegisterSelectedSellerId );
 	}
 	catch(exception& e)
 	{
@@ -72,7 +72,7 @@ SellerData BurzaDialogs::RegisterGetSelectedSeller( void )
 
 SELLER_ID BurzaDialogs::RegisterGetSelectedSellerId( void )
 {
-	return m_SelectedSellerId;
+	return m_RegisterSelectedSellerId;
 }
 
 SellerData BurzaDialogs::CashoutGetSelectedSeller( void )
@@ -442,21 +442,19 @@ void BurzaDialogs::RegisterDisplaySeller( const char* kod )
 
 void BurzaDialogs::RegisterDisplaySellerByIndex( unsigned int idx )
 {
-	SellerDataArray	sellers = Centrala::Storage().GetSellers();
-
-	if ( idx >= sellers.size() ) {
-		m_SelectedSellerId = SELLER_ID_NONE;
+	if ( idx >= m_DisplayedSellers.size() ) {
+		m_RegisterSelectedSellerId = SELLER_ID_NONE;
 
 		DisplayOkMessageBox( _("Neexistuje žiaden predajca"), "" );
 		return;
 	}
 
-	RegisterDisplaySeller(sellers[ idx ]);
+	RegisterDisplaySeller(m_DisplayedSellers[ idx ]);
 }
 
 void BurzaDialogs::RegisterDisplaySeller(SellerData& seller)
 {
-	m_SelectedSellerId = seller.id;
+	m_RegisterSelectedSellerId = seller.id;
 	
 	m_pLabelSellerNote->set_label( seller.note );
 	
@@ -479,16 +477,15 @@ void BurzaDialogs::RegisterDisplaySeller(SellerData& seller)
 			DataAccessInterface::ItemStatus2String( items[i].status ) );
 	}
 	
-	SellerDataArray sellers = Centrala::Storage().GetSellers();
 	int idx;
 	
-	for( idx = 0; idx < sellers.size(); idx++ ) {
-		if ( sellers[ idx ].id == seller.id ) {
+	for( idx = 0; idx < m_DisplayedSellers.size(); idx++ ) {
+		if ( m_DisplayedSellers[ idx ].id == seller.id ) {
 			break;
 		}
 	}
 	
-	if ( idx >= sellers.size() ) {
+	if ( idx >= m_DisplayedSellers.size() ) {
 		idx = -1;
 	}
 	m_pComboSeller->set_active( idx );
@@ -530,6 +527,12 @@ void BurzaDialogs::RegisterButtonImportSeller( void )
 	dialog.add_button( Gtk::Stock::OK, Gtk::RESPONSE_OK );
 	dialog.set_filename( Centrala::Settings().m_data_dir_path );
 	
+	if ( Centrala::Settings().directoryImport.empty() ) {
+		dialog.set_current_folder( Centrala::Settings().m_data_dir_path );
+	} else {
+		dialog.set_current_folder( Centrala::Settings().directoryImport );
+	}
+
 	Gtk::FileFilter	xls_filter;
 	xls_filter.set_name( "Excel XLS files." );
 	xls_filter.add_pattern( "*.xls" );
@@ -547,6 +550,10 @@ void BurzaDialogs::RegisterButtonImportSeller( void )
 		return;
 	}
 	
+	// set back the import directory
+	Centrala::Settings().directoryImport = dialog.get_current_folder();
+	Centrala::Settings().directoryImport += "/";
+
 	string filename = dialog.get_filename();
 	// s += "data/harok-burza.xls";
 	string::size_type pos = filename.rfind('.');
@@ -611,7 +618,7 @@ void BurzaDialogs::RegisterButtonImportSeller( void )
 		ConvFuncs::FormatStdStr( _("Kód: %s Meno: %s Počet položiek: %i"), 
 			seller.shortcode.c_str(), seller.name.c_str(), items.size() ));
 
-	FillSellerCombos();
+	ReloadSellers();
 	RegisterDisplaySeller( seller );
 }
 
@@ -673,7 +680,7 @@ void BurzaDialogs::RegisterButtonRemoveItem( void )
 	SellerData seller;
 
 	try {
-		seller = Centrala::Storage().GetSeller( m_SelectedSellerId );
+		seller = Centrala::Storage().GetSeller( m_RegisterSelectedSellerId );
 	}
 	catch(exception& e)
 	{
@@ -691,8 +698,8 @@ void BurzaDialogs::RegisterButtonCalcFee( void )
 	ItemDataArray items;
 	SellerData seller;
 	try {
-		items = Centrala::Storage().GetSellerItems( m_SelectedSellerId );
-		seller = Centrala::Storage().GetSeller( m_SelectedSellerId );
+		items = Centrala::Storage().GetSellerItems( m_RegisterSelectedSellerId );
+		seller = Centrala::Storage().GetSeller( m_RegisterSelectedSellerId );
 	}
 	catch(exception& e)
 	{
@@ -713,18 +720,16 @@ void BurzaDialogs::RegisterButtonCalcRepayment( void )
 		return;
 	}
 
-	DummyDataGenerator::GenerateSellersAndItems( & Centrala::Storage(), 50, 70 );
+	// DummyDataGenerator::GenerateSellersAndItems( & Centrala::Storage(), 50, 70 );
 	return;
 
 	try {
 	  Recipees recipees;
 	  HPDFWrapper	pdf;
 	  pdf.CreatePDF( "/home/mirex/tmp/a.pdf" );
-	  
-	  SellerDataArray sellers = Centrala::Storage().GetSellers();
-	  
-	  for( unsigned int i=0; i<sellers.size(); i++ ) {
-		  recipees.PrintSellerStatus( pdf, sellers[ i ].id );
+	  	  
+	  for( unsigned int i=0; i<m_DisplayedSellers.size(); i++ ) {
+		  recipees.PrintSellerStatus( pdf, m_DisplayedSellers[ i ].id );
 	  }
 
 	  pdf.ClosePDF();
@@ -751,7 +756,7 @@ void BurzaDialogs::RegisterButtonSwitchToCashout( void )
 	m_pCashoutComboSearch->clear();
 	m_pCashoutComboSearchEntry->set_text( "" );
 
-	FillSellerCombos();
+	ReloadSellers();
 	
 	// set focus chaing = set order of tab-stops on items. Weird, but has to be done in the code.
 	// Default tab-order
@@ -778,7 +783,12 @@ void BurzaDialogs::RegisterButtonSwitchToCashout( void )
 
 bool BurzaDialogs::OrderSellerByShortCode(const SellerData& a, const SellerData& b)
 { 
-	return (a.shortcode.compare( b.shortcode ) < 0); 
+	string acode = a.shortcode;
+	string bcode = b.shortcode;
+	std::transform( acode.begin(), acode.end(), acode.begin(), static_cast<int (*)(int)>(tolower) );
+	std::transform( bcode.begin(), bcode.end(), bcode.begin(), static_cast<int (*)(int)>(tolower) );
+
+	return (acode.compare( bcode ) < 0); 
 }
 
 void BurzaDialogs::RegisterButtonReviewOfSellers( void )
@@ -813,12 +823,8 @@ void BurzaDialogs::RegisterButtonReviewOfSellers( void )
 		HPDFWrapper	pdf;
 		pdf.CreatePDF( name );
 		
-		SellerDataArray sellers = Centrala::Storage().GetSellers();
-		
-		std::sort( sellers.begin(), sellers.end(), OrderSellerByShortCode);
-
-		for( unsigned int i=0; i<sellers.size(); i++ ) {
-			recipees.PrintSellerStatus( pdf, sellers[ i ].id );
+		for( unsigned int i=0; i<m_DisplayedSellers.size(); i++ ) {
+			recipees.PrintSellerStatus( pdf, m_DisplayedSellers[ i ].id );
 		}
 		
 		pdf.ClosePDF();
@@ -838,7 +844,7 @@ void BurzaDialogs::CashoutButtonSwitchToRegister( void )
 	m_pWndCashOut->hide();
 	m_pWndRegister->maximize();
 	
-	FillSellerCombos();
+	ReloadSellers();
 	m_pLabelFee->set_text( "" );
 }
 
@@ -891,7 +897,7 @@ void BurzaDialogs::RegisterGetSelectedItemIds( vector<ITEM_ID>& listOfIds )
 	// count selected items
 	GetSelectedItemNumbers( m_RegisterItemsSelection, selectedIndexes );
 	
-	ItemDataArray items = Centrala::Storage().GetSellerItems(m_SelectedSellerId);
+	ItemDataArray items = Centrala::Storage().GetSellerItems(m_RegisterSelectedSellerId);
 	
 	for( int i=0; i<selectedIndexes.size(); ++i ) {
 		
@@ -930,11 +936,12 @@ void BurzaDialogs::CashoutButtonAddItem( void )
 	// ked nieje, tak pridaj
 	ItemData item = CashoutGetSelectedItem();
 	ItemCategory itemcat = Centrala::Storage().GetItemCategory( item.category );
+	SellerData seller = Centrala::Storage().GetSeller( item.seller_id );
 	Gtk::TreeModel::Row row;
 	
 	row = * (m_CashoutItemsListModel->append());
 	
-	row[ m_ItemsColumn.m_number ] = ConvFuncsInstance->FormatCstr( "%i", item.number );
+	row[ m_ItemsColumn.m_number ] = ConvFuncsInstance->FormatCstr( "%s - %i", seller.shortcode.c_str(), item.number );
 	row[ m_ItemsColumn.m_name ] = item.name;
 	row[ m_ItemsColumn.m_price ] = ConvFuncsInstance->FormatCstr( "%0.2f", item.price );
 	row[ m_ItemsColumn.m_category ] = ConvFuncsInstance->FormatCstr( "%c", itemcat.letter );
@@ -1132,6 +1139,8 @@ void BurzaDialogs::RegisterStartDialogEditProduct( ITEM_ID itemid )
 		}
 	} else {
 		item.category = 0;
+		item.name = _("Názov");
+		item.status = on_stock;
 	}
 
 	ItemCategory cat = Centrala::Storage().GetItemCategory( item.category );
@@ -1245,11 +1254,13 @@ void BurzaDialogs::RegisterButtonItemEditOk( void )
 	m_EditedItem.name = m_pItemeditName->get_text();
 	m_EditedItem.number =  atoi( m_pItemeditNumber->get_text().c_str() );
 	m_EditedItem.price = atof(  m_pItemeditPrice->get_text().c_str() );
-	if ( m_pItemeditCategory->get_text().empty() )
-		m_EditedItem.category = ITEM_CATEGORY_ID_NONE;
-	else
-		m_EditedItem.category = ITEM_CATEGORY_ID_NONE;
 	
+	
+	if ( m_pItemeditCategory->get_text().empty() )
+		m_EditedItem.category = 0;
+	else
+		m_EditedItem.category = 0;
+
 	int i = m_pItemeditStatusCombo->get_active_row_number();
 	if ( i != -1 ) {
 		m_EditedItem.status = (ItemStatus) i;
@@ -1322,7 +1333,7 @@ void BurzaDialogs::RegisterStartDialogEditSeller( SELLER_ID id )
 		Centrala::Storage().ModifySellerStart( id );
 	} else {
 		seller.name = _( "Nový predajca" );
-|		seller.note = _( "za MC prijal: !zatiaľ neprebrané!" );
+		seller.note = _( "za MC prijal: !zatiaľ neprebrané!" );
 		seller.category = 0;
 		seller.id = SELLER_ID_NONE;
 	}
@@ -1375,7 +1386,7 @@ void BurzaDialogs::RegisterButtonSellerEditOk( void )
 	RegisterSellerModified( m_EditedSeller );
 	
 	// start adding items right away !
-	m_SelectedSellerId = m_EditedSeller.id;
+	m_RegisterSelectedSellerId = m_EditedSeller.id;
 
 	if ( action == ea_add ) {
 		// uses m_EditedSeller
@@ -1396,7 +1407,7 @@ bool BurzaDialogs::RegisterButtonSellerEditClose( GdkEventAny* )
 
 void BurzaDialogs::RegisterSellerModified( SellerData& seller )
 {
-	FillSellerCombos();
+	ReloadSellers();
 	RegisterDisplaySeller( seller.shortcode.c_str() );
 }
 

@@ -219,6 +219,7 @@ void ExcelFileWrapper::ReadSeller( string filename, SellerData& seller, ItemData
 		seller.note = note;
 
 		seller.shortcode = m_sheet.Cell( infotableRow + 3, infotableColumn + 1 ).GetText();
+		seller.category = 0;
 	}
 	catch(std::out_of_range& e) {
 		error_str += _("zo súboru sa nepodarilo sa naèíta údaje predajcu");

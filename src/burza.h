@@ -46,6 +46,8 @@ public:
 	//! directory where files are output
 	std::string		m_document_ouput_directory;
 
+	std::string		directoryImport;
+
 	//! PostgreSql connection
 	std::string		dbAddress;
 	std::string		dbUser;
