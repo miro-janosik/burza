@@ -96,6 +96,9 @@ public:
 	
 	double CalculateFee( SellerData& seller, ItemDataArray& items );
 
+	//! displays specified PDF file in system-specific PDF viewer
+	int DisplayPdf( const char* fileName );
+
   private:
 	ItemCategory	temporaryItemCategory;
 	SellerCategory	temporarySellerCategory;

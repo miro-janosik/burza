@@ -1445,11 +1445,19 @@ void ConvFuncs::GetDateTime( void )
 	SYSTEMTIME		time;
 
 	GetSystemTime( &time );
-	
+
+	TIME_ZONE_INFORMATION	timeZoneInformation;
+	GetTimeZoneInformation( &timeZoneInformation );
+
+	DWORD timeAdjustment;
+	DWORD timeIncrement;
+	BOOL adjustmentDisabled;
+	GetSystemTimeAdjustment( &timeAdjustment, &timeIncrement, &adjustmentDisabled );
+
 	datetime.year		=	time.wYear;
 	datetime.month		=	time.wMonth;
 	datetime.day		=	time.wDay;
-	datetime.hour		=	time.wHour;
+	datetime.hour		=	time.wHour - timeZoneInformation.Bias / 60 - timeZoneInformation.DaylightBias / 60;
 	datetime.minute		=	time.wMinute;
 	datetime.second		=	time.wSecond;
 	

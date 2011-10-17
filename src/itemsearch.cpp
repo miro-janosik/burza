@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <string>
+#include <algorithm>
 #include "dataaccess.h"
 #include "burza.h"
 #include "errhandler.h"
@@ -53,6 +54,8 @@ void ItemSearch::FetchLatestData( void )
 			for( int i=0; i < sellerItems.size(); ++i ) {
 				
 				StringEncoding::UTF8RemoveAccents( sellerItems[ i ].name );
+				std::transform( sellerItems[ i ].name.begin(), sellerItems[ i ].name.end(), 
+					sellerItems[ i ].name.begin(), static_cast<int (*)(int)>(tolower) );
 				items.push_back( sellerItems[ i ] );
 			}
 		}
@@ -81,6 +84,7 @@ vector<ItemData> ItemSearch::LookForItemsContainingWords( string& partOfName, SE
 	vector<string> words;
 
 	StringEncoding::UTF8RemoveAccents( partOfName );
+	std::transform( partOfName.begin(), partOfName.end(), partOfName.begin(), static_cast<int (*)(int)>(tolower) );
 	ConvFuncs::Tokenize( partOfName, words );
 	
 	for( c = items.size(), i = 0; i < c; ++i ) {

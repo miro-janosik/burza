@@ -714,32 +714,48 @@ void BurzaDialogs::RegisterButtonCalcFee( void )
 
 void BurzaDialogs::RegisterButtonCalcRepayment( void )
 {
-	m_pLabelFee->set_text( string( " -4500.00 ") + Centrala::Settings().m_string_mena );
+	m_pLabelFee->set_text( string( "-" ) + Centrala::Settings().m_string_mena );
 	
 	if ( !RegisterAnySelectedSeller() ) {
 		return;
 	}
+	
+	SellerData seller = RegisterGetSelectedSeller();
+	
+	ConvFuncs::GetDateTime();
+	string offeredName = 
+		ConvFuncs::FormatStdStr( "%s_%s_%02i-%02i-%02i_%02i-%02i.pdf",
+		_("PoPredaji"), seller.shortcode.c_str(),
+		ConvFuncs::datetime.year % 100, ConvFuncs::datetime.month, ConvFuncs::datetime.day,
+		ConvFuncs::datetime.hour, ConvFuncs::datetime.minute );
 
-	// DummyDataGenerator::GenerateSellersAndItems( & Centrala::Storage(), 50, 70 );
-	return;
+	string filename = Centrala::Settings().m_document_ouput_directory;
+	filename += "/";
+	filename += offeredName;
+
+	bool storingFinished = false;
 
 	try {
-	  Recipees recipees;
-	  HPDFWrapper	pdf;
-	  pdf.CreatePDF( "/home/mirex/tmp/a.pdf" );
-	  	  
-	  for( unsigned int i=0; i<m_DisplayedSellers.size(); i++ ) {
-		  recipees.PrintSellerStatus( pdf, m_DisplayedSellers[ i ].id );
-	  }
+		Recipees recipees;
+		HPDFWrapper	pdf;
+		pdf.CreatePDF( filename );
 
-	  pdf.ClosePDF();
-	
+		recipees.PrintSellerReturnSheet( pdf, RegisterGetSelectedSellerId() );
+
+		pdf.ClosePDF();
+
+		storingFinished = true;
+
 	} catch( runtime_error& e ) {
 		DisplayErrorMessageBox( "PDF error", e.what() );
 	} catch( out_of_range& e ) {
 		DisplayErrorMessageBox( "PDF out of range error", e.what() );
 	} catch( ... ) {
 		DisplayErrorMessageBox( "PDF error" );
+	}
+
+	if (storingFinished) {
+		Centrala::Register().DisplayPdf( filename.c_str() );
 	}
 }
 
@@ -817,7 +833,8 @@ void BurzaDialogs::RegisterButtonReviewOfSellers( void )
 	}
 	
 	string name = dlg.get_filename();
-	
+	bool storingFinished = false;
+
 	try {
 		Recipees recipees;
 		HPDFWrapper	pdf;
@@ -828,6 +845,8 @@ void BurzaDialogs::RegisterButtonReviewOfSellers( void )
 		}
 		
 		pdf.ClosePDF();
+
+		storingFinished = true;
 		
 	} catch( runtime_error& e ) {
 		DisplayErrorMessageBox( "PDF error", e.what() );
@@ -835,6 +854,10 @@ void BurzaDialogs::RegisterButtonReviewOfSellers( void )
 		DisplayErrorMessageBox( "PDF out of range error", e.what() );
 	} catch( ... ) {
 		DisplayErrorMessageBox( "PDF error" );
+	}
+
+	if (storingFinished) {
+		Centrala::Register().DisplayPdf( name.c_str() );
 	}
 }
 
@@ -952,6 +975,11 @@ void BurzaDialogs::CashoutButtonAddItem( void )
 	
 	m_shoppingCart.push_back( item.id );
 	
+	// clear fields
+	m_pCashoutEntryLookupSeller->set_text( "" );
+	m_pCashoutEntryLookupItem->set_text( "" );
+	m_pCashoutEntryLookupSeller->grab_focus();
+
 	CheckoutCartChanged();
 }
 
@@ -1502,10 +1530,12 @@ void BurzaDialogs::CashoutEditSearchEntryChanged( void )
 
 		sellerOfItem = search.GetSeller( foundItems[ i ].seller_id );
 
-		str = ConvFuncs::FormatStdStr("%s - %i - %s",
+		str = ConvFuncs::FormatStdStr("%s - %i - %s - %0.2f - %s",
 			sellerOfItem.shortcode.c_str(), 
 			foundItems[ i ].number, 
-			foundItems[ i ].name.c_str() );
+			foundItems[ i ].name.c_str(),
+			foundItems[ i ].price,
+			DataAccessInterface::ItemStatus2String( foundItems[ i ].status ));
 
 		m_pCashoutComboSearch->append_text( str );
 		cashoutComboSearchItemDatas.push_back( foundItems[ i ] );
@@ -1519,3 +1549,4 @@ void BurzaDialogs::CashoutEditSearchEntryChanged( void )
 	m_pCashoutComboSearchEntry->grab_focus();
 	*/
 }
+

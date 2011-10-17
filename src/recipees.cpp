@@ -13,7 +13,7 @@ using namespace Burza;
 using namespace BurzaTable;
 using namespace std;
 
-float Recipees::marginTop = 10;
+float Recipees::marginTop = 8;
 float Recipees::marginBottom = 80;
 float Recipees::marginLeft = 10;
 float Recipees::marginRight = 90;
@@ -32,12 +32,17 @@ void Recipees::PrintSellerStatus( PdfWrapperBase& pdf, SELLER_ID id )
 	
 	pdf.NewPage( ConvFuncs::FormatStdStr( _("%s - %s"), seller.shortcode.c_str(), seller.name.c_str() ) );
 	AddProgramPageHeaderAndFooter( pdf );
+
+	pdf.SetFontSize(1.2);
+	double ypos = marginTop;
 	
-	pdf.SetFontSize(2);
-	pdf.WriteSingleText( 10, 10, ConvFuncs::FormatStdStr(_("Predávajúci: %s - %s"), 
-		seller.name.c_str(), seller.shortcode.c_str() ));
-	pdf.WriteSingleText( 10, 13, ConvFuncs::FormatStdStr(_("Poznámka: %s"), seller.note.c_str() ));
-	pdf.WriteSingleText( 10, 16, ConvFuncs::FormatStdStr(_("Stav dňa: %s"), ConvFuncsInstance->CurDateTimeString() ));
+	pdf.WriteSingleText( 10, ypos, ConvFuncs::FormatStdStr(_("Predávajúci: %s - %s"), 
+		seller.shortcode.c_str(), seller.name.c_str() ));
+	ypos += 1.6;
+	pdf.WriteSingleText( 10, ypos, ConvFuncs::FormatStdStr(_("( %s )"), seller.note.c_str() ));
+	ypos += 1.6;
+	pdf.WriteSingleText( 10, ypos, ConvFuncs::FormatStdStr(_("Stav dňa: %s"), ConvFuncsInstance->CurDateTimeString() ));
+	ypos += 1.6;
 
 	TableOfCells	items;
 	TableColumnSpecs	columns;
@@ -68,7 +73,7 @@ void Recipees::PrintSellerStatus( PdfWrapperBase& pdf, SELLER_ID id )
 		items.Cell( i, 5 ) = DataAccessInterface::ItemStatus2String( sellerItems[ i ].status );
 	}
 
-	DrawTableSplitOnPages( pdf, 10, 20, items, columns );
+	DrawTableSplitOnPages( pdf, 10, ypos, items, columns );
 }
 
 void Recipees::AddProgramPageHeaderAndFooter( PdfWrapperBase& pdf )
@@ -80,7 +85,7 @@ void Recipees::AddProgramPageHeaderAndFooter( PdfWrapperBase& pdf )
 		ConvFuncs::FormatStdStr(_("Dokument vytvorený '%s' na burze '%s'."), 
 		ConvFuncsInstance->CurDateTimeString(),
 		Centrala::Settings().m_name_of_the_sale.c_str()));
-		
+	
 	// center free area is in vertical range "7% - 90%"
 	
 	//footer
@@ -163,6 +168,7 @@ void Recipees::PrintRecipeeAtEndOfCheckout( ItemDataArray& items, PdfWrapperBase
 		int pidx;
 		string str;
 		BurzaRegister	*pregister = & Centrala::Register();
+		double sum = 0;
 		
 		ItemDataIterator it, ite;
 		for( it = items.begin(), ite = items.end(), index = 0; 
@@ -181,8 +187,15 @@ void Recipees::PrintRecipeeAtEndOfCheckout( ItemDataArray& items, PdfWrapperBase
 			str = it->name;
 			table.Cell( index, 2 ) = str;
 			table.Cell( index, 3 ) = ConvFuncs::FormatStdStr( "%0.2f", it->price );
+
+			sum += it->price;
 		}
 		
+		index++;
+		table.Resize( index+1, 4 );
+		table.Cell( index, 2 ) = _( "Suma" );
+		table.Cell( index, 3 ) = ConvFuncs::FormatStdStr( "%0.2f", sum );
+
 		DrawTableSplitOnPages( pdf, 10, 20, table, columns );
 		
 	} catch( runtime_error& e ) {
@@ -202,5 +215,76 @@ void Recipees::PrintRecipeeAtEndOfCheckout( ItemDataArray& items, PdfWrapperBase
 
 void Recipees::PrintSellerReturnSheet( PdfWrapperBase& pdf, SELLER_ID id )
 {
-	PrintSellerStatus( pdf, id );
+	SellerData seller;
+
+	try {
+		seller = Centrala::Storage().GetSeller( id );
+	}
+	catch(exception& e)
+	{
+		ErrorHandling::HandleException(e);
+	}
+	
+	pdf.NewPage( ConvFuncs::FormatStdStr( _("%s - %s"), seller.shortcode.c_str(), seller.name.c_str() ) );
+	AddProgramPageHeaderAndFooter( pdf );
+	
+	pdf.SetFontSize(1.2);
+	double ypos = marginTop;
+	
+	pdf.WriteSingleText( 10, ypos, ConvFuncs::FormatStdStr(_("Predávajúci: %s - %s"), 
+		seller.shortcode.c_str(), seller.name.c_str() ));
+	ypos += 1.6;
+	pdf.WriteSingleText( 10, ypos, ConvFuncs::FormatStdStr(_("( %s )"), seller.note.c_str() ));
+	ypos += 1.6;
+	pdf.WriteSingleText( 10, ypos, ConvFuncs::FormatStdStr(_("Stav dňa: %s"), ConvFuncsInstance->CurDateTimeString() ));
+	ypos += 1.6;
+
+	TableOfCells	items;
+	TableColumnSpecs	columns;
+	string str;
+
+	columns.AddColumn( _("číslo"), 5 );
+	columns.AddColumn( _("názov"), 40 );
+	columns.AddColumn( _("cena"), 7 );
+	columns.AddColumn( _("kat"), 4 );
+	columns.AddColumn( _("stav"), 15 );
+	columns.AddColumn( _("predane"), 7 );
+	
+	ItemDataArray sellerItems = Centrala::Storage().GetSellerItems( id );
+	
+	items.Resize(sellerItems.size(), columns.m_columns.size());
+	double sum = 0;
+	
+	for(int i=0; i<sellerItems.size(); ++i ) {
+		
+		items.Cell( i, 0 ) = ConvFuncs::FormatStdStr( "%i", sellerItems[ i ].number );
+		
+		items.Cell( i, 1 ) = sellerItems[ i ].name;
+		
+		items.Cell( i, 2 ) = ConvFuncs::FormatStdStr( "%0.2f", sellerItems[ i ].price );
+
+		items.Cell( i, 3 ) = ConvFuncs::FormatStdStr( "%c",
+			Centrala::Storage().GetSellerCategory( sellerItems[ i ].category ).letter );
+		items.Cell( i, 4 ) = DataAccessInterface::ItemStatus2String( sellerItems[ i ].status );
+
+		if ( sellerItems[ i ].status == sold ) {
+			items.Cell( i, 5 ) = ConvFuncs::FormatStdStr( "%0.2f", sellerItems[ i ].price );
+			sum += sellerItems[ i ].price;
+		}
+	}
+
+	// add sum of the items that were sold
+	items.Resize(sellerItems.size() + 3, columns.m_columns.size());
+
+	int row = sellerItems.size();
+	items.Cell( row, 1 ) = _( "Súčet predaných vecí" );
+	items.Cell( row, 5 ) = ConvFuncs::FormatStdStr( "%0.2f", sum );
+	row++;
+	items.Cell( row, 1 ) = _( "Poplatok" );
+	// items.Cell( row, 5 ) = ConvFuncs::FormatStdStr( "%0.2f", sum );
+	row++;
+	items.Cell( row, 1 ) = _( "Spolu" );
+	// items.Cell( row, 5 ) = ConvFuncs::FormatStdStr( "%0.2f", sum );
+
+	DrawTableSplitOnPages( pdf, 10, ypos, items, columns );
 }

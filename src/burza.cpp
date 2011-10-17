@@ -234,6 +234,13 @@ int BurzaRegister::VerifyItemNumber( ItemData& item, int newNumber )
 	return newNumber;
 }
 
+int BurzaRegister::DisplayPdf( const char* fileName )
+{
+	system( fileName );
+	return 0;
+}
+
+
 // ==============================================
 // ==============================================
 

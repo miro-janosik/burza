@@ -97,7 +97,7 @@ public:
 		
 		for( unsigned int r = 0; r < minr; r++ )
 			for( unsigned int c = 0; c < minc; c++ ) {
-				new_cells[ ( r * rows ) + c ] = m_cells[ ( r * m_rows ) + c ];
+				new_cells[ ( r * columns ) + c ] = m_cells[ ( r * m_columns ) + c ];
 			}
 		
 		m_cells = new_cells;

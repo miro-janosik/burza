@@ -348,10 +348,9 @@ void HPDFWrapper::DrawTable( float fx, float fy, TableStyle& style, TableOfCells
 			
 			for ( unsigned int ix = 0; ix < t.Columns(); ++ix ) {
 				
-				if ( t.Cell( iy, ix ).GetText().empty() )
-					continue;
-				
-				WriteSingleTextIntoWidth( tx, ty, c.m_columns[ ix ].m_width - cellTextLeftMarginPerc * 2, t.Cell( iy, ix ).GetText() );
+				if ( ! t.Cell( iy, ix ).GetText().empty() ) {
+					WriteSingleTextIntoWidth( tx, ty, c.m_columns[ ix ].m_width - cellTextLeftMarginPerc * 2, t.Cell( iy, ix ).GetText() );
+				}
 				
 				tx += c.m_columns[ ix ].m_width;
 			}
