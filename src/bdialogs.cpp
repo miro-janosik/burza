@@ -156,6 +156,7 @@ int BurzaDialogs::SetupDialogs( void )
 	xmlWndRegister->get_widget( "label seller note", m_pLabelSellerNote );
 	xmlWndRegister->get_widget( "button cashout", m_pButtonCashout );
 	xmlWndRegister->get_widget( "button_review_of_sellers", m_pRegisterButtonReviewOfSellers );
+	xmlWndRegister->get_widget( "button_settings", m_pButtonSettings );
 	
 	if (( m_pComboSeller == NULL ) ||
 		( m_pButtonImportSeller == NULL ) ||
@@ -170,7 +171,8 @@ int BurzaDialogs::SetupDialogs( void )
 		( m_pLabelFee == NULL ) ||
 		( m_pLabelSellerNote == NULL ) ||
 		( m_pButtonCashout  == NULL ) ||
-		( m_pRegisterButtonReviewOfSellers == NULL )) {
+		( m_pRegisterButtonReviewOfSellers == NULL ) ||
+		( m_pButtonSettings == NULL )) {
 		
 		error = "Dialog file is corrupt [1].";
 		throw;
@@ -186,7 +188,8 @@ int BurzaDialogs::SetupDialogs( void )
 	m_pButtonCalcRepayment->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonCalcRepayment ) );
 	m_pButtonCashout->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonSwitchToCashout ) );
 	m_pRegisterButtonReviewOfSellers->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonReviewOfSellers ) );
-	
+	m_pButtonSettings->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonSettings ) );
+
 	m_pComboSeller->signal_changed().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterComboChangedSeller ) );
 	
 	m_RegisterItemsSelection = m_pTreeViewItems->get_selection();
@@ -412,8 +415,58 @@ int BurzaDialogs::SetupDialogs( void )
 	m_pSellerEditOk->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonSellerEditOk ) );
 	m_pSellerEditCancel->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonSellerEditCancel ) );
 	m_pWndSeller->signal_delete_event().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonSellerEditClose ) );
+
+	// === --- === --- === edit message box === --- === --- ===
+
+	messageEditBoxWindowControls.xmlWindow = Gnome::Glade::Xml::create( glade_fname.c_str(), "MessageEditBox" );
+	if ( ! messageEditBoxWindowControls.xmlWindow ) {
+		error = "BiturnDialogsGtkmm::Init() error loading glade item from xml. 'MessageEditBox'";
+		throw;
+	}
+
+	messageEditBoxWindowControls.xmlWindow->get_widget( "MessageEditBox", messageEditBoxWindowControls.window );
+	messageEditBoxWindowControls.xmlWindow->get_widget( "label_text", messageEditBoxWindowControls.labelText );
+	messageEditBoxWindowControls.xmlWindow->get_widget( "entry_text", messageEditBoxWindowControls.entryText );
+	messageEditBoxWindowControls.xmlWindow->get_widget( "button_ok", messageEditBoxWindowControls.buttonOk );
+	messageEditBoxWindowControls.xmlWindow->get_widget( "button_cancel", messageEditBoxWindowControls.buttonCancel );
+
+	if (( messageEditBoxWindowControls.window == NULL ) ||
+		( messageEditBoxWindowControls.labelText == NULL ) ||
+		( messageEditBoxWindowControls.entryText == NULL ) ||
+		( messageEditBoxWindowControls.buttonOk == NULL ) ||
+		( messageEditBoxWindowControls.buttonCancel == NULL )) {
+		error = "Dialog file is corrupt [MessageEditBox].";
+		throw;
+	}
 	
-		// === --- === --- === throw - catch  === --- === --- ===
+	messageEditBoxWindowControls.buttonOk->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::EditMessageBoxClickedOk ) );
+	messageEditBoxWindowControls.buttonCancel->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::EditMessageBoxClickedCancel ) );
+
+	// === --- === --- === Nastavenia === --- === --- ===
+
+	settingsWindow.xmlWindow = Gnome::Glade::Xml::create( glade_fname.c_str(), "Nastavenia" );
+	if ( ! settingsWindow.xmlWindow ) {
+		error = "BiturnDialogsGtkmm::Init() error loading glade item from xml. 'Nastavenia'";
+		throw;
+	}
+
+	settingsWindow.xmlWindow->get_widget( "Nastavenia", settingsWindow.window );
+	settingsWindow.xmlWindow->get_widget( "label_current_licence", settingsWindow.labelCurrentLicence );
+	settingsWindow.xmlWindow->get_widget( "button_request_licence", settingsWindow.buttonRequestLicence );
+	settingsWindow.xmlWindow->get_widget( "button_install_licence", settingsWindow.buttonInstallLicence );
+
+	if (( settingsWindow.window == NULL ) ||
+		( settingsWindow.labelCurrentLicence == NULL ) ||
+		( settingsWindow.buttonRequestLicence == NULL ) ||
+		( settingsWindow.buttonInstallLicence == NULL )) {
+		error = "Dialog file is corrupt [Nastavenia].";
+		throw;
+	}
+	
+	settingsWindow.buttonRequestLicence->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::SettingsClickedButtonRequestLicence ) );
+	settingsWindow.buttonInstallLicence->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::SettingsClickedButtonInstallLicence ) );
+
+	// === --- === --- === throw - catch  === --- === --- ===
 	
 	}
 	catch( ... ) {
@@ -1550,3 +1603,30 @@ void BurzaDialogs::CashoutEditSearchEntryChanged( void )
 	*/
 }
 
+void BurzaDialogs::RegisterButtonSettings( void )
+{
+	settingsWindow.window->show();
+}
+
+void BurzaDialogs::SettingsClickedButtonRequestLicence( void )
+{
+	messageEditBoxWindowControls.labelText->set_text( "Prosím zadajte názov vlastníka licencie" );
+	messageEditBoxWindowControls.entryText->set_text( "[vlastník]" );
+
+	messageEditBoxWindowControls.window->show();
+}
+
+void BurzaDialogs::SettingsClickedButtonInstallLicence( void )
+{
+
+}
+
+void BurzaDialogs::EditMessageBoxClickedOk( void )
+{
+
+}
+
+void BurzaDialogs::EditMessageBoxClickedCancel( void )
+{
+
+}

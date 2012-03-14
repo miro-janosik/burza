@@ -82,6 +82,7 @@ public:
 	void RegisterButtonSwitchToCashout( void );
 	void RegisterComboChangedSeller( void );
 	void RegisterButtonReviewOfSellers( void );
+	void RegisterButtonSettings( void );
 	
 	void CashoutItemsTreeSelectChanged( void );
 	
@@ -104,7 +105,12 @@ public:
 	void CashoutEditSearchChanged( void );
 	void CashoutEditSearchEntryChanged( void );
 	void CashoutSelectedItemChanged( void );
-	
+
+	void SettingsClickedButtonRequestLicence( void );
+	void SettingsClickedButtonInstallLicence( void );
+	void EditMessageBoxClickedOk( void );
+	void EditMessageBoxClickedCancel( void );
+
 	// "cash-out" helper functions
 	void CashoutDisplaySeller( const char* shortcode );
 	void CheckoutCartChanged( void );
@@ -129,7 +135,7 @@ public:
 		
 	Gtk::Window		*m_pWndRegister, *m_pWndCashOut, 
  			*m_pWndSeller, *m_pWndItem;
-	
+
 	// register dialog
 	ComboBoxTextDer	*m_pComboSeller;
 	Gtk::Button		*m_pButtonImportSeller;
@@ -145,6 +151,7 @@ public:
 	Gtk::Label		*m_pLabelSellerNote;
 	Gtk::Button		*m_pButtonCashout;
 	Gtk::Button		*m_pRegisterButtonReviewOfSellers;
+	Gtk::Button		*m_pButtonSettings;
 	
 	Glib::RefPtr<Gtk::TreeSelection>	m_RegisterItemsSelection;
 	Glib::RefPtr<Gtk::ListStore>	m_RegisterItemsListModel;
@@ -174,12 +181,31 @@ public:
 	Gtk::Button		*m_pItemeditCancel;
 	
 	// seller details edit dialog
-	Gtk::Entry			*m_pSellerEditName;
-	Gtk::Entry			*m_pSellerEditCode;
-	Gtk::Entry			*m_pSellerEditNote;
+	Gtk::Entry		*m_pSellerEditName;
+	Gtk::Entry		*m_pSellerEditCode;
+	Gtk::Entry		*m_pSellerEditNote;
 	Gtk::Button		*m_pSellerEditOk;
 	Gtk::Button		*m_pSellerEditCancel;
 	
+	struct {
+		Glib::RefPtr<Gnome::Glade::Xml> xmlWindow;
+		Gtk::Window		*window;
+
+		Gtk::Label		*labelText;
+		Gtk::Entry		*entryText;
+		Gtk::Button		*buttonOk;
+		Gtk::Button		*buttonCancel;
+	} messageEditBoxWindowControls;
+
+	struct {
+		Glib::RefPtr<Gnome::Glade::Xml> xmlWindow;
+		Gtk::Window		*window;
+
+		Gtk::Label		*labelCurrentLicence;
+		Gtk::Button		*buttonRequestLicence;
+		Gtk::Button		*buttonInstallLicence;
+	} settingsWindow;
+
 	// helper variables for dialogs
 	
 	Glib::RefPtr<Gtk::TreeSelection>	m_CashoutItemsSelection;

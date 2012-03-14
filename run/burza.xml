@@ -8,5 +8,10 @@
 			password="p4ssw0rd" 
 			dbname="burzadb" 
 			port="5433" />
+		<License
+			to="Miro Janosik, domace PC"
+			key="ASDFASDFAWFAWEFAEFAEFAWFEW"
+			salename="Burza xx.yy.zzzz" 
+			/>
 	</config>
 </burza>
