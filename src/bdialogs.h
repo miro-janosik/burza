@@ -110,6 +110,8 @@ public:
 	void SettingsClickedButtonInstallLicence( void );
 	void EditMessageBoxClickedOk( void );
 	void EditMessageBoxClickedCancel( void );
+	
+	bool MessageEditBox( std::string message, std::string& edit);
 
 	// "cash-out" helper functions
 	void CashoutDisplaySeller( const char* shortcode );
@@ -189,7 +191,7 @@ public:
 	
 	struct {
 		Glib::RefPtr<Gnome::Glade::Xml> xmlWindow;
-		Gtk::Window		*window;
+		Gtk::Dialog		*window;
 
 		Gtk::Label		*labelText;
 		Gtk::Entry		*entryText;

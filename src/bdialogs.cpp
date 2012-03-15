@@ -1610,10 +1610,9 @@ void BurzaDialogs::RegisterButtonSettings( void )
 
 void BurzaDialogs::SettingsClickedButtonRequestLicence( void )
 {
-	messageEditBoxWindowControls.labelText->set_text( "Prosím zadajte názov vlastníka licencie" );
-	messageEditBoxWindowControls.entryText->set_text( "[vlastník]" );
-
-	messageEditBoxWindowControls.window->show();
+//	MessageEditBox
+	std::string vlastnik = "[vlastník]";
+	MessageEditBox( "Prosím zadajte názov vlastníka licencie", vlastnik );
 }
 
 void BurzaDialogs::SettingsClickedButtonInstallLicence( void )
@@ -1629,4 +1628,16 @@ void BurzaDialogs::EditMessageBoxClickedOk( void )
 void BurzaDialogs::EditMessageBoxClickedCancel( void )
 {
 
+}
+
+bool BurzaDialogs::MessageEditBox( std::string message, std::string& edit)
+{
+	messageEditBoxWindowControls.labelText->set_text( message );
+	messageEditBoxWindowControls.entryText->set_text( edit );
+
+	int res = messageEditBoxWindowControls.window->run();
+
+	edit = messageEditBoxWindowControls.entryText->get_text();
+
+	return res == 0;
 }
