@@ -13,6 +13,7 @@
 
 #include "burza.h"
 #include "dataaccess.h"
+#include "EditMessageBox.h"
 
 using namespace std;
 using namespace Burza;
@@ -189,15 +190,8 @@ public:
 	Gtk::Button		*m_pSellerEditOk;
 	Gtk::Button		*m_pSellerEditCancel;
 	
-	struct {
-		Glib::RefPtr<Gnome::Glade::Xml> xmlWindow;
-		Gtk::Dialog		*window;
-
-		Gtk::Label		*labelText;
-		Gtk::Entry		*entryText;
-		Gtk::Button		*buttonOk;
-		Gtk::Button		*buttonCancel;
-	} messageEditBoxWindowControls;
+	// these controls will be passed to the message box control
+	s_messageEditBoxWindowControls	messageEditBoxWindowControls;
 
 	struct {
 		Glib::RefPtr<Gnome::Glade::Xml> xmlWindow;

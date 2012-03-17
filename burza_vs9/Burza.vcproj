@@ -404,6 +404,14 @@
 				RelativePath="..\src\burza.h"
 				>
 			</File>
+			<File
+				RelativePath="..\src\EditMessageBox.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\EditMessageBox.h"
+				>
+			</File>
 		</Filter>
 		<File
 			RelativePath="..\src\burzamain.cpp"

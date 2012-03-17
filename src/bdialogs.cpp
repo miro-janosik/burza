@@ -18,6 +18,7 @@
 #include "translate.h"
 #include "itemsearch.h"
 #include "errhandler.h"
+#include "EditMessageBox.h"
 
 #include "generator.h"
 
@@ -441,6 +442,8 @@ int BurzaDialogs::SetupDialogs( void )
 	
 	messageEditBoxWindowControls.buttonOk->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::EditMessageBoxClickedOk ) );
 	messageEditBoxWindowControls.buttonCancel->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::EditMessageBoxClickedCancel ) );
+
+	EditMessageBox::Initialize( messageEditBoxWindowControls );
 
 	// === --- === --- === Nastavenia === --- === --- ===
 
@@ -1632,12 +1635,5 @@ void BurzaDialogs::EditMessageBoxClickedCancel( void )
 
 bool BurzaDialogs::MessageEditBox( std::string message, std::string& edit)
 {
-	messageEditBoxWindowControls.labelText->set_text( message );
-	messageEditBoxWindowControls.entryText->set_text( edit );
-
-	int res = messageEditBoxWindowControls.window->run();
-
-	edit = messageEditBoxWindowControls.entryText->get_text();
-
-	return res == 0;
+	return EditMessageBox::ShowDialog( message, edit );
 }
