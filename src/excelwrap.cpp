@@ -193,8 +193,23 @@ void ExcelFileWrapper::ReadSeller( string filename, SellerData& seller, ItemData
 	int nameRow, nameColumn;
 	int priceRow, priceColumn;
 
-	itemsOk &= FindCellByText( "!infotable!", infotableRow, infotableColumn);
-	//itemsOk &= FindCellByText( "!code!", codeRow, codeColumn);
+	// TODO: XXX because of this year's mistake (2012/3) when we forgot '!infotable!'.
+	//itemsOk &= FindCellByText( "!infotable!", infotableRow, infotableColumn);
+
+	bool infoTableFound = FindCellByText( "!infotable!", infotableRow, infotableColumn);
+	if (!infoTableFound) {
+		infotableRow = 2;
+		infotableColumn = 2;
+
+		infoTableFound = true;
+		infoTableFound &= m_sheet.Cell( infotableRow + 0, infotableColumn ).GetText().empty();
+		infoTableFound &= m_sheet.Cell( infotableRow + 1, infotableColumn ).GetText().empty() == false;
+		infoTableFound &= m_sheet.Cell( infotableRow + 2, infotableColumn ).GetText().empty() == false;
+		infoTableFound &= m_sheet.Cell( infotableRow + 3, infotableColumn ).GetText().empty() == false;
+		infoTableFound &= m_sheet.Cell( infotableRow + 4, infotableColumn ).GetText().empty();
+	}
+	itemsOk &= infoTableFound;
+
 	itemsOk &= FindCellByText( "!number!", numberRow, numberColumn);
 	itemsOk &= FindCellByText( "!name!", nameRow, nameColumn);
 	itemsOk &= FindCellByText( "!price!", priceRow, priceColumn);
@@ -211,14 +226,8 @@ void ExcelFileWrapper::ReadSeller( string filename, SellerData& seller, ItemData
 	// Read seller info
 	try {
 		seller.name = m_sheet.Cell( infotableRow + 1, infotableColumn ).GetText();
-		
-		string note;
-		note = m_sheet.Cell( infotableRow + 2, infotableColumn ).GetText();
-		note += " ";
-		note += m_sheet.Cell( infotableRow + 3, infotableColumn ).GetText();
-		seller.note = note;
-
-		seller.shortcode = m_sheet.Cell( infotableRow + 3, infotableColumn + 1 ).GetText();
+		seller.shortcode = m_sheet.Cell( infotableRow + 2, infotableColumn ).GetText();
+		seller.note = m_sheet.Cell( infotableRow + 3, infotableColumn ).GetText();
 		seller.category = 0;
 	}
 	catch(std::out_of_range& e) {

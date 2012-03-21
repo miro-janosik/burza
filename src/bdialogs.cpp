@@ -199,11 +199,19 @@ int BurzaDialogs::SetupDialogs( void )
 	// setup item list
 	m_RegisterItemsListModel = Gtk::ListStore::create( m_ItemsColumn );
 	m_pTreeViewItems->set_model( m_RegisterItemsListModel );
+
 	m_pTreeViewItems->append_column( "#", m_ItemsColumn.m_number );
+
+	// m_pTreeViewItems->append_column( "stav", m_ItemsColumn.m_state );
+	registerItemsStatusColumn = Gtk::manage( new Gtk::TreeView::Column( "stav" ) );
+	registerItemsStatusColumn->pack_start( m_ItemsColumn.m_state_pic , false); //false = don’t expand.
+	registerItemsStatusColumn->pack_start( m_ItemsColumn.m_state_checkbox );
+	registerItemsStatusColumn->pack_start( m_ItemsColumn.m_state );
+	m_pTreeViewItems->append_column( * registerItemsStatusColumn );
+
 	m_pTreeViewItems->append_column( "nazov", m_ItemsColumn.m_name );
 	m_pTreeViewItems->append_column( "cena", m_ItemsColumn.m_price );
 	m_pTreeViewItems->append_column( "kategoria", m_ItemsColumn.m_category );
-	m_pTreeViewItems->append_column( "stav", m_ItemsColumn.m_state );
 	
 	//Make all the columns reorderable:
 	//This is not necessary, but it's nice to show the feature.
@@ -236,25 +244,25 @@ int BurzaDialogs::SetupDialogs( void )
 	}
 	pColumn = m_pTreeViewItems->get_column( 1 );
 	if( pColumn ) {
+		pColumn->set_sort_column( m_ItemsColumn.m_state );
+		pColumn->set_min_width( 100 );
+	}
+	pColumn = m_pTreeViewItems->get_column( 2 );
+	if( pColumn ) {
 		pColumn->set_sort_column( m_ItemsColumn.m_name );
 		pColumn->set_min_width( 400 );
 	}
-	pColumn = m_pTreeViewItems->get_column( 2 );
+	pColumn = m_pTreeViewItems->get_column( 3 );
 	if( pColumn ) {
 		//pColumn->set_sort_column( m_ItemsColumn.m_nazov );
 		pColumn->set_min_width( 80 );
 	}
-	pColumn = m_pTreeViewItems->get_column( 3 );
+	pColumn = m_pTreeViewItems->get_column( 4 );
 	if( pColumn ) {
 		pColumn->set_sort_column( m_ItemsColumn.m_category );
 		pColumn->set_min_width( 50 );
 	}
-	pColumn = m_pTreeViewItems->get_column( 4 );
-	if( pColumn ) {
-		pColumn->set_sort_column( m_ItemsColumn.m_state );
-		pColumn->set_min_width( 100 );
-	}
-	
+
 	// === --- === cash-out === --- ===
 	
 	if ( m_pWndCashOut == NULL ) {
@@ -316,10 +324,10 @@ int BurzaDialogs::SetupDialogs( void )
 	m_CashoutItemsListModel = Gtk::ListStore::create( m_ItemsColumn );
 	m_pCashoutTreeViewList->set_model( m_CashoutItemsListModel );
 	m_pCashoutTreeViewList->append_column( "#", m_ItemsColumn.m_number );
+	m_pCashoutTreeViewList->append_column( "stav", m_ItemsColumn.m_state );
 	m_pCashoutTreeViewList->append_column( "nazov", m_ItemsColumn.m_name );
 	m_pCashoutTreeViewList->append_column( "cena", m_ItemsColumn.m_price );
 	m_pCashoutTreeViewList->append_column( "kategoria", m_ItemsColumn.m_category );
-	m_pCashoutTreeViewList->append_column( "stav", m_ItemsColumn.m_state );
 	
 	//Make all the columns reorderable:
 	//This is not necessary, but it's nice to show the feature.
@@ -352,23 +360,23 @@ int BurzaDialogs::SetupDialogs( void )
 	}
 	pColumn = m_pCashoutTreeViewList->get_column( 1 );
 	if( pColumn ) {
+		pColumn->set_sort_column( m_ItemsColumn.m_state );
+		pColumn->set_min_width( 100 );
+	}
+	pColumn = m_pCashoutTreeViewList->get_column( 2 );
+	if( pColumn ) {
 		pColumn->set_sort_column( m_ItemsColumn.m_name );
 		pColumn->set_min_width( 400 );
 	}
-	pColumn = m_pCashoutTreeViewList->get_column( 2 );
+	pColumn = m_pCashoutTreeViewList->get_column( 3 );
 	if( pColumn ) {
 		//pColumn->set_sort_column( m_ItemsColumn.m_nazov );
 		pColumn->set_min_width( 80 );
 	}
-	pColumn = m_pCashoutTreeViewList->get_column( 3 );
+	pColumn = m_pCashoutTreeViewList->get_column( 4 );
 	if( pColumn ) {
 		pColumn->set_sort_column( m_ItemsColumn.m_category );
 		pColumn->set_min_width( 50 );
-	}
-	pColumn = m_pCashoutTreeViewList->get_column( 4 );
-	if( pColumn ) {
-		pColumn->set_sort_column( m_ItemsColumn.m_state );
-		pColumn->set_min_width( 100 );
 	}
 	
 	// == item details edit dialog ==
@@ -425,13 +433,13 @@ int BurzaDialogs::SetupDialogs( void )
 		throw;
 	}
 
-	messageEditBoxWindowControls.xmlWindow->get_widget( "MessageEditBox", messageEditBoxWindowControls.window );
+	messageEditBoxWindowControls.xmlWindow->get_widget( "MessageEditBox", messageEditBoxWindowControls.dialog );
 	messageEditBoxWindowControls.xmlWindow->get_widget( "label_text", messageEditBoxWindowControls.labelText );
 	messageEditBoxWindowControls.xmlWindow->get_widget( "entry_text", messageEditBoxWindowControls.entryText );
 	messageEditBoxWindowControls.xmlWindow->get_widget( "button_ok", messageEditBoxWindowControls.buttonOk );
 	messageEditBoxWindowControls.xmlWindow->get_widget( "button_cancel", messageEditBoxWindowControls.buttonCancel );
 
-	if (( messageEditBoxWindowControls.window == NULL ) ||
+	if (( messageEditBoxWindowControls.dialog == NULL ) ||
 		( messageEditBoxWindowControls.labelText == NULL ) ||
 		( messageEditBoxWindowControls.entryText == NULL ) ||
 		( messageEditBoxWindowControls.buttonOk == NULL ) ||
@@ -453,12 +461,12 @@ int BurzaDialogs::SetupDialogs( void )
 		throw;
 	}
 
-	settingsWindow.xmlWindow->get_widget( "Nastavenia", settingsWindow.window );
+	settingsWindow.xmlWindow->get_widget( "Nastavenia", settingsWindow.dialog );
 	settingsWindow.xmlWindow->get_widget( "label_current_licence", settingsWindow.labelCurrentLicence );
 	settingsWindow.xmlWindow->get_widget( "button_request_licence", settingsWindow.buttonRequestLicence );
 	settingsWindow.xmlWindow->get_widget( "button_install_licence", settingsWindow.buttonInstallLicence );
 
-	if (( settingsWindow.window == NULL ) ||
+	if (( settingsWindow.dialog == NULL ) ||
 		( settingsWindow.labelCurrentLicence == NULL ) ||
 		( settingsWindow.buttonRequestLicence == NULL ) ||
 		( settingsWindow.buttonInstallLicence == NULL )) {
@@ -479,6 +487,8 @@ int BurzaDialogs::SetupDialogs( void )
 		DisplayErrorMessageBox( error, "Error initing dialog." );
 		return -1;
 	}
+
+	CreateStatusImages();
 
 	return 0;
 }
@@ -529,8 +539,11 @@ void BurzaDialogs::RegisterDisplaySeller(SellerData& seller)
 		row[ m_ItemsColumn.m_name ] = items[i].name;
 		row[ m_ItemsColumn.m_price ] = ConvFuncsInstance->FormatCstr( "%0.2f", items[i].price );
 		row[ m_ItemsColumn.m_category ] = ConvFuncsInstance->FormatCstr( "%c", categories[i].letter );
+
 		row[ m_ItemsColumn.m_state ] = ConvFuncsInstance->FormatCstr( "%s", 
 			DataAccessInterface::ItemStatus2String( items[i].status ) );
+		row[ m_ItemsColumn.m_state_pic ] = registerColumnStateImages[ items[i].status ];
+		row[ m_ItemsColumn.m_state_checkbox ] = true;
 	}
 	
 	int idx;
@@ -921,7 +934,10 @@ void BurzaDialogs::CashoutButtonSwitchToRegister( void )
 {
 	m_pWndRegister->show();
 	m_pWndCashOut->hide();
+	
+	m_pWndRegister->unfullscreen();
 	m_pWndRegister->maximize();
+	m_pWndRegister->reset_shapes();
 	
 	ReloadSellers();
 	m_pLabelFee->set_text( "" );
@@ -1608,7 +1624,7 @@ void BurzaDialogs::CashoutEditSearchEntryChanged( void )
 
 void BurzaDialogs::RegisterButtonSettings( void )
 {
-	settingsWindow.window->show();
+	settingsWindow.dialog->run();
 }
 
 void BurzaDialogs::SettingsClickedButtonRequestLicence( void )
@@ -1636,4 +1652,24 @@ void BurzaDialogs::EditMessageBoxClickedCancel( void )
 bool BurzaDialogs::MessageEditBox( std::string message, std::string& edit)
 {
 	return EditMessageBox::ShowDialog( message, edit );
+}
+
+void BurzaDialogs::CreateStatusImages( void )
+{
+	#define ColorToPixel( red, green, blue ) ((guint32)( red << 24 | green << 16 | blue << 8 ))
+	int sizex = 10;
+	int sizey = 24;
+
+	for( int i=0; i < ItemStatusCount; ++i ) 
+	{
+		registerColumnStateImages[ i ] = Gdk::Pixbuf::create(Gdk::Colorspace::COLORSPACE_RGB, FALSE, 8, sizex, sizey);
+	}
+
+	registerColumnStateImages[ not_in_stock_yet ]->fill( ColorToPixel( 50, 50, 255 ) );
+	registerColumnStateImages[ on_stock ]->fill( ColorToPixel( 100, 255, 100 ) );
+	registerColumnStateImages[ sold ]->fill( ColorToPixel( 128, 128, 128 ) );
+	registerColumnStateImages[ returned ]->fill( ColorToPixel( 50, 50, 50 ) );
+	registerColumnStateImages[ given_as_gift ]->fill( ColorToPixel( 255, 0, 255 ) );
+	registerColumnStateImages[ lost ]->fill( ColorToPixel( 255, 0, 255 ) );
+	registerColumnStateImages[ undefined ]->fill( ColorToPixel( 255, 0, 0 ) );
 }

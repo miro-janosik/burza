@@ -88,7 +88,9 @@ public:
 	void CashoutItemsTreeSelectChanged( void );
 	
 	void RegisterGetSelectedItemIds( vector<Burza::ITEM_ID>& listOfIds );
-	
+
+	void CreateStatusImages( void );
+
 	// Goes through selector's selected items in the list and returns array of indexes of selected items in the list.
 	static void GetSelectedItemNumbers( Glib::RefPtr<Gtk::TreeSelection>& selector, vector<unsigned int>& listOfItems );
 	
@@ -195,7 +197,7 @@ public:
 
 	struct {
 		Glib::RefPtr<Gnome::Glade::Xml> xmlWindow;
-		Gtk::Window		*window;
+		Gtk::Dialog		*dialog;
 
 		Gtk::Label		*labelCurrentLicence;
 		Gtk::Button		*buttonRequestLicence;
@@ -211,7 +213,11 @@ public:
 	class ItemsColumns : public Gtk::TreeModel::ColumnRecord {
 	public:
 		ItemsColumns()
-			{ add(m_number); add(m_name); add(m_price); add(m_category); add(m_state); add( m_seller_id ); add( m_item_id ); }
+		{	
+			add(m_number); 
+			add( m_state_pic ); add( m_state_checkbox );
+			add(m_name); add(m_price); add(m_category); add(m_state); add( m_seller_id ); add( m_item_id ); 
+		}
 		Gtk::TreeModelColumn<std::string> m_number;
 		Gtk::TreeModelColumn<std::string> m_name;
 		Gtk::TreeModelColumn<std::string> m_price;
@@ -219,11 +225,17 @@ public:
 		Gtk::TreeModelColumn<std::string> m_state;
 		Gtk::TreeModelColumn<int> m_seller_id;
 		Gtk::TreeModelColumn<int> m_item_id;
+
+		Gtk::TreeModelColumn<Glib::RefPtr<Gdk::Pixbuf>> m_state_pic;
+		Gtk::TreeModelColumn<bool> m_state_checkbox;
 	};
-	
-	// == unknown ==
+
+	Glib::RefPtr<Gdk::Pixbuf>	registerColumnStateImages[ Burza::ItemStatusCount ];
+
+	// == register item list ==
 	
 	ItemsColumns	m_ItemsColumn;
+	Gtk::TreeView::Column*	registerItemsStatusColumn;
 	
 	// === register + cashout ===
 	

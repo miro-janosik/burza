@@ -10,7 +10,7 @@
 
 struct s_messageEditBoxWindowControls {
 	Glib::RefPtr<Gnome::Glade::Xml> xmlWindow;
-	Gtk::Dialog		*window;
+	Gtk::Dialog		*dialog;
 
 	Gtk::Label		*labelText;
 	Gtk::Entry		*entryText;
@@ -46,10 +46,10 @@ public:
 		instance->controls.labelText->set_text( message );
 		instance->controls.entryText->set_text( edit );
 
-		int res = instance->controls.window->run();
+		int res = instance->controls.dialog->run();
 
 		edit = instance->controls.entryText->get_text();
-		instance->controls.window->hide();
+		instance->controls.dialog->hide();
 
 		return res == 0;
 	}

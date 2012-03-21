@@ -96,6 +96,7 @@ string Licence::HashToString( unsigned int h )
 {
 	string res;
 	unsigned int v;
+	unsigned int charCount = 0;
 
 	while( h > 0 ) {
 
@@ -103,6 +104,10 @@ string Licence::HashToString( unsigned int h )
 		h /= encCharactersSize;
 
 		res.insert( res.begin(), encCharacters[ v ] );
+		charCount++;
+
+		if ( charCount % 4 == 0 )
+			res.insert( res.begin(), ' ' );
 	}
 
 	return res;

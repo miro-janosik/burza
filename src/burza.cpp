@@ -40,9 +40,10 @@ using namespace XmlWrapperTool;
 
 Centrala* Centrala::m_instance = NULL;
 
-//int _tmain(int argc, _TCHAR* argv[])
 int main2( int argc, char **argv )
 {
+	Glib::init();
+
 	Centrala		*pcentrala = Centrala::Instance();
 
 	//TODO: dispose dataStorage in destructor somehow.
