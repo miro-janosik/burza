@@ -19,6 +19,7 @@
 #include "itemsearch.h"
 #include "errhandler.h"
 #include "EditMessageBox.h"
+#include "stringencoding.h"
 
 #include "generator.h"
 
@@ -151,6 +152,7 @@ int BurzaDialogs::SetupDialogs( void )
 	xmlWndRegister->get_widget( "button add item", m_pButtonAddItem );
 	xmlWndRegister->get_widget( "button modify item", m_pButtonModifyItem );
 	xmlWndRegister->get_widget( "button remove item", m_pButtonRemoveItem );
+	xmlWndRegister->get_widget( "button toggle accepted", m_pButtonAcceptUnaccept );
 	xmlWndRegister->get_widget( "button calc fee", m_pButtonCalcFee );
 	xmlWndRegister->get_widget( "button calc repayment", m_pButtonCalcRepayment );
 	xmlWndRegister->get_widget( "label fee", m_pLabelFee );
@@ -167,6 +169,7 @@ int BurzaDialogs::SetupDialogs( void )
 		( m_pButtonAddItem == NULL ) ||
 		( m_pButtonModifyItem == NULL ) ||
 		( m_pButtonRemoveItem == NULL ) ||
+		( m_pButtonAcceptUnaccept == NULL ) ||
 		( m_pButtonCalcFee == NULL ) ||
 		( m_pButtonCalcRepayment == NULL ) ||
 		( m_pLabelFee == NULL ) ||
@@ -185,6 +188,7 @@ int BurzaDialogs::SetupDialogs( void )
 	m_pButtonAddItem->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonAddItem ) );
 	m_pButtonModifyItem->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonModifyItem ) );
 	m_pButtonRemoveItem->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonRemoveItem ) );
+	m_pButtonAcceptUnaccept->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonAcceptUnaccept ) );
 	m_pButtonCalcFee->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonCalcFee ) );
 	m_pButtonCalcRepayment->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonCalcRepayment ) );
 	m_pButtonCashout->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonSwitchToCashout ) );
@@ -205,9 +209,10 @@ int BurzaDialogs::SetupDialogs( void )
 	// m_pTreeViewItems->append_column( "stav", m_ItemsColumn.m_state );
 	registerItemsStatusColumn = Gtk::manage( new Gtk::TreeView::Column( "stav" ) );
 	registerItemsStatusColumn->pack_start( m_ItemsColumn.m_state_pic , false); //false = don’t expand.
-	registerItemsStatusColumn->pack_start( m_ItemsColumn.m_state_checkbox );
 	registerItemsStatusColumn->pack_start( m_ItemsColumn.m_state );
 	m_pTreeViewItems->append_column( * registerItemsStatusColumn );
+
+	m_pTreeViewItems->append_column_editable( "prebrate", m_ItemsColumn.m_state_checkbox );
 
 	m_pTreeViewItems->append_column( "nazov", m_ItemsColumn.m_name );
 	m_pTreeViewItems->append_column( "cena", m_ItemsColumn.m_price );
@@ -247,17 +252,32 @@ int BurzaDialogs::SetupDialogs( void )
 		pColumn->set_sort_column( m_ItemsColumn.m_state );
 		pColumn->set_min_width( 100 );
 	}
+
 	pColumn = m_pTreeViewItems->get_column( 2 );
+	if( pColumn ) {
+		//pColumn->set_sort_column( m_ItemsColumn.m_state_checkbox );
+		pColumn->set_min_width( 50 );
+		pColumn->set_clickable();
+
+		Gtk::CellRenderer* pCellRenderer = pColumn->get_first_cell_renderer();
+		Gtk::CellRendererToggle* pCellRenderToggle = dynamic_cast<Gtk::CellRendererToggle*>(pCellRenderer);
+		if(pCellRenderToggle) {
+			pCellRenderToggle->signal_toggled().connect( 
+				sigc::mem_fun(*this, &BurzaDialogs::on_column_checkbox_edited) );
+		}
+	}
+
+	pColumn = m_pTreeViewItems->get_column( 3 );
 	if( pColumn ) {
 		pColumn->set_sort_column( m_ItemsColumn.m_name );
 		pColumn->set_min_width( 400 );
 	}
-	pColumn = m_pTreeViewItems->get_column( 3 );
+	pColumn = m_pTreeViewItems->get_column( 4 );
 	if( pColumn ) {
 		//pColumn->set_sort_column( m_ItemsColumn.m_nazov );
 		pColumn->set_min_width( 80 );
 	}
-	pColumn = m_pTreeViewItems->get_column( 4 );
+	pColumn = m_pTreeViewItems->get_column( 5 );
 	if( pColumn ) {
 		pColumn->set_sort_column( m_ItemsColumn.m_category );
 		pColumn->set_min_width( 50 );
@@ -518,6 +538,39 @@ void BurzaDialogs::RegisterDisplaySellerByIndex( unsigned int idx )
 	RegisterDisplaySeller(m_DisplayedSellers[ idx ]);
 }
 
+
+
+
+CellItem_Bug::CellItem_Bug()
+{
+  m_fixed = false;
+}
+
+CellItem_Bug::CellItem_Bug(bool fixed)
+{
+  m_fixed = fixed;
+}
+
+CellItem_Bug::CellItem_Bug(const CellItem_Bug& src)
+{
+  operator=(src);
+}
+
+CellItem_Bug::~CellItem_Bug()
+{
+}
+
+CellItem_Bug& CellItem_Bug::operator=(const CellItem_Bug& src)
+{
+  m_fixed = src.m_fixed;
+
+  return *this;
+}
+
+
+
+
+
 void BurzaDialogs::RegisterDisplaySeller(SellerData& seller)
 {
 	m_RegisterSelectedSellerId = seller.id;
@@ -531,6 +584,14 @@ void BurzaDialogs::RegisterDisplaySeller(SellerData& seller)
 	
 	m_RegisterItemsListModel->clear();
 	
+	/* remove also properties: registerItemCheckBoxes.clear();
+	
+	for( int i=0; i<items.size(); i++ ) {
+		registerItemCheckBoxes.push_back( new CellItem_Bug() );
+		registerItemCheckBoxes2[ i ] = false;
+	}
+	*/
+
 	for( int i=0; i<items.size(); i++ ) {
 		
 		row = * (m_RegisterItemsListModel->append());
@@ -543,7 +604,7 @@ void BurzaDialogs::RegisterDisplaySeller(SellerData& seller)
 		row[ m_ItemsColumn.m_state ] = ConvFuncsInstance->FormatCstr( "%s", 
 			DataAccessInterface::ItemStatus2String( items[i].status ) );
 		row[ m_ItemsColumn.m_state_pic ] = registerColumnStateImages[ items[i].status ];
-		row[ m_ItemsColumn.m_state_checkbox ] = true;
+		row[ m_ItemsColumn.m_state_checkbox ] = (items[i].status == Burza::on_stock);
 	}
 	
 	int idx;
@@ -746,6 +807,43 @@ void BurzaDialogs::RegisterButtonRemoveItem( void )
 		Centrala::Storage().RemoveItem( productIdsToDelete[ i ] );
 	}
 	
+	SellerData seller;
+
+	try {
+		seller = Centrala::Storage().GetSeller( m_RegisterSelectedSellerId );
+	}
+	catch(exception& e)
+	{
+		ErrorHandling::HandleException(e);
+	}
+
+	RegisterDisplaySeller( seller );
+}
+
+void BurzaDialogs::RegisterButtonAcceptUnaccept( void )
+{
+	if ( !RegisterAnySelectedSeller() )
+		return;
+	
+	// ask user if he is sure
+	if ( DisplayYesNoMessageBox( "Ste si istý že chcete preznacit tovar?", _("Oznacenie / odznacenie tovaru") ) == false )
+		return;
+
+	ItemDataArray items = Centrala::Storage().GetSellerItems(m_RegisterSelectedSellerId);
+	
+	if ( items.empty() )
+		return;
+
+	ItemStatus newValue = ( items[ 0 ].status == Burza::on_stock ) ? Burza::not_in_stock_yet : Burza::on_stock;
+
+	for( int i=0; i<items.size(); ++i ) {
+		
+		items[ i ].status = newValue;
+		
+		Centrala::Storage().ModifyItem( items[ i ].id, items[ i ] );
+	}
+
+	// update seller
 	SellerData seller;
 
 	try {
@@ -1174,11 +1272,19 @@ void BurzaDialogs::CashoutSellerChanged( void )
 	std::string		str;
 	
 	ItemDataArray items = Centrala::Storage().GetSellerItems( CashoutGetSelectedSellerId() );
+
+	// XXX ERROR: GTKMM can't handle too long items in combo or some chars probably?
+	// so have to cut down.
+	const int maxStrLen = 70;
 	
 	for( int i = 0; i < items.size(); ++i ) {
 		str = ConvFuncsInstance->FormatCstr( "%i - %s", 
 			items[ i ].number,
 			items[ i ].name.c_str() );
+
+		if (str.size() > maxStrLen )
+			str.erase( str.begin() + maxStrLen, str.end() );
+
 		m_pCashoutComboLookupItem->append_text( str );
 		m_CashoutDisplayedItems.push_back( items[i] );
 	}
@@ -1672,4 +1778,25 @@ void BurzaDialogs::CreateStatusImages( void )
 	registerColumnStateImages[ given_as_gift ]->fill( ColorToPixel( 255, 0, 255 ) );
 	registerColumnStateImages[ lost ]->fill( ColorToPixel( 255, 0, 255 ) );
 	registerColumnStateImages[ undefined ]->fill( ColorToPixel( 255, 0, 0 ) );
+}
+
+void BurzaDialogs::on_column_checkbox_edited( Glib::ustring rowNumberText )
+{
+	int row = atoi( rowNumberText.c_str() );
+
+	ItemDataArray items = Centrala::Storage().GetSellerItems(m_RegisterSelectedSellerId);
+	if ( row > items.size() ) {
+		string s;
+		DisplayErrorMessageBox( "chyba" );
+		return;
+	}
+
+	ItemData item = items[ row ];
+
+	item.status = 
+		( item.status == Burza::on_stock ) ?
+		Burza::not_in_stock_yet : Burza::on_stock;
+	
+	Centrala::Storage().ModifyItem(item.id, item);
+	RegisterDisplaySeller( RegisterGetSelectedSeller() );
 }

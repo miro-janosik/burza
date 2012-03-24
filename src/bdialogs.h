@@ -26,7 +26,21 @@ public:
 
 } ;
 
+	class CellItem_Bug
+	{
+	public:
+	  CellItem_Bug();
+	  CellItem_Bug(bool fixed);
+	  CellItem_Bug(const CellItem_Bug& src);
+	  ~CellItem_Bug();
+	  CellItem_Bug& operator=(const CellItem_Bug& src);
+
+	  bool m_fixed;
+	};
+
+
 class BurzaDialogs {
+
 	
 public:
 	BurzaDialogs();
@@ -78,6 +92,7 @@ public:
 	void RegisterButtonAddItem( void );
 	void RegisterButtonModifyItem( void );
 	void RegisterButtonRemoveItem( void );
+	void RegisterButtonAcceptUnaccept( void );
 	void RegisterButtonCalcFee( void );
 	void RegisterButtonCalcRepayment( void );
 	void RegisterButtonSwitchToCashout( void );
@@ -150,6 +165,7 @@ public:
 	Gtk::Button		*m_pButtonAddItem;
 	Gtk::Button		*m_pButtonModifyItem;
 	Gtk::Button		*m_pButtonRemoveItem;
+	Gtk::Button		*m_pButtonAcceptUnaccept;
 	Gtk::Button		*m_pButtonCalcFee;
 	Gtk::Button		*m_pButtonCalcRepayment;
 	Gtk::Label		*m_pLabelFee;
@@ -231,6 +247,11 @@ public:
 	};
 
 	Glib::RefPtr<Gdk::Pixbuf>	registerColumnStateImages[ Burza::ItemStatusCount ];
+
+	std::vector< CellItem_Bug > registerItemCheckBoxes;
+	bool registerItemCheckBoxes2[ 100 ];
+
+	void on_column_checkbox_edited( Glib::ustring text );
 
 	// == register item list ==
 	

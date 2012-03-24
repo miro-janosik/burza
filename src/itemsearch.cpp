@@ -82,6 +82,7 @@ vector<ItemData> ItemSearch::LookForItemsContainingWords( string& partOfName, SE
 	vector<ItemData> preResults[ limit ];
 	int i, c, w;
 	vector<string> words;
+	string itemText;
 
 	StringEncoding::UTF8RemoveAccents( partOfName );
 	std::transform( partOfName.begin(), partOfName.end(), partOfName.begin(), static_cast<int (*)(int)>(tolower) );
@@ -90,9 +91,12 @@ vector<ItemData> ItemSearch::LookForItemsContainingWords( string& partOfName, SE
 	for( c = items.size(), i = 0; i < c; ++i ) {
 
 		matches = 0;
+		itemText = items[ i ].name;
+		itemText += " ";
+		itemText += ConvFuncs::FormatCstr( "%0.2f", items[ i ].price );
 
 		for( w = 0; w < words.size(); ++w ) {
-			if ( items[ i ].name.find( words[ w ] ) != string::npos ) {
+			if ( itemText.find( words[ w ] ) != string::npos ) {
 
 				matches++;
 			}

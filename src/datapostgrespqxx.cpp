@@ -558,6 +558,9 @@ void DataPostgresPqxx::DbDataToItemData( const result::tuple& result, ItemData& 
 
 ItemDataArray DataPostgresPqxx::QueryForItems( string query, string queryName, bool singleItem )
 {
+	// LogS( InfoMajor, "Query name: %s single: %s\n", queryName.c_str(), singleItem ? "yes" : "no" );
+	// LogS( InfoMajor, "Query: %s\n", query.c_str() );
+
 	ItemDataArray items;
 	result itemResult;
 	
@@ -593,6 +596,9 @@ ItemDataArray DataPostgresPqxx::QueryForItems( string query, string queryName, b
 
 SellerDataArray DataPostgresPqxx::QueryForSellers( string query, string queryName, bool singleSellers )
 {
+	// LogS( InfoMajor, "Query name: %s single: %s\n", queryName.c_str(), singleSellers ? "yes" : "no" );
+	// LogS( InfoMajor, "Query: %s\n", query.c_str() );
+
 	SellerDataArray sellers;
 	result sellersResult;
 	
