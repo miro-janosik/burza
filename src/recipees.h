@@ -17,7 +17,10 @@ public:
   
   void PrintSellerReturnSheet( PdfWrapperBase& pdf, SELLER_ID id );
 
-  void DrawTableSplitOnPages( PdfWrapperBase& pdf, float fx, float fy, TableOfCells& table, TableColumnSpecs& columns );
+  //! returns Y position on page in percent, where table ended.
+  float DrawTableSplitOnPages( PdfWrapperBase& pdf, float fx, float fy, TableOfCells& table, TableColumnSpecs& columns );
+ 
+  static double RoundTo5Cents( double price );
 
 private:
 	//! margin in percentage of page. 0 means no margin

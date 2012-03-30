@@ -258,7 +258,7 @@ NastaveniaProgramu::NastaveniaProgramu()
 	m_string_mena = "∈";
 	
 	m_computer_name = "PC123";
-	m_name_of_the_sale = "Jesenna burza 2011";
+	m_name_of_the_sale = "Jarna burza 2012";
 
 	CXmlTreeSingleNode configRoot;
 	string confFilename = exePath + "burza.xml";

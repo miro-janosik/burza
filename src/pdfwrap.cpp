@@ -12,6 +12,7 @@
 #include "hpdf.h"
 #include "convfncs.h"
 #include "stringencoding.h"
+#include "log.h"
 
 using namespace std;
 using namespace Burza;
@@ -41,8 +42,8 @@ void PdfWrapperBase::PercentToPos( float percentx, float percenty, int& posx, in
 
 HPDFWrapper::HPDFWrapper()
 {
-	m_default_page_width = 400;
-	m_default_page_height = 600;
+	m_default_page_height = 841;
+	m_default_page_width = 595;
 	m_open = false;
 
 	m_current_font = 0;
@@ -173,7 +174,7 @@ void HPDFWrapper::ConvertUTF8ToISO8859_2orErrorString( std::string& str )
 		StringEncoding::UTF8ToISO8859_2( str );
 	}
 	catch(std::runtime_error e) {
-		str = e.what();
+		LogS( InfoError, "Error encoding '%s' : %s\n", str.c_str(), e.what() );
 	}
 }
 
@@ -184,6 +185,9 @@ void HPDFWrapper::NewPage( string name )
 	HPDF_Outline outline;
 	HPDF_Destination dst;
 	HPDF_Font font2;
+
+    // float height = HPDF_Page_GetHeight (m_current_page);
+    // float width = HPDF_Page_GetWidth (m_current_page); 
 
 	HPDF_Page_SetWidth( m_current_page, m_default_page_width );
 	HPDF_Page_SetHeight( m_current_page, m_default_page_height );
@@ -255,11 +259,12 @@ void HPDFWrapper::DrawTable( float fx, float fy, TableStyle& style, TableOfCells
 	
 	// count column width
 	table_width = 0;
+	double w = 0;
 	for( unsigned int i=0; i<c.m_columns.size(); ++i ) {
-		int w;
-		w = PercentToPosX( c.m_columns[ i ].m_width );
-		table_width += w;
+		w += c.m_columns[ i ].m_width;
 	}
+
+	table_width += PercentToPosX( w );
 
 	// draw lines
 	HPDF_Page_SetLineWidth( m_current_page, 0.5 );

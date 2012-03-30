@@ -1008,7 +1008,7 @@ void BurzaDialogs::RegisterButtonReviewOfSellers( void )
 		pdf.CreatePDF( name );
 		
 		for( unsigned int i=0; i<m_DisplayedSellers.size(); i++ ) {
-			recipees.PrintSellerStatus( pdf, m_DisplayedSellers[ i ].id );
+			recipees.PrintSellerReturnSheet( pdf, m_DisplayedSellers[ i ].id );
 		}
 		
 		pdf.ClosePDF();

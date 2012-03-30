@@ -2,18 +2,18 @@
 	<config>
 		<!--	address="192.168.1.106" password="heslo" -->
 
-		<server 
+		<!-- server 
 			address="127.0.0.1" 
 			user="postgres" 
 			password="p4ssw0rd" 
 			dbname="burzadb" 
-			port="5433" />
-		<!-- server 
+			port="5433" / -->
+		<server 
 			address="192.168.1.10" 
 			user="postgres" 
 			password="dlhehony" 
 			dbname="burzadb" 
-			port="5433" / -->
+			port="5433" />
 
 		<License
 			to="Miro Janosik, domace PC"

@@ -104,7 +104,7 @@ void Recipees::AddProgramPageHeaderAndFooter( PdfWrapperBase& pdf )
 		"Srdiečko"));
 }
 
-void Recipees::DrawTableSplitOnPages( PdfWrapperBase& pdf, float fx, float fy, TableOfCells& table, TableColumnSpecs& columns )
+float Recipees::DrawTableSplitOnPages( PdfWrapperBase& pdf, float fx, float fy, TableOfCells& table, TableColumnSpecs& columns )
 {
 	PdfWrapperBase::TableStyle	style;
 	style.fontSize = 1.3;
@@ -114,6 +114,8 @@ void Recipees::DrawTableSplitOnPages( PdfWrapperBase& pdf, float fx, float fy, T
 	int firstRowToPrint, rowsToPrint, lastRowToPrint;
 	firstRowToPrint = 0;
 	
+	float yEndOfTable = -1;
+
 	do {
 		rowsToPrint = ( marginBottom - fy ) / style.rowHeight;
 		lastRowToPrint = firstRowToPrint + rowsToPrint;
@@ -124,6 +126,12 @@ void Recipees::DrawTableSplitOnPages( PdfWrapperBase& pdf, float fx, float fy, T
 		pdf.DrawTable( fx, fy, style, table, columns, firstRowToPrint, lastRowToPrint );
 		
 		if ( lastRowToPrint >= table.Rows() - 1 ) {
+			yEndOfTable = fy + ( lastRowToPrint - firstRowToPrint + 1 ) * style.rowHeight;
+			
+			// add header row on first page
+			if ( firstRowToPrint == 0 ) {
+				yEndOfTable += style.headerRowHeight;
+			}
 			break;
 		}
 
@@ -132,6 +140,8 @@ void Recipees::DrawTableSplitOnPages( PdfWrapperBase& pdf, float fx, float fy, T
 		fy = marginTop;
 		firstRowToPrint = lastRowToPrint + 1;
 	} while( true );
+
+	return yEndOfTable;
 }
 
 void Recipees::PrintRecipeeAtEndOfCheckout( ItemDataArray& items, PdfWrapperBase& pdf )
@@ -254,7 +264,10 @@ void Recipees::PrintSellerReturnSheet( PdfWrapperBase& pdf, SELLER_ID id )
 	
 	items.Resize(sellerItems.size(), columns.m_columns.size());
 	double sum = 0;
-	
+	float paymentPerPiece = 0.10;
+	int piecesPriceOverPayPerPiece = 0;
+	int piecesAccepted = 0;
+
 	for(int i=0; i<sellerItems.size(); ++i ) {
 		
 		items.Cell( i, 0 ) = ConvFuncs::FormatStdStr( "%i", sellerItems[ i ].number );
@@ -271,20 +284,77 @@ void Recipees::PrintSellerReturnSheet( PdfWrapperBase& pdf, SELLER_ID id )
 			items.Cell( i, 5 ) = ConvFuncs::FormatStdStr( "%0.2f", sellerItems[ i ].price );
 			sum += sellerItems[ i ].price;
 		}
+
+		// if item was accepted for sale, and it is over 'paymentPerPiece' it will be counted.
+		switch ( sellerItems[ i ].status )
+		{
+		case on_stock:
+		case sold:
+		case returned:
+			if ( sellerItems[ i ].price > paymentPerPiece + 0.0001 )
+			{
+				++piecesPriceOverPayPerPiece;
+			}
+			break;
+		}
 	}
 
+	ypos = DrawTableSplitOnPages( pdf, 10, ypos, items, columns );
+	
+	// position for another table is:
+	ypos += 0;
+
+	// sums
+	TableOfCells	sumCells;
+	TableColumnSpecs	sumColumns;
+	
+	sumColumns.AddColumn( "", 50 );
+	sumColumns.AddColumn( "", 20 );
+
 	// add sum of the items that were sold
-	items.Resize(sellerItems.size() + 3, columns.m_columns.size());
+	sumCells.Resize( 7, sumColumns.m_columns.size() );
 
-	int row = sellerItems.size();
-	items.Cell( row, 1 ) = _( "Súčet predaných vecí" );
-	items.Cell( row, 5 ) = ConvFuncs::FormatStdStr( "%0.2f", sum );
-	row++;
-	items.Cell( row, 1 ) = _( "Poplatok" );
-	// items.Cell( row, 5 ) = ConvFuncs::FormatStdStr( "%0.2f", sum );
-	row++;
-	items.Cell( row, 1 ) = _( "Spolu" );
-	// items.Cell( row, 5 ) = ConvFuncs::FormatStdStr( "%0.2f", sum );
+	int row = 0;
+	sumCells.Cell( row, 0 ) = _( "Súčet predaných vecí" );
+	sumCells.Cell( row, 1 ) = ConvFuncs::FormatStdStr( "%0.2f", sum );
+	
+	++row;
+	double billForSold = sum * 0.10;
+	sumCells.Cell( row, 0 ) = _( "- 10% poplatok z predaných vecí" );
+	sumCells.Cell( row, 1 ) = ConvFuncs::FormatStdStr( "- %0.2f", billForSold );
 
-	DrawTableSplitOnPages( pdf, 10, ypos, items, columns );
+	++row;
+	double a = RoundTo5Cents( sum - billForSold );
+
+	sumCells.Cell( row, 0 ) = _( "Súčet predaných vecí - 10% " );
+	sumCells.Cell( row, 1 ) = ConvFuncs::FormatStdStr( "%0.2f", a );
+
+	++row;
+	double billForPieces = piecesPriceOverPayPerPiece * paymentPerPiece;
+	str = ConvFuncs::FormatStdStr(
+		_( "Manipulačný poplatok - %0.2f za každý kus drahší ako %0.2f" ), 
+			paymentPerPiece, paymentPerPiece );
+	sumCells.Cell( row, 0 ) = str;
+	sumCells.Cell( row, 1 ) = ConvFuncs::FormatStdStr( "- %0.2f", billForPieces );
+	
+	++row;
+	double moneyCashback = RoundTo5Cents( sum - billForSold - billForPieces );
+	sumCells.Cell( row, 0 ) = _( "Celkom vyplatené (eur) :" );
+	sumCells.Cell( row, 1 ) = ConvFuncs::FormatStdStr( "%0.2f", moneyCashback );
+	
+	++row;
+	++row;
+	sumCells.Cell( row, 0 ) = _( "Nepredané veci a peniaze prevzal : " );
+
+	DrawTableSplitOnPages( pdf, 15, ypos, sumCells, sumColumns );
+
+	// nepredané veci a peniaze prevzal : 		
+}
+
+double Recipees::RoundTo5Cents( double price )
+{
+	int a = ( price + 0.001 ) * 20;
+	double b = (double)a / 20.0;
+
+	return b;
 }
