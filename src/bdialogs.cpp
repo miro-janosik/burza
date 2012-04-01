@@ -160,6 +160,12 @@ int BurzaDialogs::SetupDialogs( void )
 	xmlWndRegister->get_widget( "button cashout", m_pButtonCashout );
 	xmlWndRegister->get_widget( "button_review_of_sellers", m_pRegisterButtonReviewOfSellers );
 	xmlWndRegister->get_widget( "button_settings", m_pButtonSettings );
+	xmlWndRegister->get_widget( "button_other_actions", m_pRegisterOtherActions );
+	
+	xmlWndRegister->get_widget( "menuRegisterOtherActions", menuRegisterOtherActions );
+	xmlWndRegister->get_widget( "menuItemSettings", menuItemSettings );
+	xmlWndRegister->get_widget( "menuItemSaveSellerOverview", menuItemSaveSellerOverview );
+	xmlWndRegister->get_widget( "menuitemStats", menuitemStats );
 	
 	if (( m_pComboSeller == NULL ) ||
 		( m_pButtonImportSeller == NULL ) ||
@@ -176,8 +182,12 @@ int BurzaDialogs::SetupDialogs( void )
 		( m_pLabelSellerNote == NULL ) ||
 		( m_pButtonCashout  == NULL ) ||
 		( m_pRegisterButtonReviewOfSellers == NULL ) ||
-		( m_pButtonSettings == NULL )) {
-		
+		( m_pButtonSettings == NULL ) ||
+		( m_pRegisterOtherActions == NULL ) ||
+		( menuRegisterOtherActions == NULL ) ||
+		( menuItemSettings == NULL ) ||
+		( menuItemSaveSellerOverview == NULL ) ||
+		( menuitemStats == NULL )) {
 		error = "Dialog file is corrupt [1].";
 		throw;
 	}
@@ -193,7 +203,12 @@ int BurzaDialogs::SetupDialogs( void )
 	m_pButtonCalcRepayment->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonCalcRepayment ) );
 	m_pButtonCashout->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonSwitchToCashout ) );
 	m_pRegisterButtonReviewOfSellers->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonReviewOfSellers ) );
-	m_pButtonSettings->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonSettings ) );
+	// m_pButtonSettings->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonSettings ) );
+	m_pRegisterOtherActions->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonOtherActions ) );
+
+	menuItemSettings->signal_button_release_event().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonSettings ) );
+	menuItemSaveSellerOverview->signal_button_release_event().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonSaveSellerOverview ) );
+	menuitemStats->signal_button_release_event().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonStats ) );
 
 	m_pComboSeller->signal_changed().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterComboChangedSeller ) );
 	
@@ -1728,9 +1743,32 @@ void BurzaDialogs::CashoutEditSearchEntryChanged( void )
 	*/
 }
 
+/*
 void BurzaDialogs::RegisterButtonSettings( void )
 {
 	settingsWindow.dialog->run();
+}
+*/
+
+void BurzaDialogs::RegisterButtonOtherActions( void )
+{
+	menuRegisterOtherActions->popup( 0, 0 );
+}
+
+bool BurzaDialogs::RegisterButtonStats( GdkEventButton* button )
+{
+	settingsWindow.dialog->run();
+	return true;
+}
+
+bool BurzaDialogs::RegisterButtonSaveSellerOverview( GdkEventButton* button )
+{
+	return true;
+}
+
+bool BurzaDialogs::RegisterButtonSettings( GdkEventButton* button )
+{
+	return true;
 }
 
 void BurzaDialogs::SettingsClickedButtonRequestLicence( void )

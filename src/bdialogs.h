@@ -98,8 +98,12 @@ public:
 	void RegisterButtonSwitchToCashout( void );
 	void RegisterComboChangedSeller( void );
 	void RegisterButtonReviewOfSellers( void );
-	void RegisterButtonSettings( void );
-	
+	// void RegisterButtonSettings( void );
+	void RegisterButtonOtherActions( void );
+	bool RegisterButtonStats( GdkEventButton* button );
+	bool RegisterButtonSaveSellerOverview( GdkEventButton* button );
+	bool RegisterButtonSettings( GdkEventButton* button );
+
 	void CashoutItemsTreeSelectChanged( void );
 	
 	void RegisterGetSelectedItemIds( vector<Burza::ITEM_ID>& listOfIds );
@@ -173,9 +177,15 @@ public:
 	Gtk::Button		*m_pButtonCashout;
 	Gtk::Button		*m_pRegisterButtonReviewOfSellers;
 	Gtk::Button		*m_pButtonSettings;
+	Gtk::Button		*m_pRegisterOtherActions;
 	
 	Glib::RefPtr<Gtk::TreeSelection>	m_RegisterItemsSelection;
 	Glib::RefPtr<Gtk::ListStore>	m_RegisterItemsListModel;
+
+	Gtk::Menu		*menuRegisterOtherActions;
+	Gtk::MenuItem	*menuItemSettings;
+	Gtk::MenuItem	*menuItemSaveSellerOverview;
+	Gtk::MenuItem	*menuitemStats;
 	
 	// cash-out dialog
 	Gtk::Button		*m_pButtonRegister;
