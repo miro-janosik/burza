@@ -128,6 +128,10 @@ int BurzaDialogs::SetupDialogs( void )
 	if ( ! xmlWndModifyItem )
 		error = "BiturnDialogsGtkmm::Init() error loading glade item from xml. 'Tovar'";
 	
+	xmlWndRegisterPopupMenu = Gnome::Glade::Xml::create( glade_fname.c_str(), "menuRegisterOtherActions" );
+	if ( ! xmlWndRegisterPopupMenu )
+		error = "BiturnDialogsGtkmm::Init() error loading glade item from xml. 'menuRegisterOtherActions'";
+	
 	xmlWndRegister->get_widget( "Register", m_pWndRegister );
 	xmlWndCashOut->get_widget( "Pokladna", m_pWndCashOut );
 	xmlWndModifySeller->get_widget( "Predajca", m_pWndSeller );
@@ -153,19 +157,19 @@ int BurzaDialogs::SetupDialogs( void )
 	xmlWndRegister->get_widget( "button modify item", m_pButtonModifyItem );
 	xmlWndRegister->get_widget( "button remove item", m_pButtonRemoveItem );
 	xmlWndRegister->get_widget( "button toggle accepted", m_pButtonAcceptUnaccept );
-	xmlWndRegister->get_widget( "button calc fee", m_pButtonCalcFee );
+	// xmlWndRegister->get_widget( "button calc fee", m_pButtonCalcFee );
 	xmlWndRegister->get_widget( "button calc repayment", m_pButtonCalcRepayment );
 	xmlWndRegister->get_widget( "label fee", m_pLabelFee );
 	xmlWndRegister->get_widget( "label seller note", m_pLabelSellerNote );
 	xmlWndRegister->get_widget( "button cashout", m_pButtonCashout );
-	xmlWndRegister->get_widget( "button_review_of_sellers", m_pRegisterButtonReviewOfSellers );
-	xmlWndRegister->get_widget( "button_settings", m_pButtonSettings );
+	// xmlWndRegister->get_widget( "button_review_of_sellers", m_pRegisterButtonReviewOfSellers );
+	// xmlWndRegister->get_widget( "button_settings", m_pButtonSettings );
 	xmlWndRegister->get_widget( "button_other_actions", m_pRegisterOtherActions );
 	
-	xmlWndRegister->get_widget( "menuRegisterOtherActions", menuRegisterOtherActions );
-	xmlWndRegister->get_widget( "menuItemSettings", menuItemSettings );
-	xmlWndRegister->get_widget( "menuItemSaveSellerOverview", menuItemSaveSellerOverview );
-	xmlWndRegister->get_widget( "menuitemStats", menuitemStats );
+	xmlWndRegisterPopupMenu->get_widget( "menuRegisterOtherActions", menuRegisterOtherActions );
+	xmlWndRegisterPopupMenu->get_widget( "menuItemSettings", menuItemSettings );
+	xmlWndRegisterPopupMenu->get_widget( "menuItemSaveSellerOverview", menuItemSaveSellerOverview );
+	xmlWndRegisterPopupMenu->get_widget( "menuitemStats", menuitemStats );
 	
 	if (( m_pComboSeller == NULL ) ||
 		( m_pButtonImportSeller == NULL ) ||
@@ -176,13 +180,13 @@ int BurzaDialogs::SetupDialogs( void )
 		( m_pButtonModifyItem == NULL ) ||
 		( m_pButtonRemoveItem == NULL ) ||
 		( m_pButtonAcceptUnaccept == NULL ) ||
-		( m_pButtonCalcFee == NULL ) ||
+		// ( m_pButtonCalcFee == NULL ) ||
 		( m_pButtonCalcRepayment == NULL ) ||
 		( m_pLabelFee == NULL ) ||
 		( m_pLabelSellerNote == NULL ) ||
 		( m_pButtonCashout  == NULL ) ||
-		( m_pRegisterButtonReviewOfSellers == NULL ) ||
-		( m_pButtonSettings == NULL ) ||
+		// ( m_pRegisterButtonReviewOfSellers == NULL ) ||
+		// ( m_pButtonSettings == NULL ) ||
 		( m_pRegisterOtherActions == NULL ) ||
 		( menuRegisterOtherActions == NULL ) ||
 		( menuItemSettings == NULL ) ||
@@ -199,10 +203,10 @@ int BurzaDialogs::SetupDialogs( void )
 	m_pButtonModifyItem->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonModifyItem ) );
 	m_pButtonRemoveItem->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonRemoveItem ) );
 	m_pButtonAcceptUnaccept->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonAcceptUnaccept ) );
-	m_pButtonCalcFee->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonCalcFee ) );
+	// m_pButtonCalcFee->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonCalcFee ) );
 	m_pButtonCalcRepayment->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonCalcRepayment ) );
 	m_pButtonCashout->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonSwitchToCashout ) );
-	m_pRegisterButtonReviewOfSellers->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonReviewOfSellers ) );
+	// m_pRegisterButtonReviewOfSellers->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonReviewOfSellers ) );
 	// m_pButtonSettings->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonSettings ) );
 	m_pRegisterOtherActions->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonOtherActions ) );
 
@@ -501,6 +505,9 @@ int BurzaDialogs::SetupDialogs( void )
 	settingsWindow.xmlWindow->get_widget( "button_request_licence", settingsWindow.buttonRequestLicence );
 	settingsWindow.xmlWindow->get_widget( "button_install_licence", settingsWindow.buttonInstallLicence );
 
+	button_ok
+	entry_name_of_burza
+
 	if (( settingsWindow.dialog == NULL ) ||
 		( settingsWindow.labelCurrentLicence == NULL ) ||
 		( settingsWindow.buttonRequestLicence == NULL ) ||
@@ -714,16 +721,18 @@ void BurzaDialogs::RegisterButtonImportSeller( void )
 	ItemDataArray items;
 	
 	try {
-		if (ext == "txt" ) {
+		if ( ext == "txt" ) {
 			knownType = true;
 			CachedDataTextfile	textStorage( Centrala::Settings().m_data_dir_path );
 			textStorage.LoadFromTxtFile(filename, seller, items );
 		}
-		if (ext == "xls" ) {
+		if ( ext == "xls" ) {
 			knownType = true;
 			BurzaExcel::BasicExcelFileWrapper	excelFile;
 			excelFile.ReadSeller( filename, seller, items );
 		}
+		if ( ext == "ods" )
+			xxx
 
 		if (knownType == false) {
 			DisplayErrorMessageBox( _("Neznámy typ súboru. Podporované su 'xls' a 'txt'") );
@@ -1757,17 +1766,18 @@ void BurzaDialogs::RegisterButtonOtherActions( void )
 
 bool BurzaDialogs::RegisterButtonStats( GdkEventButton* button )
 {
-	settingsWindow.dialog->run();
 	return true;
 }
 
 bool BurzaDialogs::RegisterButtonSaveSellerOverview( GdkEventButton* button )
 {
+	RegisterButtonReviewOfSellers();
 	return true;
 }
 
 bool BurzaDialogs::RegisterButtonSettings( GdkEventButton* button )
 {
+	settingsWindow.dialog->run();
 	return true;
 }
 

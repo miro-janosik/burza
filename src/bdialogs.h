@@ -154,11 +154,10 @@ public:
 public:
 	Burza::BurzaRegister			*mp_register;
 	
-	Glib::RefPtr<Gnome::Glade::Xml> 	xmlWndRegister, xmlWndCashOut, 
- 			xmlWndModifySeller, xmlWndModifyItem;
+	Glib::RefPtr<Gnome::Glade::Xml> 	
+		xmlWndRegister, xmlWndCashOut, xmlWndModifySeller, xmlWndModifyItem, xmlWndRegisterPopupMenu;
 		
-	Gtk::Window		*m_pWndRegister, *m_pWndCashOut, 
- 			*m_pWndSeller, *m_pWndItem;
+	Gtk::Window		*m_pWndRegister, *m_pWndCashOut, *m_pWndSeller, *m_pWndItem;
 
 	// register dialog
 	ComboBoxTextDer	*m_pComboSeller;
@@ -170,13 +169,13 @@ public:
 	Gtk::Button		*m_pButtonModifyItem;
 	Gtk::Button		*m_pButtonRemoveItem;
 	Gtk::Button		*m_pButtonAcceptUnaccept;
-	Gtk::Button		*m_pButtonCalcFee;
+	// Gtk::Button		*m_pButtonCalcFee;
 	Gtk::Button		*m_pButtonCalcRepayment;
 	Gtk::Label		*m_pLabelFee;
 	Gtk::Label		*m_pLabelSellerNote;
 	Gtk::Button		*m_pButtonCashout;
-	Gtk::Button		*m_pRegisterButtonReviewOfSellers;
-	Gtk::Button		*m_pButtonSettings;
+	// Gtk::Button		*m_pRegisterButtonReviewOfSellers;
+	// Gtk::Button		*m_pButtonSettings;
 	Gtk::Button		*m_pRegisterOtherActions;
 	
 	Glib::RefPtr<Gtk::TreeSelection>	m_RegisterItemsSelection;

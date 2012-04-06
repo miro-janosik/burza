@@ -1,15 +1,14 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE glade-interface SYSTEM "glade-2.0.dtd">
-<!--Generated with glade3 3.4.3 on Sun Apr 01 22:44:18 2012 -->
+<?xml version="1.0"?>
 <glade-interface>
+  <!-- interface-requires gtk+ 2.16 -->
+  <!-- interface-naming-policy toplevel-contextual -->
   <widget class="GtkWindow" id="Pokladna">
-    <property name="title" translatable="yes" comments="Cash-out">Burza - Pokladňa</property>
+    <property name="title" translatable="yes" comments="Cash-out">Burza - Poklad&#x148;a</property>
     <child>
       <widget class="GtkVBox" id="vbox1">
         <property name="visible">True</property>
         <property name="border_width">15</property>
-        <property name="orientation">GTK_ORIENTATION_VERTICAL</property>
-        <property name="orientation">GTK_ORIENTATION_VERTICAL</property>
+        <property name="orientation">vertical</property>
         <child>
           <widget class="GtkFixed" id="fixed2">
             <property name="height_request">20</property>
@@ -17,13 +16,14 @@
           </widget>
           <packing>
             <property name="expand">False</property>
+            <property name="position">0</property>
           </packing>
         </child>
         <child>
           <widget class="GtkLabel" id="a">
             <property name="visible">True</property>
             <property name="xalign">0.10000000149011612</property>
-            <property name="label" translatable="yes">Pokladňa</property>
+            <property name="label" translatable="yes">Poklad&#x148;a</property>
             <property name="use_underline">True</property>
           </widget>
           <packing>
@@ -35,14 +35,14 @@
           <widget class="GtkScrolledWindow" id="scrolledwindow2">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
-            <property name="hscrollbar_policy">GTK_POLICY_AUTOMATIC</property>
-            <property name="vscrollbar_policy">GTK_POLICY_AUTOMATIC</property>
+            <property name="hscrollbar_policy">automatic</property>
+            <property name="vscrollbar_policy">automatic</property>
             <child>
               <widget class="GtkTreeView" id="treeview cashout items">
                 <property name="height_request">200</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="enable_grid_lines">GTK_TREE_VIEW_GRID_LINES_BOTH</property>
+                <property name="enable_grid_lines">both</property>
               </widget>
             </child>
           </widget>
@@ -75,6 +75,7 @@
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">False</property>
+                <property name="position">0</property>
               </packing>
             </child>
             <child>
@@ -96,7 +97,7 @@
           <widget class="GtkLabel" id="a2">
             <property name="visible">True</property>
             <property name="xalign">0.10000000149011612</property>
-            <property name="label" translatable="yes" comments="item name">Názov tovaru:</property>
+            <property name="label" translatable="yes" comments="item name">N&#xE1;zov tovaru:</property>
             <property name="use_underline">True</property>
           </widget>
           <packing>
@@ -116,6 +117,7 @@
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">False</property>
+                <property name="position">0</property>
               </packing>
             </child>
             <child>
@@ -124,7 +126,7 @@
                 <property name="visible">True</property>
                 <property name="xpad">5</property>
                 <property name="label" translatable="yes">cena a stav</property>
-                <property name="justify">GTK_JUSTIFY_CENTER</property>
+                <property name="justify">center</property>
                 <property name="selectable">True</property>
                 <property name="single_line_mode">True</property>
               </widget>
@@ -158,7 +160,6 @@
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="border_width">3</property>
-                <property name="response_id">0</property>
                 <child>
                   <widget class="GtkHBox" id="hbox21">
                     <property name="visible">True</property>
@@ -167,11 +168,14 @@
                         <property name="visible">True</property>
                         <property name="stock">gtk-add</property>
                       </widget>
+                      <packing>
+                        <property name="position">0</property>
+                      </packing>
                     </child>
                     <child>
                       <widget class="GtkLabel" id="label13">
                         <property name="visible">True</property>
-                        <property name="label" translatable="yes">Pridaj do nákupu</property>
+                        <property name="label" translatable="yes">Pridaj do n&#xE1;kupu</property>
                       </widget>
                       <packing>
                         <property name="position">1</property>
@@ -180,6 +184,10 @@
                   </widget>
                 </child>
               </widget>
+              <packing>
+                <property name="expand">False</property>
+                <property name="position">0</property>
+              </packing>
             </child>
             <child>
               <widget class="GtkFixed" id="fixed8">
@@ -196,7 +204,6 @@
                 <property name="receives_default">True</property>
                 <property name="border_width">3</property>
                 <property name="xalign">0.80000001192092896</property>
-                <property name="response_id">0</property>
                 <child>
                   <widget class="GtkHBox" id="hbox22">
                     <property name="visible">True</property>
@@ -205,11 +212,14 @@
                         <property name="visible">True</property>
                         <property name="stock">gtk-remove</property>
                       </widget>
+                      <packing>
+                        <property name="position">0</property>
+                      </packing>
                     </child>
                     <child>
                       <widget class="GtkLabel" id="label14">
                         <property name="visible">True</property>
-                        <property name="label" translatable="yes">Odober z nákupu</property>
+                        <property name="label" translatable="yes">Odober z n&#xE1;kupu</property>
                       </widget>
                       <packing>
                         <property name="position">1</property>
@@ -260,7 +270,7 @@
           <widget class="GtkLabel" id="label2">
             <property name="visible">True</property>
             <property name="xalign">0.10000000149011612</property>
-            <property name="label" translatable="yes">Nájdi tovar</property>
+            <property name="label" translatable="yes">N&#xE1;jdi tovar</property>
           </widget>
           <packing>
             <property name="expand">False</property>
@@ -270,10 +280,6 @@
         <child>
           <widget class="GtkComboBoxEntry" id="comboboxentry_search">
             <property name="visible">True</property>
-            <child internal-child="entry">
-              <widget class="GtkEntry" id="comboboxentry-entry1">
-              </widget>
-            </child>
           </widget>
           <packing>
             <property name="expand">False</property>
@@ -285,8 +291,8 @@
           <widget class="GtkScrolledWindow" id="scrolledwindow3">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
-            <property name="hscrollbar_policy">GTK_POLICY_AUTOMATIC</property>
-            <property name="vscrollbar_policy">GTK_POLICY_AUTOMATIC</property>
+            <property name="hscrollbar_policy">automatic</property>
+            <property name="vscrollbar_policy">automatic</property>
             <child>
               <widget class="GtkTreeView" id="treeview1">
                 <property name="visible">True</property>
@@ -306,9 +312,12 @@
               <widget class="GtkLabel" id="label sum">
                 <property name="visible">True</property>
                 <property name="label" translatable="yes">Suma: 0,00 e</property>
-                <property name="justify">GTK_JUSTIFY_CENTER</property>
+                <property name="justify">center</property>
                 <property name="single_line_mode">True</property>
               </widget>
+              <packing>
+                <property name="position">0</property>
+              </packing>
             </child>
             <child>
               <widget class="GtkButton" id="label cashout finished">
@@ -318,7 +327,6 @@
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="border_width">10</property>
-                <property name="response_id">0</property>
                 <child>
                   <widget class="GtkHBox" id="hbox19">
                     <property name="visible">True</property>
@@ -327,11 +335,14 @@
                         <property name="visible">True</property>
                         <property name="stock">gtk-apply</property>
                       </widget>
+                      <packing>
+                        <property name="position">0</property>
+                      </packing>
                     </child>
                     <child>
                       <widget class="GtkLabel" id="label11">
                         <property name="visible">True</property>
-                        <property name="label" translatable="yes">Dokonči predaj</property>
+                        <property name="label" translatable="yes">Dokon&#x10D;i predaj</property>
                       </widget>
                       <packing>
                         <property name="position">1</property>
@@ -364,16 +375,16 @@
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">False</property>
+                <property name="position">0</property>
               </packing>
             </child>
             <child>
               <widget class="GtkButton" id="button register">
+                <property name="label" translatable="yes">Register</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="border_width">10</property>
-                <property name="label" translatable="yes">Register</property>
-                <property name="response_id">0</property>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -404,8 +415,7 @@
       <widget class="GtkVBox" id="vbox2">
         <property name="visible">True</property>
         <property name="border_width">20</property>
-        <property name="orientation">GTK_ORIENTATION_VERTICAL</property>
-        <property name="orientation">GTK_ORIENTATION_VERTICAL</property>
+        <property name="orientation">vertical</property>
         <child>
           <widget class="GtkLabel" id="label1">
             <property name="visible">True</property>
@@ -414,6 +424,7 @@
           </widget>
           <packing>
             <property name="expand">False</property>
+            <property name="position">0</property>
           </packing>
         </child>
         <child>
@@ -425,10 +436,11 @@
                 <property name="width_request">100</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="invisible_char">●</property>
+                <property name="invisible_char">&#x25CF;</property>
               </widget>
               <packing>
                 <property name="expand">False</property>
+                <property name="position">0</property>
               </packing>
             </child>
             <child>
@@ -456,7 +468,6 @@
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="border_width">10</property>
-                <property name="response_id">0</property>
                 <child>
                   <widget class="GtkHBox" id="hbox16">
                     <property name="visible">True</property>
@@ -465,11 +476,14 @@
                         <property name="visible">True</property>
                         <property name="stock">gtk-open</property>
                       </widget>
+                      <packing>
+                        <property name="position">0</property>
+                      </packing>
                     </child>
                     <child>
                       <widget class="GtkLabel" id="label8">
                         <property name="visible">True</property>
-                        <property name="label" translatable="yes">Načítaj predajcu zo súboru</property>
+                        <property name="label" translatable="yes">Na&#x10D;&#xED;taj predajcu zo s&#xFA;boru</property>
                       </widget>
                       <packing>
                         <property name="position">1</property>
@@ -478,16 +492,18 @@
                   </widget>
                 </child>
               </widget>
+              <packing>
+                <property name="position">0</property>
+              </packing>
             </child>
             <child>
               <widget class="GtkButton" id="button add seller">
+                <property name="label" translatable="yes" comments="inport seller">Pridaj predajcu ru&#x10D;ne</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="border_width">10</property>
-                <property name="label" translatable="yes" comments="inport seller">Pridaj predajcu ručne</property>
                 <property name="use_stock">True</property>
-                <property name="response_id">0</property>
               </widget>
               <packing>
                 <property name="position">1</property>
@@ -499,7 +515,6 @@
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="border_width">10</property>
-                <property name="response_id">0</property>
                 <child>
                   <widget class="GtkHBox" id="hbox17">
                     <property name="visible">True</property>
@@ -508,11 +523,14 @@
                         <property name="visible">True</property>
                         <property name="stock">gtk-edit</property>
                       </widget>
+                      <packing>
+                        <property name="position">0</property>
+                      </packing>
                     </child>
                     <child>
                       <widget class="GtkLabel" id="label9">
                         <property name="visible">True</property>
-                        <property name="label" translatable="yes">Uprav údaje predajcu</property>
+                        <property name="label" translatable="yes">Uprav &#xFA;daje predajcu</property>
                       </widget>
                       <packing>
                         <property name="position">1</property>
@@ -531,7 +549,6 @@
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="border_width">10</property>
-                <property name="response_id">0</property>
                 <child>
                   <widget class="GtkHBox" id="hbox15">
                     <property name="visible">True</property>
@@ -540,11 +557,14 @@
                         <property name="visible">True</property>
                         <property name="stock">gtk-go-forward</property>
                       </widget>
+                      <packing>
+                        <property name="position">0</property>
+                      </packing>
                     </child>
                     <child>
                       <widget class="GtkLabel" id="label7">
                         <property name="visible">True</property>
-                        <property name="label" translatable="yes">Dokonči preberanie</property>
+                        <property name="label" translatable="yes">Dokon&#x10D;i preberanie</property>
                       </widget>
                       <packing>
                         <property name="position">1</property>
@@ -567,14 +587,14 @@
           <widget class="GtkScrolledWindow" id="scrolledwindow1">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
-            <property name="hscrollbar_policy">GTK_POLICY_AUTOMATIC</property>
-            <property name="shadow_type">GTK_SHADOW_IN</property>
+            <property name="hscrollbar_policy">automatic</property>
+            <property name="shadow_type">in</property>
             <child>
               <widget class="GtkTreeView" id="treeview items">
                 <property name="height_request">200</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="enable_grid_lines">GTK_TREE_VIEW_GRID_LINES_BOTH</property>
+                <property name="enable_grid_lines">both</property>
               </widget>
             </child>
           </widget>
@@ -588,16 +608,16 @@
             <property name="visible">True</property>
             <child>
               <widget class="GtkButton" id="button add item">
+                <property name="label" translatable="yes" comments="add item">Pridaj tovar</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="extension_events">GDK_EXTENSION_EVENTS_CURSOR</property>
+                <property name="extension_events">cursor</property>
                 <property name="border_width">15</property>
-                <property name="label" translatable="yes" comments="add item">Pridaj tovar</property>
-                <property name="response_id">0</property>
               </widget>
               <packing>
                 <property name="expand">False</property>
+                <property name="position">0</property>
               </packing>
             </child>
             <child>
@@ -606,7 +626,6 @@
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="border_width">15</property>
-                <property name="response_id">0</property>
                 <child>
                   <widget class="GtkHBox" id="hbox18">
                     <property name="visible">True</property>
@@ -617,6 +636,7 @@
                       </widget>
                       <packing>
                         <property name="expand">False</property>
+                        <property name="position">0</property>
                       </packing>
                     </child>
                     <child>
@@ -633,21 +653,29 @@
                 </child>
               </widget>
               <packing>
+                <property name="expand">False</property>
                 <property name="position">1</property>
               </packing>
             </child>
             <child>
               <widget class="GtkButton" id="button remove item">
+                <property name="label" translatable="yes" comments="delete item">Zma&#x17E; tovar</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="border_width">15</property>
-                <property name="label" translatable="yes" comments="delete item">Zmaž tovar</property>
-                <property name="response_id">0</property>
               </widget>
               <packing>
                 <property name="expand">False</property>
                 <property name="position">2</property>
+              </packing>
+            </child>
+            <child>
+              <widget class="GtkFixed" id="fixed4">
+                <property name="visible">True</property>
+              </widget>
+              <packing>
+                <property name="position">3</property>
               </packing>
             </child>
             <child>
@@ -656,7 +684,6 @@
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="border_width">15</property>
-                <property name="response_id">0</property>
                 <child>
                   <widget class="GtkHBox" id="hbox20">
                     <property name="visible">True</property>
@@ -668,12 +695,13 @@
                       <packing>
                         <property name="expand">False</property>
                         <property name="fill">False</property>
+                        <property name="position">0</property>
                       </packing>
                     </child>
                     <child>
                       <widget class="GtkLabel" id="label12">
                         <property name="visible">True</property>
-                        <property name="label" translatable="yes">Oznac/odznac</property>
+                        <property name="label" translatable="yes">Ozna&#x10D;/odzna&#x10D;</property>
                       </widget>
                       <packing>
                         <property name="fill">False</property>
@@ -685,7 +713,7 @@
               </widget>
               <packing>
                 <property name="expand">False</property>
-                <property name="position">3</property>
+                <property name="position">4</property>
               </packing>
             </child>
           </widget>
@@ -699,20 +727,17 @@
             <property name="height_request">60</property>
             <property name="visible">True</property>
             <child>
-              <widget class="GtkButton" id="button calc fee">
+              <widget class="GtkFixed" id="fixed3">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="extension_events">GDK_EXTENSION_EVENTS_CURSOR</property>
-                <property name="border_width">15</property>
-                <property name="label" translatable="yes" comments="calc fee">x Vyrátaj poplatok x</property>
-                <property name="response_id">0</property>
               </widget>
+              <packing>
+                <property name="position">0</property>
+              </packing>
             </child>
             <child>
               <widget class="GtkLabel" id="label fee">
                 <property name="visible">True</property>
-                <property name="label" translatable="yes">0,00</property>
+                <property name="label" translatable="yes">_</property>
               </widget>
               <packing>
                 <property name="position">1</property>
@@ -720,13 +745,11 @@
             </child>
             <child>
               <widget class="GtkButton" id="button calc repayment">
-                <property name="visible">True</property>
+                <property name="label" translatable="yes" comments="calc cash to return">Vyr&#xE1;taj v&#xFD;platu</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="extension_events">GDK_EXTENSION_EVENTS_CURSOR</property>
+                <property name="extension_events">cursor</property>
                 <property name="border_width">15</property>
-                <property name="label" translatable="yes" comments="calc cash to return">Vyrátaj výplatu</property>
-                <property name="response_id">0</property>
               </widget>
               <packing>
                 <property name="position">2</property>
@@ -763,16 +786,16 @@
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">False</property>
+                <property name="position">0</property>
               </packing>
             </child>
             <child>
               <widget class="GtkButton" id="button cashout">
+                <property name="label" translatable="yes">Poklad&#x148;a</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="border_width">10</property>
-                <property name="label" translatable="yes">Pokladňa</property>
-                <property name="response_id">0</property>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -781,45 +804,32 @@
               </packing>
             </child>
             <child>
-              <widget class="GtkButton" id="button_settings">
+              <widget class="GtkFixed" id="fixed1">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="border_width">20</property>
-                <property name="label" translatable="yes">x Nastavenia x</property>
-                <property name="response_id">0</property>
               </widget>
               <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
                 <property name="position">2</property>
               </packing>
             </child>
             <child>
-              <widget class="GtkButton" id="button_review_of_sellers">
+              <widget class="GtkFixed" id="fixed2">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="border_width">20</property>
-                <property name="label" translatable="yes">x Ulož prehľad predajcov x</property>
-                <property name="response_id">0</property>
               </widget>
               <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
                 <property name="position">3</property>
               </packing>
             </child>
             <child>
               <widget class="GtkButton" id="button_other_actions">
+                <property name="label" translatable="yes">In&#xE9; akcie</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="border_width">15</property>
-                <property name="label" translatable="yes">Ine akcie</property>
-                <property name="response_id">0</property>
+                <property name="border_width">25</property>
               </widget>
               <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
                 <property name="position">4</property>
               </packing>
             </child>
@@ -835,13 +845,12 @@
   <widget class="GtkWindow" id="Predajca">
     <property name="title" translatable="yes">Predajca</property>
     <property name="modal">True</property>
-    <property name="window_position">GTK_WIN_POS_CENTER</property>
+    <property name="window_position">center</property>
     <property name="destroy_with_parent">True</property>
     <child>
       <widget class="GtkVBox" id="vbox3">
         <property name="visible">True</property>
-        <property name="orientation">GTK_ORIENTATION_VERTICAL</property>
-        <property name="orientation">GTK_ORIENTATION_VERTICAL</property>
+        <property name="orientation">vertical</property>
         <child>
           <widget class="GtkTable" id="table1">
             <property name="visible">True</property>
@@ -865,8 +874,8 @@
             <child>
               <widget class="GtkLabel" id="sellerNote1">
                 <property name="visible">True</property>
-                <property name="label" translatable="yes">Poznámka</property>
-                <property name="justify">GTK_JUSTIFY_RIGHT</property>
+                <property name="label" translatable="yes">Pozn&#xE1;mka</property>
+                <property name="justify">right</property>
               </widget>
               <packing>
                 <property name="top_attach">2</property>
@@ -877,8 +886,8 @@
             <child>
               <widget class="GtkLabel" id="sellerCode1">
                 <property name="visible">True</property>
-                <property name="label" translatable="yes">Kód</property>
-                <property name="justify">GTK_JUSTIFY_RIGHT</property>
+                <property name="label" translatable="yes">K&#xF3;d</property>
+                <property name="justify">right</property>
               </widget>
               <packing>
                 <property name="top_attach">1</property>
@@ -919,6 +928,9 @@
               </packing>
             </child>
           </widget>
+          <packing>
+            <property name="position">0</property>
+          </packing>
         </child>
         <child>
           <widget class="GtkHBox" id="hbox11">
@@ -926,27 +938,26 @@
             <property name="visible">True</property>
             <child>
               <widget class="GtkButton" id="sellerButton_ok">
+                <property name="label">gtk-apply</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="label">gtk-apply</property>
                 <property name="use_stock">True</property>
-                <property name="response_id">0</property>
               </widget>
               <packing>
                 <property name="fill">False</property>
                 <property name="padding">20</property>
+                <property name="position">0</property>
               </packing>
             </child>
             <child>
               <widget class="GtkButton" id="sellerButton_cancel">
+                <property name="label">gtk-cancel</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="label">gtk-cancel</property>
                 <property name="use_stock">True</property>
-                <property name="image_position">GTK_POS_RIGHT</property>
-                <property name="response_id">0</property>
+                <property name="image_position">right</property>
               </widget>
               <packing>
                 <property name="fill">False</property>
@@ -966,7 +977,7 @@
   <widget class="GtkWindow" id="Tovar">
     <property name="title" translatable="yes">Tovar</property>
     <property name="modal">True</property>
-    <property name="window_position">GTK_WIN_POS_CENTER</property>
+    <property name="window_position">center</property>
     <property name="destroy_with_parent">True</property>
     <child>
       <widget class="GtkVBox" id="vbox4">
@@ -994,7 +1005,7 @@
               <widget class="GtkLabel" id="code1">
                 <property name="visible">True</property>
                 <property name="xalign">1</property>
-                <property name="label" translatable="yes">Číslo</property>
+                <property name="label" translatable="yes">&#x10C;&#xED;slo</property>
               </widget>
               <packing>
                 <property name="top_attach">1</property>
@@ -1005,7 +1016,7 @@
             <child>
               <widget class="GtkLabel" id="name1">
                 <property name="visible">True</property>
-                <property name="label" translatable="yes">Názov  tovaru</property>
+                <property name="label" translatable="yes">N&#xE1;zov  tovaru</property>
               </widget>
               <packing>
                 <property name="top_attach">2</property>
@@ -1067,7 +1078,7 @@
             <child>
               <widget class="GtkLabel" id="label4">
                 <property name="visible">True</property>
-                <property name="label" translatable="yes">Kategória</property>
+                <property name="label" translatable="yes">Kateg&#xF3;ria</property>
               </widget>
               <packing>
                 <property name="x_options"></property>
@@ -1098,33 +1109,35 @@
               </packing>
             </child>
           </widget>
+          <packing>
+            <property name="position">0</property>
+          </packing>
         </child>
         <child>
           <widget class="GtkHBox" id="hbox12">
             <property name="visible">True</property>
             <child>
               <widget class="GtkButton" id="itemButton_ok">
+                <property name="label">gtk-apply</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="label">gtk-apply</property>
                 <property name="use_stock">True</property>
-                <property name="response_id">0</property>
               </widget>
               <packing>
                 <property name="fill">False</property>
                 <property name="padding">20</property>
+                <property name="position">0</property>
               </packing>
             </child>
             <child>
               <widget class="GtkButton" id="itemButton_cancel">
+                <property name="label">gtk-cancel</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="label">gtk-cancel</property>
                 <property name="use_stock">True</property>
-                <property name="image_position">GTK_POS_RIGHT</property>
-                <property name="response_id">0</property>
+                <property name="image_position">right</property>
               </widget>
               <packing>
                 <property name="fill">False</property>
@@ -1144,15 +1157,14 @@
   <widget class="GtkDialog" id="MessageEditBox">
     <property name="border_width">5</property>
     <property name="modal">True</property>
-    <property name="window_position">GTK_WIN_POS_CENTER_ON_PARENT</property>
-    <property name="type_hint">GDK_WINDOW_TYPE_HINT_DIALOG</property>
+    <property name="window_position">center-on-parent</property>
+    <property name="type_hint">dialog</property>
     <property name="has_separator">False</property>
     <child internal-child="vbox">
       <widget class="GtkVBox" id="dialog-vbox1">
         <property name="visible">True</property>
-        <property name="orientation">GTK_ORIENTATION_VERTICAL</property>
+        <property name="orientation">vertical</property>
         <property name="spacing">2</property>
-        <property name="orientation">GTK_ORIENTATION_VERTICAL</property>
         <child>
           <widget class="GtkLabel" id="label_text">
             <property name="visible">True</property>
@@ -1166,7 +1178,7 @@
           <widget class="GtkEntry" id="entry_text">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
-            <property name="invisible_char">●</property>
+            <property name="invisible_char">&#x25CF;</property>
           </widget>
           <packing>
             <property name="position">2</property>
@@ -1175,31 +1187,30 @@
         <child internal-child="action_area">
           <widget class="GtkHButtonBox" id="dialog-action_area1">
             <property name="visible">True</property>
-            <property name="layout_style">GTK_BUTTONBOX_END</property>
+            <property name="layout_style">end</property>
             <child>
               <widget class="GtkButton" id="button_cancel">
+                <property name="label" translatable="yes">gtk-cancel</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="border_width">5</property>
-                <property name="label" translatable="yes">gtk-cancel</property>
                 <property name="use_stock">True</property>
-                <property name="response_id">0</property>
               </widget>
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">False</property>
+                <property name="position">0</property>
               </packing>
             </child>
             <child>
               <widget class="GtkButton" id="button_ok">
+                <property name="label" translatable="yes">gtk-apply</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="border_width">5</property>
-                <property name="label" translatable="yes">gtk-apply</property>
                 <property name="use_stock">True</property>
-                <property name="response_id">0</property>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -1210,7 +1221,8 @@
           </widget>
           <packing>
             <property name="expand">False</property>
-            <property name="pack_type">GTK_PACK_END</property>
+            <property name="pack_type">end</property>
+            <property name="position">0</property>
           </packing>
         </child>
       </widget>
@@ -1221,21 +1233,19 @@
     <property name="title" translatable="yes">Nastavenia</property>
     <property name="resizable">False</property>
     <property name="modal">True</property>
-    <property name="window_position">GTK_WIN_POS_CENTER_ON_PARENT</property>
-    <property name="type_hint">GDK_WINDOW_TYPE_HINT_DIALOG</property>
+    <property name="window_position">center-on-parent</property>
+    <property name="type_hint">dialog</property>
     <property name="has_separator">False</property>
     <child internal-child="vbox">
       <widget class="GtkVBox" id="dialog-vbox2">
         <property name="visible">True</property>
-        <property name="orientation">GTK_ORIENTATION_VERTICAL</property>
+        <property name="orientation">vertical</property>
         <property name="spacing">2</property>
-        <property name="orientation">GTK_ORIENTATION_VERTICAL</property>
         <child>
           <widget class="GtkVBox" id="vbox5">
             <property name="visible">True</property>
             <property name="border_width">10</property>
-            <property name="orientation">GTK_ORIENTATION_VERTICAL</property>
-            <property name="orientation">GTK_ORIENTATION_VERTICAL</property>
+            <property name="orientation">vertical</property>
             <child>
               <widget class="GtkHBox" id="hbox13">
                 <property name="visible">True</property>
@@ -1243,10 +1253,11 @@
                 <child>
                   <widget class="GtkLabel" id="label5">
                     <property name="visible">True</property>
-                    <property name="label" translatable="yes">Aktuálna licencia:</property>
+                    <property name="label" translatable="yes">Aktu&#xE1;lna licencia:</property>
                   </widget>
                   <packing>
                     <property name="expand">False</property>
+                    <property name="position">0</property>
                   </packing>
                 </child>
                 <child>
@@ -1261,6 +1272,7 @@
               </widget>
               <packing>
                 <property name="expand">False</property>
+                <property name="position">0</property>
               </packing>
             </child>
             <child>
@@ -1269,20 +1281,21 @@
                 <property name="border_width">5</property>
                 <child>
                   <widget class="GtkButton" id="button_request_licence">
+                    <property name="label" translatable="yes">Vy&#x17E;iada&#x165; licenciu</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
-                    <property name="label" translatable="yes">Vyžiadať licenciu</property>
-                    <property name="response_id">0</property>
                   </widget>
+                  <packing>
+                    <property name="position">0</property>
+                  </packing>
                 </child>
                 <child>
                   <widget class="GtkButton" id="button_install_licence">
+                    <property name="label" translatable="yes">Nain&#x161;talova&#x165; licenciu</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
-                    <property name="label" translatable="yes">Nainštalovať licenciu</property>
-                    <property name="response_id">0</property>
                   </widget>
                   <packing>
                     <property name="position">1</property>
@@ -1302,6 +1315,52 @@
                 <property name="position">2</property>
               </packing>
             </child>
+            <child>
+              <widget class="GtkTable" id="table1">
+                <property name="visible">True</property>
+                <property name="n_rows">4</property>
+                <property name="n_columns">2</property>
+                <child>
+                  <widget class="GtkLabel" id="label1">
+                    <property name="visible">True</property>
+                    <property name="xalign">1</property>
+                    <property name="label" translatable="yes">N&#xE1;zov burzy: </property>
+                  </widget>
+                </child>
+                <child>
+                  <widget class="GtkEntry" id="entry_name_of_burza">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="invisible_char">&#x25CF;</property>
+                  </widget>
+                  <packing>
+                    <property name="left_attach">1</property>
+                    <property name="right_attach">2</property>
+                  </packing>
+                </child>
+                <child>
+                  <placeholder/>
+                </child>
+                <child>
+                  <placeholder/>
+                </child>
+                <child>
+                  <placeholder/>
+                </child>
+                <child>
+                  <placeholder/>
+                </child>
+                <child>
+                  <placeholder/>
+                </child>
+                <child>
+                  <placeholder/>
+                </child>
+              </widget>
+              <packing>
+                <property name="position">3</property>
+              </packing>
+            </child>
           </widget>
           <packing>
             <property name="position">1</property>
@@ -1310,15 +1369,19 @@
         <child internal-child="action_area">
           <widget class="GtkHButtonBox" id="dialog-action_area2">
             <property name="visible">True</property>
-            <property name="layout_style">GTK_BUTTONBOX_END</property>
+            <property name="layout_style">end</property>
             <child>
-              <widget class="GtkLabel" id="label6">
+              <widget class="GtkButton" id="button_ok">
+                <property name="label" translatable="yes">gtk-ok</property>
                 <property name="visible">True</property>
-                <property name="label" translatable="yes">label</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="use_stock">True</property>
               </widget>
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">False</property>
+                <property name="position">0</property>
               </packing>
             </child>
             <child>
@@ -1327,7 +1390,8 @@
           </widget>
           <packing>
             <property name="expand">False</property>
-            <property name="pack_type">GTK_PACK_END</property>
+            <property name="pack_type">end</property>
+            <property name="position">0</property>
           </packing>
         </child>
       </widget>
@@ -1345,14 +1409,15 @@
     <child>
       <widget class="GtkMenuItem" id="menuItemSaveSellerOverview">
         <property name="visible">True</property>
-        <property name="label" translatable="yes">Ulož prehľad predajcov</property>
+        <property name="label" translatable="yes">Ulo&#x17E; preh&#x13E;ad predajcov</property>
         <property name="use_underline">True</property>
       </widget>
     </child>
     <child>
       <widget class="GtkMenuItem" id="menuitemStats">
         <property name="visible">True</property>
-        <property name="label" translatable="yes">Štatistika</property>
+        <property name="sensitive">False</property>
+        <property name="label" translatable="yes">&#x160;tatistika x</property>
         <property name="use_underline">True</property>
       </widget>
     </child>
