@@ -152,6 +152,7 @@ int BurzaDialogs::SetupDialogs( void )
 	xmlWndRegister->get_widget( "button import seller", m_pButtonImportSeller );
 	xmlWndRegister->get_widget( "button add seller", m_pButtonAddSeller );
 	xmlWndRegister->get_widget( "button update seller", m_pButtonUpdateSeller );
+	xmlWndRegister->get_widget( "button_finish_accepting_items", m_pButtonFinishAcceptingItems );
 	xmlWndRegister->get_widget( "treeview items", m_pTreeViewItems );
 	xmlWndRegister->get_widget( "button add item", m_pButtonAddItem );
 	xmlWndRegister->get_widget( "button modify item", m_pButtonModifyItem );
@@ -175,6 +176,7 @@ int BurzaDialogs::SetupDialogs( void )
 		( m_pButtonImportSeller == NULL ) ||
 		( m_pButtonAddSeller == NULL ) ||
 		( m_pButtonUpdateSeller == NULL ) ||
+		( m_pButtonFinishAcceptingItems == NULL ) ||
 		( m_pTreeViewItems == NULL ) ||
 		( m_pButtonAddItem == NULL ) ||
 		( m_pButtonModifyItem == NULL ) ||
@@ -199,6 +201,7 @@ int BurzaDialogs::SetupDialogs( void )
 	m_pButtonImportSeller->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonImportSeller ) );
 	m_pButtonAddSeller->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonAddSeller ) );
 	m_pButtonUpdateSeller->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonUpdateSeller ) );
+	m_pButtonFinishAcceptingItems->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonFinishAcceptingItems ) );
 	m_pButtonAddItem->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonAddItem ) );
 	m_pButtonModifyItem->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonModifyItem ) );
 	m_pButtonRemoveItem->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonRemoveItem ) );
@@ -504,13 +507,14 @@ int BurzaDialogs::SetupDialogs( void )
 	settingsWindow.xmlWindow->get_widget( "label_current_licence", settingsWindow.labelCurrentLicence );
 	settingsWindow.xmlWindow->get_widget( "button_request_licence", settingsWindow.buttonRequestLicence );
 	settingsWindow.xmlWindow->get_widget( "button_install_licence", settingsWindow.buttonInstallLicence );
-
-	button_ok
-	entry_name_of_burza
+	settingsWindow.xmlWindow->get_widget( "entry_name_of_burza", settingsWindow.editBurzaName );
+	settingsWindow.xmlWindow->get_widget( "button_ok", settingsWindow.buttonOk );
 
 	if (( settingsWindow.dialog == NULL ) ||
 		( settingsWindow.labelCurrentLicence == NULL ) ||
 		( settingsWindow.buttonRequestLicence == NULL ) ||
+		( settingsWindow.editBurzaName == NULL ) ||
+		( settingsWindow.buttonOk == NULL ) ||
 		( settingsWindow.buttonInstallLicence == NULL )) {
 		error = "Dialog file is corrupt [Nastavenia].";
 		throw;
@@ -518,6 +522,7 @@ int BurzaDialogs::SetupDialogs( void )
 	
 	settingsWindow.buttonRequestLicence->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::SettingsClickedButtonRequestLicence ) );
 	settingsWindow.buttonInstallLicence->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::SettingsClickedButtonInstallLicence ) );
+	settingsWindow.buttonOk->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::SettingsClickedButtonOk ) );
 
 	// === --- === --- === throw - catch  === --- === --- ===
 	
@@ -686,8 +691,11 @@ void BurzaDialogs::RegisterButtonImportSeller( void )
 	}
 
 	Gtk::FileFilter	xls_filter;
-	xls_filter.set_name( "Excel XLS files." );
+	xls_filter.set_name( "Sheet files." );
+	xls_filter.add_pattern( "*.ods" );
 	xls_filter.add_pattern( "*.xls" );
+	xls_filter.add_pattern( "*.xlsx" );
+	xls_filter.add_pattern( "*.txt" );
 	dialog.add_filter( xls_filter );
 	
 	int result = dialog.run();
@@ -731,11 +739,15 @@ void BurzaDialogs::RegisterButtonImportSeller( void )
 			BurzaExcel::BasicExcelFileWrapper	excelFile;
 			excelFile.ReadSeller( filename, seller, items );
 		}
-		if ( ext == "ods" )
-			xxx
+		if ( ext == "ods" ) {
+			DisplayErrorMessageBox( _("Nepodporovany format suboru") );
+		}
+		if ( ext == "xlsx" ) {
+			DisplayErrorMessageBox( _("Nepodporovany format suboru") );
+		}
 
 		if (knownType == false) {
-			DisplayErrorMessageBox( _("Neznámy typ súboru. Podporované su 'xls' a 'txt'") );
+			DisplayErrorMessageBox( _("Neznámy typ súboru. Podporované su 'ods', 'xls', 'xlsx', 'txt'") );
 			return;
 		}
 	}
@@ -787,6 +799,22 @@ void BurzaDialogs::RegisterButtonUpdateSeller( void )
 	// m_sellerEditAction = ea_modify;
 	if ( RegisterAnySelectedSeller() )
 		RegisterStartDialogEditSeller( RegisterGetSelectedSellerId() );
+}
+
+void BurzaDialogs::RegisterButtonFinishAcceptingItems( void )
+{
+	std::string preberajuci = cached;
+
+	// popup - name who accepted the items
+	bool clickedOk = EditMessageBox::ShowDialog( 
+		_( "Naozaj chcete ukončiť preberanie tovaru tohto predajcu? Zadajte meno preberajúcich:" ), 
+		preberajuci );
+
+	if ( ! clickedOk )
+		return;
+
+	// mark seller as 'accepted'
+	asdfadsf
 }
 
 void BurzaDialogs::RegisterButtonAddItem( void )
@@ -1847,4 +1875,11 @@ void BurzaDialogs::on_column_checkbox_edited( Glib::ustring rowNumberText )
 	
 	Centrala::Storage().ModifyItem(item.id, item);
 	RegisterDisplaySeller( RegisterGetSelectedSeller() );
+}
+
+void BurzaDialogs::SettingsClickedButtonOk( void )
+{
+	Centrala::Settings().m_name_of_the_sale = settingsWindow.editBurzaName->get_text();
+		
+	Centrala::Settings().SaveSettings();
 }

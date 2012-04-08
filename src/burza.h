@@ -28,9 +28,10 @@ namespace Burza {
 class NastaveniaProgramu {
 public:
 	NastaveniaProgramu();
-	
 public:
-	
+	void LoadSettings( void );
+	void SaveSettings( void );
+
 	//! for example "EUR", "Czech krown", "E"
 	std::string		m_string_mena; 
 	
@@ -54,6 +55,13 @@ public:
 	std::string		dbPassword;
 	std::string		dbName;
 	int				dbPort;
+
+	std::string		licenseTo;
+	std::string		licenseKey;
+
+private:
+	//! current exe path
+	string			exePath;
 } ;
 
 // ==============================================

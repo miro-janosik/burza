@@ -247,7 +247,7 @@ int BurzaRegister::DisplayPdf( const char* fileName )
 
 NastaveniaProgramu::NastaveniaProgramu()
 {
-	string exePath = ConvFuncsInstance->GetPathFromPathFilename(
+	exePath = ConvFuncsInstance->GetPathFromPathFilename(
 		ConvFuncsInstance->GetExecutableFilePathName() );
 	m_data_dir_path = exePath;
 	m_data_dir_path += "data/";
@@ -256,16 +256,26 @@ NastaveniaProgramu::NastaveniaProgramu()
 	m_document_ouput_directory += "/documents/";
 	
 	m_string_mena = "∈";
-	
 	m_computer_name = "PC123";
 	m_name_of_the_sale = "Jarna burza 2012";
 
+	LoadSettings();
+}
+
+void NastaveniaProgramu::LoadSettings( void )
+{
 	CXmlTreeSingleNode configRoot;
 	string confFilename = exePath + "burza.xml";
 	if ( CXmlWrapperTools::ReadTreeFromDiskFile( confFilename.c_str(), configRoot ) == 1 ) {
 		ErrorHandling::HandleException( *new std::exception(_("Súbor s nastavením nenájdený")) );
 	} else {
-		CXmlTreeSingleNode* server = configRoot.GetChild("burza")->GetChild("config")->GetChild("server");
+
+		CXmlTreeSingleNode* config = configRoot.GetChild("burza")->GetChild("config");
+		if (config->IsValid()) {
+			m_name_of_the_sale = config->GetAttribute("salename")->GetValue();
+		}
+
+		CXmlTreeSingleNode* server = config->GetChild("server");
 		if (server->IsValid()) {
 
 			CXmlTreeSingleNode* node;
@@ -290,6 +300,54 @@ NastaveniaProgramu::NastaveniaProgramu()
 			if (node->IsValid())
 				dbPort = node->GetValueInt();
 		}
+
+		CXmlTreeSingleNode* license = config->GetChild("License");
+		if (license->IsValid()) {
+
+			CXmlTreeSingleNode* node;
+			
+			node = license->GetAttribute("to");
+			if (node->IsValid())
+				licenseTo = node->GetValue();
+
+			node = license->GetAttribute("key");
+			if (node->IsValid())
+				licenseKey = node->GetValue();
+		}
+	}
+}
+
+void NastaveniaProgramu::SaveSettings( void )
+{
+	CXmlTreeSingleNode configRoot;
+	string confFilename = exePath + "burza.xml";
+	CConvFile configFile;
+
+	configFile.OpenFile( confFilename.c_str(), CConvFile::fm_text, CConvFile::fm_write );
+	if (! configFile.IsOpened() ) {
+		ErrorHandling::HandleException( *new std::exception(_("Súbor s nastavením sa nedá zapísať.")) );
+		return;
+	}
+
+	CXmlTreeSingleNode* config = configRoot.AddChild("burza")->AddChild("config");
+	config->AddAttribute( "salename", m_name_of_the_sale.c_str() );
+
+	CXmlTreeSingleNode* server = config->AddChild("server");
+	
+	server->AddAttribute("address", dbAddress.c_str() );
+	server->AddAttribute("user", dbUser.c_str() );
+	server->AddAttribute("password", dbPassword.c_str() );
+	server->AddAttribute("dbname", dbName.c_str() );
+	server->AddAttribute("port")->SetValueInt( dbPort );
+
+	CXmlTreeSingleNode* license = config->AddChild("License");
+	
+	license->AddAttribute("to", licenseTo.c_str() );
+	license->AddAttribute("key", licenseKey.c_str() );
+
+	if ( CXmlWrapperTools::WriteSimpleXmlFile( configRoot, configFile ) != 0 ) {
+		ErrorHandling::HandleException( *new std::exception(_("Súbor s nastavením sa nedá vyplniť XML údajmi.")) );
+		return;
 	}
 }
 

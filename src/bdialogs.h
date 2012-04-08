@@ -89,6 +89,7 @@ public:
 	void RegisterButtonImportSeller( void );
 	void RegisterButtonAddSeller( void );
 	void RegisterButtonUpdateSeller( void );
+	void RegisterButtonFinishAcceptingItems( void );
 	void RegisterButtonAddItem( void );
 	void RegisterButtonModifyItem( void );
 	void RegisterButtonRemoveItem( void );
@@ -130,6 +131,8 @@ public:
 
 	void SettingsClickedButtonRequestLicence( void );
 	void SettingsClickedButtonInstallLicence( void );
+	void SettingsClickedButtonOk( void );
+
 	void EditMessageBoxClickedOk( void );
 	void EditMessageBoxClickedCancel( void );
 	
@@ -164,6 +167,7 @@ public:
 	Gtk::Button		*m_pButtonImportSeller;
 	Gtk::Button		*m_pButtonAddSeller;
 	Gtk::Button		*m_pButtonUpdateSeller;
+	Gtk::Button		*m_pButtonFinishAcceptingItems;
 	Gtk::TreeView	*m_pTreeViewItems;
 	Gtk::Button		*m_pButtonAddItem;
 	Gtk::Button		*m_pButtonModifyItem;
@@ -227,6 +231,8 @@ public:
 		Gtk::Label		*labelCurrentLicence;
 		Gtk::Button		*buttonRequestLicence;
 		Gtk::Button		*buttonInstallLicence;
+		Gtk::Entry		*editBurzaName;
+		Gtk::Button		*buttonOk;
 	} settingsWindow;
 
 	// helper variables for dialogs
