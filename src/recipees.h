@@ -11,11 +11,15 @@ class Recipees
 public:
   void PrintSellerStatus( PdfWrapperBase& pdf, SELLER_ID id );
 
-  void AddProgramPageHeaderAndFooter( PdfWrapperBase& pdf );
-
   void PrintRecipeeAtEndOfCheckout( ItemDataArray& items, PdfWrapperBase& pdf );
   
   void PrintSellerReturnSheet( PdfWrapperBase& pdf, SELLER_ID id );
+
+  void PrintSummaryOfSellers( PdfWrapperBase& pdf );
+
+private:
+
+  void AddProgramPageHeaderAndFooter( PdfWrapperBase& pdf );
 
   //! returns Y position on page in percent, where table ended.
   float DrawTableSplitOnPages( PdfWrapperBase& pdf, float fx, float fy, TableOfCells& table, TableColumnSpecs& columns );

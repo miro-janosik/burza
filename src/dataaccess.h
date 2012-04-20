@@ -62,6 +62,15 @@ static const ITEM_ID ITEM_ID_NONE = -1;
 static const SELLER_CATEGORY_ID SELLER_CATEGORY_ID_NONE = -1;
 static const ITEM_CATEGORY_ID ITEM_CATEGORY_ID_NONE = -1;
 
+enum SellerStatus {
+	// imported into program, items are not taken in
+	imported = 0,
+	// items are taken from seller in, items are being sold
+	received,
+	// items are handed back to the seller
+	handedOut,
+};
+
 struct SellerData {
 	std::string				name;
 	std::string				shortcode;
@@ -71,6 +80,8 @@ struct SellerData {
 	ConvFuncs::s_datetime	last_update;
 	// ID generated through GetNewSellerId
 	SELLER_ID				id;
+	
+	SellerStatus			status;
 
 public:
 	SellerData();

@@ -358,3 +358,106 @@ double Recipees::RoundTo5Cents( double price )
 
 	return b;
 }
+
+bool SortSellerDataPtrsByShortcode(SellerData* a, SellerData *b) { return (stricmp( a->shortcode, b->shortcode) < 0); }
+
+void Recipees::PrintSummaryOfSellers( PdfWrapperBase& pdf )
+{
+	SellerDataArray sellers;
+
+	try {
+		sellers = Centrala::Storage().GetSellers();
+	}
+	catch(exception& e)
+	{
+		ErrorHandling::HandleException(e);
+	}
+
+	// order sellers - first by status, then by code
+	vector< SellerData* >	allSorted;
+	vector< SellerData* >	imported;
+	vector< SellerData* >	received;
+	vector< SellerData* >	handedOut;
+
+	// sort by shortcode
+	for( unsigned int i = 0; i < sellers.end(); ++i ) {
+		allSorted.push_back( & sellers[ i ] );
+	}
+
+	std::sort( allSorted.begin(), allSorted.end(), SortSellerDataPtrsByShortcode );
+	
+	for( unsigned int i = 0; i < allSorted.size(); ++i )
+	{
+		switch ( allSorted[ i ]->status ) {
+		case SellerStatus::imported:
+			imported.push_back( allSorted[ i ] );
+			break;
+		case SellerStatus::received:
+			received.push_back( allSorted[ i ] );
+			break;
+		case SellerStatus::handedOut:
+			handedOut.push_back( allSorted[ i ] );
+			break;
+		}
+	}
+
+	// start printing
+	pdf.NewPage( _( "Zhrnutie predajcov" ) );
+	AddProgramPageHeaderAndFooter( pdf );
+
+	double ypos = marginTop;
+	double fontSize = 1.2;
+	double lineSpacing = fontSize + 0.4;
+
+	pdf.SetFontSize(fontSize);
+
+	pdf.WriteSingleText( 10, ypos, ConvFuncs::FormatStdStr(_("Počet predávajúcich dohromady: %i"), allSorted.size() ));
+	ypos += lineSpacing;
+	pdf.WriteSingleText( 10, ypos, ConvFuncs::FormatStdStr(_("Stav dňa: %s"), ConvFuncsInstance->CurDateTimeString() ));
+	ypos += lineSpacing;
+
+	TableOfCells	cells;
+	TableColumnSpecs	columns;
+	string str;
+
+	columns.AddColumn( _("Kód"), 5 );
+	columns.AddColumn( _("Meno"), 35 );
+	columns.AddColumn( _("Poznámka"), 35 );
+
+	unsigned int row = 0;
+
+	cells.Resize( 3 + allSorted.size(), columns.m_columns.size());
+
+	// received, imported, but items are not taken in
+	cells.Cell( row, 1 ).SetText( ConvFuncs::FormatStdStr(_( "Neprebratí - %i predajcov" ), imported.size() ) );
+	++row;
+
+	for( unsigned int i = 0; i < imported.size(); ++i ) {
+		cells.Cell( row, 0 ).SetText( imported[ i ]->shortcode );
+		cells.Cell( row, 1 ).SetText( imported[ i ]->name );
+		cells.Cell( row, 0 ).SetText( imported[ i ]->note );
+		++row;
+	}
+
+	// items taken from seller
+	cells.Cell( row, 1 ).SetText( ConvFuncs::FormatStdStr(_( "Tovar prebratý - %i predajcov" ), received.size() ) );
+	++row;
+
+	for( unsigned int i = 0; i < received.size(); ++i ) {
+		cells.Cell( row, 0 ).SetText( received[ i ]->shortcode );
+		cells.Cell( row, 1 ).SetText( received[ i ]->name );
+		cells.Cell( row, 0 ).SetText( received[ i ]->note );
+		++row;
+	}
+
+	// remaining items handed out back
+	cells.Cell( row, 1 ).SetText( ConvFuncs::FormatStdStr(_( "Tovar vydaný späť - %i predajcov" ), handedOut.size() ) );
+	++row;
+
+	for( unsigned int i = 0; i < handedOut.size(); ++i ) {
+		cells.Cell( row, 0 ).SetText( handedOut[ i ]->shortcode );
+		cells.Cell( row, 1 ).SetText( handedOut[ i ]->name );
+		cells.Cell( row, 0 ).SetText( handedOut[ i ]->note );
+		++row;
+	}
+}

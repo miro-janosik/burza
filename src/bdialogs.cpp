@@ -1794,6 +1794,7 @@ void BurzaDialogs::RegisterButtonOtherActions( void )
 
 bool BurzaDialogs::RegisterButtonStats( GdkEventButton* button )
 {
+	PrintSummaryOfSellers
 	return true;
 }
 
