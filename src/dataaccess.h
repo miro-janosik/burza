@@ -66,8 +66,10 @@ enum SellerStatus {
 	// imported into program, items are not taken in
 	imported = 0,
 	// items are taken from seller in, items are being sold
+	// selling
 	received,
 	// items are handed back to the seller
+	// returned
 	handedOut,
 };
 

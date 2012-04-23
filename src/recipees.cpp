@@ -1,6 +1,7 @@
 #include "recipees.h"
 
 #include <string>
+#include <algorithm>
 #include "table.h"
 #include "burza.h"
 #include "pdfwrap.h"
@@ -359,7 +360,8 @@ double Recipees::RoundTo5Cents( double price )
 	return b;
 }
 
-bool SortSellerDataPtrsByShortcode(SellerData* a, SellerData *b) { return (stricmp( a->shortcode, b->shortcode) < 0); }
+bool SortSellerDataPtrsByShortcode(SellerData* a, SellerData *b) { 
+	return (stricmp( a->shortcode.c_str(), b->shortcode.c_str()) < 0); }
 
 void Recipees::PrintSummaryOfSellers( PdfWrapperBase& pdf )
 {
@@ -380,7 +382,7 @@ void Recipees::PrintSummaryOfSellers( PdfWrapperBase& pdf )
 	vector< SellerData* >	handedOut;
 
 	// sort by shortcode
-	for( unsigned int i = 0; i < sellers.end(); ++i ) {
+	for( unsigned int i = 0; i < sellers.size(); ++i ) {
 		allSorted.push_back( & sellers[ i ] );
 	}
 

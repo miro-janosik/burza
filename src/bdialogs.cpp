@@ -20,6 +20,7 @@
 #include "errhandler.h"
 #include "EditMessageBox.h"
 #include "stringencoding.h"
+#include "bdfilehelper.h"
 
 #include "generator.h"
 
@@ -803,7 +804,7 @@ void BurzaDialogs::RegisterButtonUpdateSeller( void )
 
 void BurzaDialogs::RegisterButtonFinishAcceptingItems( void )
 {
-	std::string preberajuci = cached;
+	std::string preberajuci = personAcceptingItems;
 
 	// popup - name who accepted the items
 	bool clickedOk = EditMessageBox::ShowDialog( 
@@ -814,7 +815,25 @@ void BurzaDialogs::RegisterButtonFinishAcceptingItems( void )
 		return;
 
 	// mark seller as 'accepted'
-	asdfadsf
+	SellerData seller;
+
+	try {
+		seller = Centrala::Storage().GetSeller( m_RegisterSelectedSellerId );
+		Centrala::Storage().ModifySellerStart( m_RegisterSelectedSellerId );
+		
+		seller.note += _( "Prijatý " ) + preberajuci;
+		seller.status = SellerStatus::received;
+
+		Centrala::Storage().ModifySellerEnd( m_RegisterSelectedSellerId, seller );
+	}
+	catch(exception& e)
+	{
+		ErrorHandling::HandleException(e);
+	}
+	
+	RegisterSellerModified( seller );
+
+	personAcceptingItems = preberajuci;
 }
 
 void BurzaDialogs::RegisterButtonAddItem( void )
@@ -1024,60 +1043,6 @@ bool BurzaDialogs::OrderSellerByShortCode(const SellerData& a, const SellerData&
 	std::transform( bcode.begin(), bcode.end(), bcode.begin(), static_cast<int (*)(int)>(tolower) );
 
 	return (acode.compare( bcode ) < 0); 
-}
-
-void BurzaDialogs::RegisterButtonReviewOfSellers( void )
-{
-	// offer save dialog with location of the document
-	ConvFuncs::GetDateTime();
-	string offeredName = 
-		ConvFuncs::FormatStdStr( "%s_%02i-%02i-%02i_%02i-%02i.pdf",
-		_("PrehladPredajcov"),
-		ConvFuncs::datetime.year % 100, ConvFuncs::datetime.month, ConvFuncs::datetime.day,
-		ConvFuncs::datetime.hour, ConvFuncs::datetime.minute );
-	
-	Gtk::FileChooserDialog dlg( _("Cielovy subor"), Gtk::FILE_CHOOSER_ACTION_SAVE );
-	
-	dlg.set_current_folder( Centrala::Settings().m_document_ouput_directory );
-	dlg.set_current_name( offeredName );
-	dlg.set_do_overwrite_confirmation();
-	
-	//Add response buttons the the dialog:
-	dlg.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
-	dlg.add_button(Gtk::Stock::SAVE, Gtk::RESPONSE_OK);
-	
-	int result = dlg.run();
-	if ( result != Gtk::RESPONSE_OK ) {
-		return;
-	}
-	
-	string name = dlg.get_filename();
-	bool storingFinished = false;
-
-	try {
-		Recipees recipees;
-		HPDFWrapper	pdf;
-		pdf.CreatePDF( name );
-		
-		for( unsigned int i=0; i<m_DisplayedSellers.size(); i++ ) {
-			recipees.PrintSellerReturnSheet( pdf, m_DisplayedSellers[ i ].id );
-		}
-		
-		pdf.ClosePDF();
-
-		storingFinished = true;
-		
-	} catch( runtime_error& e ) {
-		DisplayErrorMessageBox( "PDF error", e.what() );
-	} catch( out_of_range& e ) {
-		DisplayErrorMessageBox( "PDF out of range error", e.what() );
-	} catch( ... ) {
-		DisplayErrorMessageBox( "PDF error" );
-	}
-
-	if (storingFinished) {
-		Centrala::Register().DisplayPdf( name.c_str() );
-	}
 }
 
 void BurzaDialogs::CashoutButtonSwitchToRegister( void )
@@ -1794,7 +1759,23 @@ void BurzaDialogs::RegisterButtonOtherActions( void )
 
 bool BurzaDialogs::RegisterButtonStats( GdkEventButton* button )
 {
-	PrintSummaryOfSellers
+	string offeredName = BurzaDialogsFileHelper::FormatDateTimeFileName( _("Predajcovia"), "pdf" );
+	string name = BurzaDialogsFileHelper::AskToSaveDocumentFile( offeredName );
+	if ( name.empty() )
+		return false;
+
+	try {
+		HPDFWrapper	pdf;
+		pdf.CreatePDF( name );
+		Recipees::PrintSummaryOfSellers( pdf );
+		pdf.ClosePDF();
+		
+		Centrala::Register().DisplayPdf( name.c_str() );
+	} 
+	catch( std::exception& e ) {
+		BurzaDialogsFileHelper::HandlePdfExceptions( e );
+	}
+
 	return true;
 }
 
@@ -1884,3 +1865,37 @@ void BurzaDialogs::SettingsClickedButtonOk( void )
 		
 	Centrala::Settings().SaveSettings();
 }
+
+void BurzaDialogs::RegisterButtonReviewOfSellers( void )
+{
+	// offer save dialog with location of the document
+	string offeredName = BurzaDialogsFileHelper::FormatDateTimeFileName( _("PrehladPredajcov"), "pdf" );
+	string name = BurzaDialogsFileHelper::AskToSaveDocumentFile( offeredName );
+	if ( name.empty() )
+		return;
+	
+	bool storingFinished = false;
+
+	try {
+		Recipees recipees;
+		HPDFWrapper	pdf;
+		pdf.CreatePDF( name );
+		
+		for( unsigned int i=0; i<m_DisplayedSellers.size(); i++ ) {
+			recipees.PrintSellerReturnSheet( pdf, m_DisplayedSellers[ i ].id );
+		}
+		
+		pdf.ClosePDF();
+
+		storingFinished = true;
+		
+	}
+	catch( std::exception& e ) {
+		BurzaDialogsFileHelper::HandlePdfExceptions( e );
+	}
+
+	if (storingFinished) {
+		Centrala::Register().DisplayPdf( name.c_str() );
+	}
+}
+

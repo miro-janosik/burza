@@ -306,6 +306,8 @@ public:
 	// edit_action	m_productEditAction;
 	// edit_action	m_sellerEditAction;
 	
+	//! name of person(s) accepting incoming seller items;
+	std::string		personAcceptingItems;
 
 	// === cashout ===
 

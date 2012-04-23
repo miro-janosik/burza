@@ -15,11 +15,11 @@ public:
   
   void PrintSellerReturnSheet( PdfWrapperBase& pdf, SELLER_ID id );
 
-  void PrintSummaryOfSellers( PdfWrapperBase& pdf );
+  static void PrintSummaryOfSellers( PdfWrapperBase& pdf );
 
 private:
 
-  void AddProgramPageHeaderAndFooter( PdfWrapperBase& pdf );
+  static void AddProgramPageHeaderAndFooter( PdfWrapperBase& pdf );
 
   //! returns Y position on page in percent, where table ended.
   float DrawTableSplitOnPages( PdfWrapperBase& pdf, float fx, float fy, TableOfCells& table, TableColumnSpecs& columns );

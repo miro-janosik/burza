@@ -1,0 +1,62 @@
+#include "bdfilehelper.h"
+
+#include <gtkmm-2.4/gtkmm/filechooserdialog.h>
+#include <gtkmm.h>
+#include <gtkmm/main.h>
+#include <libglademm.h>
+
+#include "convfncs.h"
+#include "translate.h"
+#include "burza.h"
+
+using namespace std;
+using namespace Burza;
+
+string BurzaDialogsFileHelper::FormatDateTimeFileName( string prefix, string extension )
+{
+	// offer save dialog with location of the document
+	ConvFuncs::GetDateTime();
+	string offeredName = 
+		ConvFuncs::FormatStdStr( "%s_%02i-%02i-%02i_%02i-%02i.%s",
+		prefix,
+		ConvFuncs::datetime.year % 100, ConvFuncs::datetime.month, ConvFuncs::datetime.day,
+		ConvFuncs::datetime.hour, ConvFuncs::datetime.minute,
+		extension );
+}
+
+string BurzaDialogsFileHelper::AskToSaveDocumentFile( string fileName )
+{
+	Gtk::FileChooserDialog dlg( _("Cielovy subor"), Gtk::FILE_CHOOSER_ACTION_SAVE );
+	
+	dlg.set_current_folder( Centrala::Settings().m_document_ouput_directory );
+	dlg.set_current_name( fileName );
+	dlg.set_do_overwrite_confirmation();
+	
+	//Add response buttons the the dialog:
+	dlg.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
+	dlg.add_button(Gtk::Stock::SAVE, Gtk::RESPONSE_OK);
+	
+	int result = dlg.run();
+	if ( result != Gtk::RESPONSE_OK ) {
+		return "";
+	}
+	
+	string name = dlg.get_filename();
+	return name;
+}
+
+bool BurzaDialogsFileHelper::HandlePdfExceptions( std::exception& e )
+{
+	try {
+		throw e;
+	} catch( runtime_error& e ) {
+		DisplayErrorMessageBox( "PDF runtime error", e.what() );
+	} catch( out_of_range& e ) {
+		DisplayErrorMessageBox( "PDF out of range error", e.what() );
+	} catch( ... ) {
+		DisplayErrorMessageBox( "Unknown PDF error" );
+		return false;
+	}
+
+	return true;
+}

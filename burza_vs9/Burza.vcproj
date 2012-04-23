@@ -389,6 +389,14 @@
 			Name="dialogs"
 			>
 			<File
+				RelativePath="..\src\bdfilehelper.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\bdfilehelper.h"
+				>
+			</File>
+			<File
 				RelativePath="..\src\bdialogs.cpp"
 				>
 			</File>
