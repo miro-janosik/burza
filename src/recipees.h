@@ -22,7 +22,7 @@ private:
   static void AddProgramPageHeaderAndFooter( PdfWrapperBase& pdf );
 
   //! returns Y position on page in percent, where table ended.
-  float DrawTableSplitOnPages( PdfWrapperBase& pdf, float fx, float fy, TableOfCells& table, TableColumnSpecs& columns );
+  float static DrawTableSplitOnPages( PdfWrapperBase& pdf, float fx, float fy, TableOfCells& table, TableColumnSpecs& columns );
  
   static double RoundTo5Cents( double price );
 

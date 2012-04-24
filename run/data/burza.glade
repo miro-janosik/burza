@@ -1416,8 +1416,7 @@
     <child>
       <widget class="GtkMenuItem" id="menuitemStats">
         <property name="visible">True</property>
-        <property name="sensitive">False</property>
-        <property name="label" translatable="yes">&#x160;tatistika x</property>
+        <property name="label" translatable="yes">&#x160;tatistika</property>
         <property name="use_underline">True</property>
       </widget>
     </child>

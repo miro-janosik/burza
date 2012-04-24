@@ -8,6 +8,7 @@
 #include "convfncs.h"
 #include "translate.h"
 #include "burza.h"
+#include "bdialogs.h"
 
 using namespace std;
 using namespace Burza;
@@ -18,10 +19,12 @@ string BurzaDialogsFileHelper::FormatDateTimeFileName( string prefix, string ext
 	ConvFuncs::GetDateTime();
 	string offeredName = 
 		ConvFuncs::FormatStdStr( "%s_%02i-%02i-%02i_%02i-%02i.%s",
-		prefix,
+		prefix.c_str(),
 		ConvFuncs::datetime.year % 100, ConvFuncs::datetime.month, ConvFuncs::datetime.day,
 		ConvFuncs::datetime.hour, ConvFuncs::datetime.minute,
-		extension );
+		extension.c_str() );
+
+	return offeredName;
 }
 
 string BurzaDialogsFileHelper::AskToSaveDocumentFile( string fileName )
@@ -50,11 +53,11 @@ bool BurzaDialogsFileHelper::HandlePdfExceptions( std::exception& e )
 	try {
 		throw e;
 	} catch( runtime_error& e ) {
-		DisplayErrorMessageBox( "PDF runtime error", e.what() );
+		BurzaDialogs::DisplayErrorMessageBox( "PDF runtime error", e.what() );
 	} catch( out_of_range& e ) {
-		DisplayErrorMessageBox( "PDF out of range error", e.what() );
+		BurzaDialogs::DisplayErrorMessageBox( "PDF out of range error", e.what() );
 	} catch( ... ) {
-		DisplayErrorMessageBox( "Unknown PDF error" );
+		BurzaDialogs::DisplayErrorMessageBox( "Unknown PDF error" );
 		return false;
 	}
 

@@ -24,6 +24,7 @@ SellerData::SellerData()
 	shortcode = "";
 	note = "";
 	category = -1;
+	status = SellerStatus::imported;
   
 	ConvFuncs::GetDateTime();
 	last_update = ConvFuncs::datetime;

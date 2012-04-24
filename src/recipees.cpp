@@ -462,4 +462,6 @@ void Recipees::PrintSummaryOfSellers( PdfWrapperBase& pdf )
 		cells.Cell( row, 0 ).SetText( handedOut[ i ]->note );
 		++row;
 	}
+
+	DrawTableSplitOnPages( pdf, 15, ypos, cells, columns );
 }
