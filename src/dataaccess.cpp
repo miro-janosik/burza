@@ -41,6 +41,7 @@ SellerData::SellerData(const SellerData& a)
 	note		= a.note;
 	category	= a.category;
 	last_update	= a.last_update;
+	status		= a.status;
 }
 
 SellerData::SellerData(SELLER_ID _id, string _name, string _shortcode, string _note, int _category)
@@ -54,6 +55,7 @@ SellerData::SellerData(SELLER_ID _id, string _name, string _shortcode, string _n
 	last_update = ConvFuncs::datetime;
 	
 	id = _id;
+	status = SellerStatus::imported;
 }
 
 SellerData::SellerData(string _name, string _shortcode, string _note, int _category)
@@ -67,6 +69,7 @@ SellerData::SellerData(string _name, string _shortcode, string _note, int _categ
 	last_update = ConvFuncs::datetime;
 	
 	id = -1;
+	status = SellerStatus::imported;
 }
 
 ItemData::ItemData()

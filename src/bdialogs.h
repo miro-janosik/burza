@@ -142,6 +142,9 @@ public:
 	void CashoutDisplaySeller( const char* shortcode );
 	void CheckoutCartChanged( void );
 	
+bool BurzaDialogs::DemoLimitsCanAddSellerItem( SELLER_ID sellerId )
+bool BurzaDialogs::DemoLimitsCanAddSeller( void )
+
 	// "item properties dialog functions
 	//! Item editing finished. Fill item back to seller, and notify that seller was modified.
 	void RegisterButtonItemEditOk( void );

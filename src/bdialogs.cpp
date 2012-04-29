@@ -677,6 +677,9 @@ void BurzaDialogs::FillSellerCombos( void )
 
 void BurzaDialogs::RegisterButtonImportSeller( void )
 {
+	if (DemoLimitsCanAddAddSeller() == false)
+		return;
+
 	Gtk::FileChooserDialog dialog("Select importer file", Gtk::FILE_CHOOSER_ACTION_OPEN );
 
 	dialog.set_transient_for( *m_pWndRegister );
@@ -1899,3 +1902,35 @@ void BurzaDialogs::RegisterButtonReviewOfSellers( void )
 	}
 }
 
+bool BurzaDialogs::DemoLimitsCanAddSeller( void )
+{
+	if (!Licence.Instance().IsDemo())
+		return true;
+
+	int sellerLimit = Licence.Instance().GetLimitSellers();
+	if (storage.GetSellers().size() < sellerLimit )
+		return true;
+
+	string str = ConvFuncs::FormatStdStr( 
+		_( "Vo verzii DEMO je možné pracovať s maximálne %i predajcami." ), sellerLimit );
+	DisplayOkMessageBox( str, _( "Obmedzená demo verzia" ) );
+
+	return false;
+}
+
+bool BurzaDialogs::DemoLimitsCanAddSellerItem( SELLER_ID sellerId )
+{
+	if (!Licence.Instance().IsDemo())
+		return true;
+
+	int itemLimit = Licence.Instance().GetLimitSellers();
+
+	if (storage.GetSellerItems( sellerId ).size() < itemLimit )
+		return true;
+
+	string str = ConvFuncs::FormatStdStr( 
+		_( "Vo verzii DEMO je možné pracovať s maximálne %i kusmi tovaru pre predajcu." ), itemLimit );
+	DisplayOkMessageBox( str, _( "Obmedzená demo verzia" ) );
+
+	return false;
+}

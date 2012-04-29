@@ -431,35 +431,35 @@ void Recipees::PrintSummaryOfSellers( PdfWrapperBase& pdf )
 	cells.Resize( 3 + allSorted.size(), columns.m_columns.size());
 
 	// received, imported, but items are not taken in
-	cells.Cell( row, 1 ).SetText( ConvFuncs::FormatStdStr(_( "Neprebratí - %i predajcov" ), imported.size() ) );
+	cells.Cell( row, 1 ).SetText( ConvFuncs::FormatStdStr(_( "Neprebratí - predajcov: %i" ), imported.size() ) );
 	++row;
 
 	for( unsigned int i = 0; i < imported.size(); ++i ) {
 		cells.Cell( row, 0 ).SetText( imported[ i ]->shortcode );
 		cells.Cell( row, 1 ).SetText( imported[ i ]->name );
-		cells.Cell( row, 0 ).SetText( imported[ i ]->note );
+		cells.Cell( row, 2 ).SetText( imported[ i ]->note );
 		++row;
 	}
 
 	// items taken from seller
-	cells.Cell( row, 1 ).SetText( ConvFuncs::FormatStdStr(_( "Tovar prebratý - %i predajcov" ), received.size() ) );
+	cells.Cell( row, 1 ).SetText( ConvFuncs::FormatStdStr(_( "Tovar prebratý - predajcov: %i" ), received.size() ) );
 	++row;
 
 	for( unsigned int i = 0; i < received.size(); ++i ) {
 		cells.Cell( row, 0 ).SetText( received[ i ]->shortcode );
 		cells.Cell( row, 1 ).SetText( received[ i ]->name );
-		cells.Cell( row, 0 ).SetText( received[ i ]->note );
+		cells.Cell( row, 2 ).SetText( received[ i ]->note );
 		++row;
 	}
 
 	// remaining items handed out back
-	cells.Cell( row, 1 ).SetText( ConvFuncs::FormatStdStr(_( "Tovar vydaný späť - %i predajcov" ), handedOut.size() ) );
+	cells.Cell( row, 1 ).SetText( ConvFuncs::FormatStdStr(_( "Tovar vydaný späť - predajcov: %i" ), handedOut.size() ) );
 	++row;
 
 	for( unsigned int i = 0; i < handedOut.size(); ++i ) {
 		cells.Cell( row, 0 ).SetText( handedOut[ i ]->shortcode );
 		cells.Cell( row, 1 ).SetText( handedOut[ i ]->name );
-		cells.Cell( row, 0 ).SetText( handedOut[ i ]->note );
+		cells.Cell( row, 2 ).SetText( handedOut[ i ]->note );
 		++row;
 	}
 
