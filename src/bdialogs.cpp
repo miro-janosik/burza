@@ -23,6 +23,7 @@
 #include "bdfilehelper.h"
 
 #include "generator.h"
+#include "licence.h"
 
 #include <gtkmm-2.4/gtkmm/filechooserdialog.h>
 
@@ -606,7 +607,7 @@ void BurzaDialogs::RegisterDisplaySeller(SellerData& seller)
 	m_pLabelSellerNote->set_label( seller.note );
 	
 	// fill items
-	ItemDataArray	items = Centrala::Storage().GetSellerItems(seller.id);
+	ItemDataArray	items = DemoLimitsGetSellerItems(seller.id);
 	ItemCategoryArray	categories = Centrala::Storage().GetItemsCategories(items);
 	Gtk::TreeModel::Row row;
 	
@@ -657,9 +658,9 @@ void BurzaDialogs::ReloadSellers( void )
 
 void BurzaDialogs::FillSellerCombos( void )
 {
-	m_DisplayedSellers = Centrala::Storage().GetSellers();
+	m_DisplayedSellers = DemoLimitsGetSellers();
 	std::string		str;
-	
+
 	sort( m_DisplayedSellers.begin(), m_DisplayedSellers.end(), OrderSellerByShortCode );
 	
 	m_pComboSeller->clear();
@@ -677,7 +678,7 @@ void BurzaDialogs::FillSellerCombos( void )
 
 void BurzaDialogs::RegisterButtonImportSeller( void )
 {
-	if (DemoLimitsCanAddAddSeller() == false)
+	if (DemoLimitsCanAddSeller() == false)
 		return;
 
 	Gtk::FileChooserDialog dialog("Select importer file", Gtk::FILE_CHOOSER_ACTION_OPEN );
@@ -794,8 +795,11 @@ void BurzaDialogs::RegisterButtonImportSeller( void )
 
 void BurzaDialogs::RegisterButtonAddSeller( void )
 {
-	// m_sellerEditAction = ea_add;
-	RegisterStartDialogEditSeller( SELLER_ID_NONE );
+	if ( DemoLimitsCanAddSeller() ) {
+
+		// m_sellerEditAction = ea_add;
+		RegisterStartDialogEditSeller( SELLER_ID_NONE );
+	}
 }
 
 void BurzaDialogs::RegisterButtonUpdateSeller( void )
@@ -843,8 +847,10 @@ void BurzaDialogs::RegisterButtonAddItem( void )
 {
 	if ( !RegisterAnySelectedSeller() )
 		return;
-	
-	RegisterStartDialogEditProduct( ITEM_ID_NONE );
+
+	if ( DemoLimitsCanAddItem( RegisterGetSelectedSellerId() ) ) {
+		RegisterStartDialogEditProduct( ITEM_ID_NONE );
+	}
 }
 
 void BurzaDialogs::RegisterButtonModifyItem( void )
@@ -1291,7 +1297,7 @@ void BurzaDialogs::CashoutSellerChanged( void )
 	
 	std::string		str;
 	
-	ItemDataArray items = Centrala::Storage().GetSellerItems( CashoutGetSelectedSellerId() );
+	ItemDataArray items = DemoLimitsGetSellerItems( CashoutGetSelectedSellerId() );
 
 	// XXX ERROR: GTKMM can't handle too long items in combo or some chars probably?
 	// so have to cut down.
@@ -1497,10 +1503,16 @@ void BurzaDialogs::RegisterButtonItemEditOk( void )
 	
 	switch ( action ) {
 	case ea_add:
-		m_EditedItem.id = Centrala::Storage().AddItem(m_EditedItem, m_EditedSeller.id);
 
-		// after adding new item - start adding another one.
-		RegisterStartDialogEditProduct( ITEM_ID_NONE );
+		// validate if we can add item 
+		if ( DemoLimitsCanAddItem( RegisterGetSelectedSellerId() ) ) {
+
+			m_EditedItem.id = Centrala::Storage().AddItem(m_EditedItem, m_EditedSeller.id);
+
+			// after adding new item - start adding another one.
+			RegisterStartDialogEditProduct( ITEM_ID_NONE );
+		}
+
 		break;
 		
 	case ea_modify:
@@ -1521,7 +1533,7 @@ void BurzaDialogs::RegisterButtonItemEditCancel( void )
 bool BurzaDialogs::RegisterButtonItemEditClose( GdkEventAny* )
 {
 	RegisterButtonItemEditCancel(); 
-	return true; 
+	return true;
 }
 
 void BurzaDialogs::HighlightEditItemOff( void )
@@ -1604,7 +1616,9 @@ void BurzaDialogs::RegisterButtonSellerEditOk( void )
 	
 	int action = m_EditedSeller.id == SELLER_ID_NONE ? ea_add : ea_modify;
 	if ( action == ea_add ) {
+
 		m_EditedSeller.id = Centrala::Storage().AddSeller( m_EditedSeller );
+
 	} else {
 		Centrala::Storage().ModifySellerEnd( m_EditedSeller.id, m_EditedSeller );
 	}
@@ -1904,11 +1918,11 @@ void BurzaDialogs::RegisterButtonReviewOfSellers( void )
 
 bool BurzaDialogs::DemoLimitsCanAddSeller( void )
 {
-	if (!Licence.Instance().IsDemo())
+	if ( !Licence::Instance().IsDemo() )
 		return true;
 
-	int sellerLimit = Licence.Instance().GetLimitSellers();
-	if (storage.GetSellers().size() < sellerLimit )
+	int sellerLimit = Licence::Instance().GetLimitSellers();
+	if ( Centrala::Storage().GetSellers().size() < sellerLimit )
 		return true;
 
 	string str = ConvFuncs::FormatStdStr( 
@@ -1918,14 +1932,14 @@ bool BurzaDialogs::DemoLimitsCanAddSeller( void )
 	return false;
 }
 
-bool BurzaDialogs::DemoLimitsCanAddSellerItem( SELLER_ID sellerId )
+bool BurzaDialogs::DemoLimitsCanAddItem( SELLER_ID sellerId )
 {
-	if (!Licence.Instance().IsDemo())
+	if (!Licence::Instance().IsDemo())
 		return true;
 
-	int itemLimit = Licence.Instance().GetLimitSellers();
+	int itemLimit = Licence::Instance().GetLimitItems();
 
-	if (storage.GetSellerItems( sellerId ).size() < itemLimit )
+	if ( Centrala::Storage().GetSellerItems( sellerId ).size() < itemLimit )
 		return true;
 
 	string str = ConvFuncs::FormatStdStr( 
@@ -1933,4 +1947,68 @@ bool BurzaDialogs::DemoLimitsCanAddSellerItem( SELLER_ID sellerId )
 	DisplayOkMessageBox( str, _( "Obmedzená demo verzia" ) );
 
 	return false;
+}
+
+SellerDataArray& BurzaDialogs::DemoLimitsGetSellers( void )
+{
+	SellerDataArray sellers = Centrala::Storage().GetSellers();
+
+	if ( Licence::Instance().IsDemo() ) {
+
+		int sellerLimit = Licence::Instance().GetLimitSellers();
+		if ( sellers.size() > sellerLimit )
+			sellers.erase( sellers.begin() + sellerLimit, sellers.end() );
+
+		string str = ConvFuncs::FormatStdStr( 
+			_( "Vo verzii DEMO je možné pracovať s maximálne %i predajcami." ),
+			sellerLimit );
+		SellerData seller( str, "XX", str, 0 );
+
+		sellers.push_back( seller );
+	}
+
+	return sellers;
+}
+
+ItemDataArray& BurzaDialogs::DemoLimitsGetSellerItems( SELLER_ID sellerId )
+{
+	ItemDataArray items = Centrala::Storage().GetSellerItems( sellerId );
+
+	if ( Licence::Instance().IsDemo() ) {
+
+		int itemLimit = Licence::Instance().GetLimitItems();
+		if ( items.size() > itemLimit ) {
+			items.erase( items.begin() + itemLimit, items.end() );
+
+			string str = ConvFuncs::FormatStdStr( 
+				_( "Vo verzii DEMO je možné pracovať s maximálne %i tovarmi." ),
+				itemLimit );
+
+			ItemData item( str, -1, 1.0, 0, ItemStatus::given_as_gift );
+			items.push_back( item );
+		}
+	}
+
+	return items;
+}
+
+bool BurzaDialogs::AskToFinishAcceptingSellerChanges( void )
+{
+	// ask only if user is not accepted yet
+	SellerData seller = RegisterGetSelectedSeller();
+	if (seller.status != SellerStatus::imported) 
+		return true;
+
+	// first ask if user wants to finish
+	if ( DisplayYesNoMessageBox( 
+			_( "Chceš zmeniť predajcu na 'prijatého'?" ), 
+			_( "Importovaný na prijatý." ) ) == false )
+		return false;
+
+	// then ask for name of person who finished it.
+	if ( false == MessageEditBox( _( "Kto prebral tovar tohoto predajcu?" ), 
+		personAcceptingItems ) )
+		return false;
+	
+	
 }

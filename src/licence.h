@@ -3,8 +3,10 @@
 
 using namespace std;
 
-class Licence : public Singleton<Licence>
+class Licence : public Singleton< Licence >
 {
+	friend class Singleton< Licence >;
+
 private:
 	Licence(void);
 	~Licence(void);
@@ -13,10 +15,10 @@ public:
 	void SetLicense( string _userName, string hash );
 
 	void ValidateLicence( void );
-	bool IsDemo( void ) { return licenceValid; }
+	bool IsDemo( void ) { return !licenceValid; }
 
-	unsigned int GetLimitSellers( void ) { return IsDemo() ? 10 : 10000; }
-	unsigned int GetLimitItems( void ) { return IsDemo() ? 20 : 10000; }
+	unsigned int GetLimitSellers( void ) { return IsDemo() ? 2 : 10000; }
+	unsigned int GetLimitItems( void ) { return IsDemo() ? 4 : 10000; }
 
 private:
 

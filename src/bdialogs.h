@@ -141,9 +141,15 @@ public:
 	// "cash-out" helper functions
 	void CashoutDisplaySeller( const char* shortcode );
 	void CheckoutCartChanged( void );
-	
-bool BurzaDialogs::DemoLimitsCanAddSellerItem( SELLER_ID sellerId )
-bool BurzaDialogs::DemoLimitsCanAddSeller( void )
+
+	//! Checks for license limits, and displays message box if new can't be added.
+	bool DemoLimitsCanAddItem( SELLER_ID sellerId );
+	//! Checks for license limits, and displays message box if new can't be added.
+	bool DemoLimitsCanAddSeller( void );
+	//! Returns sellers, limited by numbers if in demo mode.
+	SellerDataArray& DemoLimitsGetSellers( void );
+	//! Returns items, limited by numbers if in demo mode.
+	ItemDataArray& DemoLimitsGetSellerItems( SELLER_ID sellerId );
 
 	// "item properties dialog functions
 	//! Item editing finished. Fill item back to seller, and notify that seller was modified.

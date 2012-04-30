@@ -137,8 +137,11 @@ BurzaRegister::~BurzaRegister()
 
 void BurzaRegister::PridajNovehoPredajcu( const char* kod, const char* meno, const char* poznamka )
 {	
-	SellerData newseller(meno, kod, poznamka, 'a');
-	m_storage->AddSeller(newseller);
+	// if ( DemoLimitsCanAddSeller() ) 
+	{
+		SellerData newseller(meno, kod, poznamka, 'a');
+		m_storage->AddSeller(newseller);
+	}
 }
 
 int BurzaRegister::NajdiPredajcuPodlaKoduIndex( const char* kod )

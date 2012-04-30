@@ -7,6 +7,8 @@ using namespace std;
 string encCharacters = "123456789ACDEFHJKLMNPRTUVWXYZ";
 const unsigned int encCharactersSize = encCharacters.size();
 
+Licence* Licence::instance = NULL;
+
 Licence::Licence(void)
 {
 	licenceValid = false;
