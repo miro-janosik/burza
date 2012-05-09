@@ -15,7 +15,7 @@ public:
   
   void PrintSellerReturnSheet( PdfWrapperBase& pdf, SELLER_ID id );
 
-  static void PrintSummaryOfSellers( PdfWrapperBase& pdf );
+  static void PrintStats( PdfWrapperBase& pdf );
 
 private:
 
@@ -26,6 +26,11 @@ private:
  
   static double RoundTo5Cents( double price );
 
+  //! Takes Y position, advances it by some percents (down), returns the position.
+  //! If position would be over bottom margin, new page is created and Y is moved
+  //! to start of page.
+  static float AdvanceYpos( float ypos, float percent );
+
 private:
 	//! margin in percentage of page. 0 means no margin
 	static float marginTop;
@@ -34,6 +39,8 @@ private:
 	//! margin in percentage of page. 100 means no margin
 	static float marginBottom;
 	static float marginRight;
+
+	static PdfWrapperBase *currentPdf;
 };
 
 };

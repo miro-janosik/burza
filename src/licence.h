@@ -20,6 +20,7 @@ public:
 	unsigned int GetLimitSellers( void ) { return IsDemo() ? 2 : 10000; }
 	unsigned int GetLimitItems( void ) { return IsDemo() ? 4 : 10000; }
 
+	static std::string forMoreInformation;
 private:
 
 	//! entered licensee user name

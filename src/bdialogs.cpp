@@ -51,6 +51,8 @@ BurzaDialogs::BurzaDialogs()
 	m_cashout_sum = 0.0;
 
 	ConvFuncs::SingletonInstanceCreate();
+
+	initializing = true;
 }
 
 BurzaDialogs::~BurzaDialogs()
@@ -813,6 +815,9 @@ void BurzaDialogs::RegisterButtonFinishAcceptingItems( void )
 {
 	std::string preberajuci = personAcceptingItems;
 
+	RegisterAskToFinishAcceptingSellerChanges();
+
+	/* this all is done in the call to RegisterAskToFinishAcceptingSellerChanges()
 	// popup - name who accepted the items
 	bool clickedOk = EditMessageBox::ShowDialog( 
 		_( "Naozaj chcete ukončiť preberanie tovaru tohto predajcu? Zadajte meno preberajúcich:" ), 
@@ -841,6 +846,7 @@ void BurzaDialogs::RegisterButtonFinishAcceptingItems( void )
 	RegisterSellerModified( seller );
 
 	personAcceptingItems = preberajuci;
+	*/
 }
 
 void BurzaDialogs::RegisterButtonAddItem( void )
@@ -1008,6 +1014,9 @@ void BurzaDialogs::RegisterButtonCalcRepayment( void )
 
 void BurzaDialogs::RegisterButtonSwitchToCashout( void )
 {
+	if (!initializing)
+		RegisterAskToFinishAcceptingSellerChanges();
+
 	m_pWndRegister->hide();
 	m_pWndCashOut->show();
 	m_pWndCashOut->maximize();
@@ -1069,6 +1078,9 @@ void BurzaDialogs::CashoutButtonSwitchToRegister( void )
 
 void BurzaDialogs::RegisterComboChangedSeller( void )
 {
+	if (!initializing)
+		RegisterAskToFinishAcceptingSellerChanges();
+
 	int i = m_pComboSeller->get_active_row_number();
 	
 	if ( i == -1 )
@@ -1776,7 +1788,7 @@ void BurzaDialogs::RegisterButtonOtherActions( void )
 
 bool BurzaDialogs::RegisterButtonStats( GdkEventButton* button )
 {
-	string offeredName = BurzaDialogsFileHelper::FormatDateTimeFileName( _("Predajcovia"), "pdf" );
+	string offeredName = BurzaDialogsFileHelper::FormatDateTimeFileName( _("Statistika"), "pdf" );
 	string name = BurzaDialogsFileHelper::AskToSaveDocumentFile( offeredName );
 	if ( name.empty() )
 		return false;
@@ -1784,7 +1796,7 @@ bool BurzaDialogs::RegisterButtonStats( GdkEventButton* button )
 	try {
 		HPDFWrapper	pdf;
 		pdf.CreatePDF( name );
-		Recipees::PrintSummaryOfSellers( pdf );
+		Recipees::PrintStats( pdf );
 		pdf.ClosePDF();
 		
 		Centrala::Register().DisplayPdf( name.c_str() );
@@ -1927,6 +1939,8 @@ bool BurzaDialogs::DemoLimitsCanAddSeller( void )
 
 	string str = ConvFuncs::FormatStdStr( 
 		_( "Vo verzii DEMO je možné pracovať s maximálne %i predajcami." ), sellerLimit );
+	str += "\n";
+	str += Licence::forMoreInformation;
 	DisplayOkMessageBox( str, _( "Obmedzená demo verzia" ) );
 
 	return false;
@@ -1944,12 +1958,14 @@ bool BurzaDialogs::DemoLimitsCanAddItem( SELLER_ID sellerId )
 
 	string str = ConvFuncs::FormatStdStr( 
 		_( "Vo verzii DEMO je možné pracovať s maximálne %i kusmi tovaru pre predajcu." ), itemLimit );
+	str += "\n";
+	str += Licence::forMoreInformation;
 	DisplayOkMessageBox( str, _( "Obmedzená demo verzia" ) );
 
 	return false;
 }
 
-SellerDataArray& BurzaDialogs::DemoLimitsGetSellers( void )
+SellerDataArray BurzaDialogs::DemoLimitsGetSellers( void )
 {
 	SellerDataArray sellers = Centrala::Storage().GetSellers();
 
@@ -1958,19 +1974,12 @@ SellerDataArray& BurzaDialogs::DemoLimitsGetSellers( void )
 		int sellerLimit = Licence::Instance().GetLimitSellers();
 		if ( sellers.size() > sellerLimit )
 			sellers.erase( sellers.begin() + sellerLimit, sellers.end() );
-
-		string str = ConvFuncs::FormatStdStr( 
-			_( "Vo verzii DEMO je možné pracovať s maximálne %i predajcami." ),
-			sellerLimit );
-		SellerData seller( str, "XX", str, 0 );
-
-		sellers.push_back( seller );
 	}
 
 	return sellers;
 }
 
-ItemDataArray& BurzaDialogs::DemoLimitsGetSellerItems( SELLER_ID sellerId )
+ItemDataArray BurzaDialogs::DemoLimitsGetSellerItems( SELLER_ID sellerId )
 {
 	ItemDataArray items = Centrala::Storage().GetSellerItems( sellerId );
 
@@ -1980,19 +1989,23 @@ ItemDataArray& BurzaDialogs::DemoLimitsGetSellerItems( SELLER_ID sellerId )
 		if ( items.size() > itemLimit ) {
 			items.erase( items.begin() + itemLimit, items.end() );
 
+			/*
 			string str = ConvFuncs::FormatStdStr( 
 				_( "Vo verzii DEMO je možné pracovať s maximálne %i tovarmi." ),
 				itemLimit );
+			str += "\n";
+			str += Licence::forMoreInformation;
 
 			ItemData item( str, -1, 1.0, 0, ItemStatus::given_as_gift );
 			items.push_back( item );
+			*/
 		}
 	}
 
 	return items;
 }
 
-bool BurzaDialogs::AskToFinishAcceptingSellerChanges( void )
+bool BurzaDialogs::RegisterAskToFinishAcceptingSellerChanges( void )
 {
 	// ask only if user is not accepted yet
 	SellerData seller = RegisterGetSelectedSeller();
@@ -2009,6 +2022,19 @@ bool BurzaDialogs::AskToFinishAcceptingSellerChanges( void )
 	if ( false == MessageEditBox( _( "Kto prebral tovar tohoto predajcu?" ), 
 		personAcceptingItems ) )
 		return false;
+
+	try {
+		Centrala::Storage().ModifySellerStart( seller.id );
+		
+		seller.status = SellerStatus::received;
+		seller.note += _( " Prijal:" ) + personAcceptingItems;
+
+		Centrala::Storage().ModifySellerEnd( seller.id, seller );
+	}
+	catch(exception& e)
+	{
+		ErrorHandling::HandleException(e);
+	}
 	
-	
+	RegisterSellerModified( seller );
 }

@@ -70,8 +70,12 @@ int main2( int argc, char **argv )
 	}
 
 	// Centrala::Register().NacitajVsetkychPredajcov();
+	Centrala::Dialogs().initializing = true;
+
 	Centrala::Dialogs().FillSellerCombos();
 	Centrala::Dialogs().RegisterDisplaySellerByIndex( 0 );
+
+	Centrala::Dialogs().initializing = false;
 
 	std::string exceptionMessage;
 	

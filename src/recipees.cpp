@@ -18,6 +18,7 @@ float Recipees::marginTop = 8;
 float Recipees::marginBottom = 80;
 float Recipees::marginLeft = 10;
 float Recipees::marginRight = 90;
+PdfWrapperBase *Recipees::currentPdf = NULL;
 
 void Recipees::PrintSellerStatus( PdfWrapperBase& pdf, SELLER_ID id )
 {
@@ -360,10 +361,25 @@ double Recipees::RoundTo5Cents( double price )
 	return b;
 }
 
+float Recipees::AdvanceYpos( float ypos, float percent )
+{
+	ypos += percent;
+	if ( ypos >= marginBottom ) {
+		
+		currentPdf->NewPage( currentPdf->GetCurrentPageTitle() );
+		AddProgramPageHeaderAndFooter( *currentPdf );
+
+		ypos = marginTop;
+	}
+
+	return ypos;
+}
+
+
 bool SortSellerDataPtrsByShortcode(SellerData* a, SellerData *b) { 
 	return (stricmp( a->shortcode.c_str(), b->shortcode.c_str()) < 0); }
 
-void Recipees::PrintSummaryOfSellers( PdfWrapperBase& pdf )
+void Recipees::PrintStats( PdfWrapperBase& pdf )
 {
 	SellerDataArray sellers;
 
@@ -374,6 +390,8 @@ void Recipees::PrintSummaryOfSellers( PdfWrapperBase& pdf )
 	{
 		ErrorHandling::HandleException(e);
 	}
+
+	currentPdf = &pdf;
 
 	// order sellers - first by status, then by code
 	vector< SellerData* >	allSorted;
@@ -463,5 +481,76 @@ void Recipees::PrintSummaryOfSellers( PdfWrapperBase& pdf )
 		++row;
 	}
 
-	DrawTableSplitOnPages( pdf, 15, ypos, cells, columns );
+	ypos = DrawTableSplitOnPages( pdf, 15, ypos, cells, columns );
+	float textPosX = 15;
+
+	ypos = AdvanceYpos( ypos, 2 * lineSpacing );
+	pdf.WriteSingleText( textPosX, ypos, _( "Ďalšie štatistické údaje:" ) );
+
+	// number of sellers, number of items, cost of items, average per seller, cost per seller
+	// price of items not brought in, items on stock, items handed out, items sold, items lost
+	int numberOfItems = 0;
+	float costOfAllItems = 0.0;
+	int numberOfItemsInStatus[ ItemStatus::ItemStatusCount ];
+	float costOfItemsInStatus[ ItemStatus::ItemStatusCount ];
+	float price;
+	ItemStatus status;
+
+	for( int i = 0; i < ItemStatus::ItemStatusCount; ++i ) {
+		numberOfItemsInStatus[ i ] = 0;
+		costOfItemsInStatus[ i ] = 0.0;
+	}
+
+	for( int s = 0; s < sellers.size(); ++s ) {
+
+		ItemDataArray items = Centrala::Storage().GetSellerItems( sellers[ s ].id );
+
+		for( int i = 0; i < items.size(); ++i ) {
+			
+			price = items[ i ].price;
+			status = items[ i ].status;
+
+			costOfAllItems += price;
+
+			numberOfItemsInStatus[ status ]++;
+			costOfItemsInStatus[ status ] += price;
+		}
+
+		numberOfItems += items.size();
+	}
+
+	ypos = AdvanceYpos( ypos, lineSpacing );
+	pdf.WriteSingleText( textPosX, ypos, ConvFuncs::FormatStdStr(_( "Počet predajcov: %i" ), sellers.size()) );
+
+	ypos = AdvanceYpos( ypos, lineSpacing );
+	pdf.WriteSingleText( textPosX, ypos, ConvFuncs::FormatStdStr(_( "Kusov tovaru: %i" ), numberOfItems) );
+
+	ypos = AdvanceYpos( ypos, lineSpacing );
+	pdf.WriteSingleText( textPosX, ypos, ConvFuncs::FormatStdStr(_( "Cena tovaru spolu: %0.0f %s" ), 
+		costOfAllItems, Centrala::Settings().m_string_mena.c_str() ) );
+
+	ypos = AdvanceYpos( ypos, lineSpacing );
+	pdf.WriteSingleText( textPosX, ypos, ConvFuncs::FormatStdStr(_( "Priemerne kusov tovaru na predajcu: %i" ), 
+		numberOfItems / sellers.size() ) );
+	
+	ypos = AdvanceYpos( ypos, lineSpacing );
+	pdf.WriteSingleText( textPosX, ypos, ConvFuncs::FormatStdStr(_( "Priemerná cena tovaru na predajcu: %0.0f %s" ), 
+		costOfAllItems / sellers.size(), Centrala::Settings().m_string_mena.c_str() ) );
+
+	for( int i = 0; i < ItemStatus::ItemStatusCount; ++i ) {
+
+		ypos = AdvanceYpos( ypos, lineSpacing );
+		pdf.WriteSingleText( textPosX, ypos, ConvFuncs::FormatStdStr(_( "Kusov v '%s' : %i" ), 
+			DataAccessInterface::ItemStatus2String( Burza::ItemStatus( i ) ), 
+			numberOfItemsInStatus[ i ] ));
+
+		ypos = AdvanceYpos( ypos, lineSpacing );
+		pdf.WriteSingleText( textPosX, ypos, ConvFuncs::FormatStdStr(_( "Cena tovaru '%s' : %0.0f %s" ), 
+			DataAccessInterface::ItemStatus2String( Burza::ItemStatus( i ) ), 
+			costOfItemsInStatus[ i ],
+			Centrala::Settings().m_string_mena.c_str() ));
+
+	}
+
+	currentPdf = NULL;
 }

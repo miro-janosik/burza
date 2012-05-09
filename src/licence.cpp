@@ -1,11 +1,13 @@
 #include <string>
 #include <vector>
 #include "licence.h"
+#include "translate.h"
 
 using namespace std;
 
 string encCharacters = "123456789ACDEFHJKLMNPRTUVWXYZ";
 const unsigned int encCharactersSize = encCharacters.size();
+std::string Licence::forMoreInformation = _( "Viac informácií o licenciách sa dozviete na http://burza.mypage.sk" );
 
 Licence* Licence::instance = NULL;
 
@@ -33,8 +35,8 @@ string Licence::GetLicenceRequestText( void )
 		GetHddSerialNumber();
 
 	return 
-"Prosím skopírujte tento text do e-mailu a zašlite ho na adresu 'burza@mypage.sk'.\
-Tam Vám vygenerujeme nový registraèný kód ktorý Vám obratom zašleme.";
+_( "Prosím skopírujte tento text do e-mailu a zašlite ho na adresu 'burza@mypage.sk'.\
+Tam Vám vygenerujeme nový registraèný kód ktorý Vám obratom zašleme." );
 }
 
 void Licence::GetHddSerialNumber( void )

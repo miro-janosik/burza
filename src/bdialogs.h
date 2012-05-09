@@ -147,9 +147,13 @@ public:
 	//! Checks for license limits, and displays message box if new can't be added.
 	bool DemoLimitsCanAddSeller( void );
 	//! Returns sellers, limited by numbers if in demo mode.
-	SellerDataArray& DemoLimitsGetSellers( void );
+	SellerDataArray DemoLimitsGetSellers( void );
 	//! Returns items, limited by numbers if in demo mode.
-	ItemDataArray& DemoLimitsGetSellerItems( SELLER_ID sellerId );
+	ItemDataArray DemoLimitsGetSellerItems( SELLER_ID sellerId );
+
+	//! When user does some action that navigates away from seller, and it
+	//! is not accepted yet, ask about it.
+	bool RegisterAskToFinishAcceptingSellerChanges( void );
 
 	// "item properties dialog functions
 	//! Item editing finished. Fill item back to seller, and notify that seller was modified.
@@ -166,6 +170,8 @@ public:
 public:
 	Burza::BurzaRegister			*mp_register;
 	
+	bool initializing;
+
 	Glib::RefPtr<Gnome::Glade::Xml> 	
 		xmlWndRegister, xmlWndCashOut, xmlWndModifySeller, xmlWndModifyItem, xmlWndRegisterPopupMenu;
 		
