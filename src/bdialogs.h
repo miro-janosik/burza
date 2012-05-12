@@ -170,6 +170,8 @@ public:
 public:
 	Burza::BurzaRegister			*mp_register;
 	
+	//! value causing that actions bound to changes of GUI are not executed
+	//! (for example checking if seller is already checked in, on change of seller combo.)
 	bool initializing;
 
 	Glib::RefPtr<Gnome::Glade::Xml> 	
@@ -248,6 +250,14 @@ public:
 		Gtk::Button		*buttonInstallLicence;
 		Gtk::Entry		*editBurzaName;
 		Gtk::Button		*buttonOk;
+		ComboBoxTextDer	*comboFontSize;
+
+		Gtk::RadioButton	*radio1file;
+		Gtk::RadioButton	*radio2database;
+		Gtk::Entry		*editDbAddress;
+		Gtk::Entry		*editDbUser;
+		Gtk::Entry		*editDbPassword;
+		Gtk::Entry		*editDbPort;
 	} settingsWindow;
 
 	// helper variables for dialogs

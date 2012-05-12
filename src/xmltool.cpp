@@ -203,7 +203,7 @@ int XmlWrapperTool::CXmlWrapperTools::WriteSimpleXmlFile( XmlWrapperTool::CXmlTr
 
 			walk = curnode->GetAttributeByIndex( i );
 
-			file.Print( " %s=\"%s\"", walk->GetNameCstr(), walk->GetValueCstr() );
+			file.Print( "%s  %s=\"%s\"\r\n", tablevel.c_str(), walk->GetNameCstr(), walk->GetValueCstr() );
 		}
 		node_has_sub_children = ( curnode->GetNumOfChildren() > 0 );
 

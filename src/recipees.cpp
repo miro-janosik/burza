@@ -527,7 +527,7 @@ void Recipees::PrintStats( PdfWrapperBase& pdf )
 
 	ypos = AdvanceYpos( ypos, lineSpacing );
 	pdf.WriteSingleText( textPosX, ypos, ConvFuncs::FormatStdStr(_( "Cena tovaru spolu: %0.0f %s" ), 
-		costOfAllItems, Centrala::Settings().m_string_mena.c_str() ) );
+		costOfAllItems, Centrala::Settings().currencyInternationalShort.c_str() ) );
 
 	ypos = AdvanceYpos( ypos, lineSpacing );
 	pdf.WriteSingleText( textPosX, ypos, ConvFuncs::FormatStdStr(_( "Priemerne kusov tovaru na predajcu: %i" ), 
@@ -535,7 +535,7 @@ void Recipees::PrintStats( PdfWrapperBase& pdf )
 	
 	ypos = AdvanceYpos( ypos, lineSpacing );
 	pdf.WriteSingleText( textPosX, ypos, ConvFuncs::FormatStdStr(_( "Priemerná cena tovaru na predajcu: %0.0f %s" ), 
-		costOfAllItems / sellers.size(), Centrala::Settings().m_string_mena.c_str() ) );
+		costOfAllItems / sellers.size(), Centrala::Settings().currencyInternationalShort.c_str() ) );
 
 	for( int i = 0; i < ItemStatus::ItemStatusCount; ++i ) {
 
@@ -548,7 +548,7 @@ void Recipees::PrintStats( PdfWrapperBase& pdf )
 		pdf.WriteSingleText( textPosX, ypos, ConvFuncs::FormatStdStr(_( "Cena tovaru '%s' : %0.0f %s" ), 
 			DataAccessInterface::ItemStatus2String( Burza::ItemStatus( i ) ), 
 			costOfItemsInStatus[ i ],
-			Centrala::Settings().m_string_mena.c_str() ));
+			Centrala::Settings().currencyInternationalShort.c_str() ));
 
 	}
 

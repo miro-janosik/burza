@@ -66,7 +66,7 @@ string columnNameStrings[ columnNamesCount ] = {
 
 DataPostgresPqxx::DataPostgresPqxx()
 {
-	NastaveniaProgramu s = Centrala::Settings();
+	ProgramSettings s = Centrala::Settings();
 	format connectionString("user=%S password=%S dbname=%S hostaddr=%S port=%i",
 		s.dbUser, s.dbPassword, s.dbName, s.dbAddress, s.dbPort);
 

@@ -12,6 +12,7 @@
 #include <map>
 
 #include "dataaccess.h"
+#include "settings.h"
 
 using namespace std;
 
@@ -25,52 +26,8 @@ namespace Burza {
 	class PdfWrapperBase;
 	class ItemSearch;
 	
-class NastaveniaProgramu {
-public:
-	NastaveniaProgramu();
-public:
-	void LoadSettings( void );
-	void SaveSettings( void );
-
-	//! for example "EUR", "Czech krown", "E"
-	std::string		m_string_mena; 
-	
-	//! directory from where files are imported 
-	std::string		m_data_dir_path;
-	
-	//! name of current computer. Useful when identifying PC that changes seller.
-	std::string		m_computer_name;
-	
-	//! Name of the sale, it is written in output documents.
-	std::string		m_name_of_the_sale;
-	
-	//! directory where files are output
-	std::string		m_document_ouput_directory;
-
-	std::string		directoryImport;
-
-	//! PostgreSql connection
-	std::string		dbAddress;
-	std::string		dbUser;
-	std::string		dbPassword;
-	std::string		dbName;
-	int				dbPort;
-
-	std::string		licenseTo;
-	std::string		licenseKey;
-
-private:
-	//! current exe path
-	string			exePath;
-} ;
-
-// ==============================================
-// ==============================================
-
 class BurzaRegister {
 public:
-	
-	NastaveniaProgramu		m_nastavenia;
 	
 	DataAccessInterface		*m_storage;
 	
@@ -128,13 +85,13 @@ public:
 	static void Zmaz( void );
 public:
 	
-	static NastaveniaProgramu&	Settings( void ) { return Instance()->m_settings; }
+	static ProgramSettings&	Settings( void ) { return Instance()->m_settings; }
 	static BurzaDialogs& Dialogs( void ) { return * Instance()->mp_dialogs; }
 	static BurzaRegister& Register( void ) { return Instance()->m_register; }
 	static DataAccessInterface& Storage( void ) { return * Instance()->m_register.m_storage; }
 	static ItemSearch& Search( void ) { return * Instance()->itemSearch; }
 	
-	NastaveniaProgramu		m_settings;
+	ProgramSettings		m_settings;
 	BurzaDialogs			*mp_dialogs;
 	BurzaRegister			m_register;
 	ItemSearch				*itemSearch;

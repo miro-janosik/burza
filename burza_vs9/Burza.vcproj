@@ -397,6 +397,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\bdhelper.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\bdhelper.h"
+				>
+			</File>
+			<File
 				RelativePath="..\src\bdialogs.cpp"
 				>
 			</File>
@@ -443,6 +451,14 @@
 		</File>
 		<File
 			RelativePath=".\ReadMe.txt"
+			>
+		</File>
+		<File
+			RelativePath="..\src\settings.cpp"
+			>
+		</File>
+		<File
+			RelativePath="..\src\settings.h"
 			>
 		</File>
 		<File

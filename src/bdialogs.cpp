@@ -513,14 +513,32 @@ int BurzaDialogs::SetupDialogs( void )
 	settingsWindow.xmlWindow->get_widget( "button_install_licence", settingsWindow.buttonInstallLicence );
 	settingsWindow.xmlWindow->get_widget( "entry_name_of_burza", settingsWindow.editBurzaName );
 	settingsWindow.xmlWindow->get_widget( "button_ok", settingsWindow.buttonOk );
+	settingsWindow.xmlWindow->get_widget_derived( "combo_font_size", settingsWindow.comboFontSize );
+	settingsWindow.xmlWindow->get_widget( "radio_1file", settingsWindow.radio1file );
+	settingsWindow.xmlWindow->get_widget( "radio_2db", settingsWindow.radio2database );
+	settingsWindow.xmlWindow->get_widget( "entry_dbaddress", settingsWindow.editDbAddress );
+	settingsWindow.xmlWindow->get_widget( "entry_dbuser", settingsWindow.editDbUser );
+	settingsWindow.xmlWindow->get_widget( "entry_dbpassword", settingsWindow.editDbPassword );
+	settingsWindow.xmlWindow->get_widget( "entry_dbport", settingsWindow.editDbPort );
 
 	if (( settingsWindow.dialog == NULL ) ||
 		( settingsWindow.labelCurrentLicence == NULL ) ||
 		( settingsWindow.buttonRequestLicence == NULL ) ||
 		( settingsWindow.editBurzaName == NULL ) ||
 		( settingsWindow.buttonOk == NULL ) ||
-		( settingsWindow.buttonInstallLicence == NULL )) {
+		( settingsWindow.buttonInstallLicence == NULL ) ||
+		( settingsWindow.comboFontSize == NULL )) {
 		error = "Dialog file is corrupt [Nastavenia].";
+		throw;
+	}
+
+	if (( settingsWindow.radio1file == NULL ) ||
+		( settingsWindow.radio2database == NULL ) ||
+		( settingsWindow.editDbAddress == NULL ) ||
+		( settingsWindow.editDbUser == NULL ) ||
+		( settingsWindow.editDbPassword == NULL ) ||
+		( settingsWindow.editDbPort == NULL )) {
+		error = "Dialog file is corrupt [Nastavenia] part 2.";
 		throw;
 	}
 	
@@ -962,12 +980,12 @@ void BurzaDialogs::RegisterButtonCalcFee( void )
 	double fee = Centrala::Register().CalculateFee( seller, items );
 	
 	m_pLabelFee->set_text( ConvFuncs::FormatStdStr( "%0.2f %s", fee, 
-		Centrala::Settings().m_string_mena.c_str() ) );
+		Centrala::Settings().currencySign.c_str() ) );
 }
 
 void BurzaDialogs::RegisterButtonCalcRepayment( void )
 {
-	m_pLabelFee->set_text( string( "-" ) + Centrala::Settings().m_string_mena );
+	m_pLabelFee->set_text( string( "-" ) + Centrala::Settings().currencySign );
 	
 	if ( !RegisterAnySelectedSeller() ) {
 		return;
@@ -1017,6 +1035,8 @@ void BurzaDialogs::RegisterButtonSwitchToCashout( void )
 	if (!initializing)
 		RegisterAskToFinishAcceptingSellerChanges();
 
+	initializing = true;
+
 	m_pWndRegister->hide();
 	m_pWndCashOut->show();
 	m_pWndCashOut->maximize();
@@ -1051,6 +1071,8 @@ void BurzaDialogs::RegisterButtonSwitchToCashout( void )
 	m_pWndCashOut->set_focus_chain( cashoutFocusList );
 
 	Centrala::Search().FetchLatestData();
+
+	initializing = false;
 }
 
 bool BurzaDialogs::OrderSellerByShortCode(const SellerData& a, const SellerData& b)
@@ -1071,8 +1093,13 @@ void BurzaDialogs::CashoutButtonSwitchToRegister( void )
 	m_pWndRegister->unfullscreen();
 	m_pWndRegister->maximize();
 	m_pWndRegister->reset_shapes();
-	
+
+	initializing = true;
+
 	ReloadSellers();
+
+	initializing = false;
+
 	m_pLabelFee->set_text( "" );
 }
 
@@ -1199,7 +1226,7 @@ void BurzaDialogs::CheckoutCartChanged( void )
 	std::string	str;
 	str = ConvFuncsInstance->FormatCstr( _("Suma: %0.2f" ), m_cashout_sum );
 	str += " ";
-	str += Centrala::Settings().m_string_mena;
+	str += Centrala::Settings().currencySign;
 	m_pCashoutLabelSum->set_text( str );
 }
 
@@ -1814,8 +1841,38 @@ bool BurzaDialogs::RegisterButtonSaveSellerOverview( GdkEventButton* button )
 	return true;
 }
 
+// ======================================================
+// ======================================================
+
 bool BurzaDialogs::RegisterButtonSettings( GdkEventButton* button )
 {
+	ProgramSettings* settings = & Centrala::Settings();
+
+	// setup 'font' combo
+	settingsWindow.comboFontSize->clear();
+	int selectedFontIndex = 0;
+
+	for( int i = 0; i < ProgramSettings::predefined.listOfFontSizes.size(); ++i ) {
+		settingsWindow.comboFontSize->append_text( 
+			ProgramSettings::predefined.listOfFontSizes[ i ].text );
+		if ( settings->fontSize == ProgramSettings::predefined.listOfFontSizes[ i ].size )
+			selectedFontIndex = i;
+	}
+
+	settingsWindow.comboFontSize->set_active( selectedFontIndex );
+
+	// name of "Burza"
+	settingsWindow.editBurzaName->set_text( settings->m_name_of_the_sale );
+
+	// database / file settings
+	settingsWindow.radio1file->set_active( settings->databaseInLocalFiles );
+	settingsWindow.radio2database->set_active( ! settings->databaseInLocalFiles );
+
+	settingsWindow.editDbAddress->set_text( settings->dbAddress );
+	settingsWindow.editDbUser->set_text( settings->dbUser );
+	settingsWindow.editDbPassword->set_text( settings->dbPassword );
+	settingsWindow.editDbPort->set_text( ConvFuncs::FormatStdStr( "%i", settings->dbPort ) );
+
 	settingsWindow.dialog->run();
 	return true;
 }
@@ -1831,6 +1888,37 @@ void BurzaDialogs::SettingsClickedButtonInstallLicence( void )
 {
 
 }
+
+void BurzaDialogs::SettingsClickedButtonOk( void )
+{
+	settingsWindow.dialog->response( Gtk::ResponseType::RESPONSE_OK );
+	settingsWindow.dialog->hide();
+
+	ProgramSettings	*settings = & Centrala::Settings();
+
+	// name of "Burza"
+	settings->m_name_of_the_sale = settingsWindow.editBurzaName->get_text();
+
+	// font size
+	int fontSizeSelectionIndex = settingsWindow.comboFontSize->get_active_row_number();
+	if ( fontSizeSelectionIndex != -1 ) {
+		settings->fontSize = ProgramSettings::predefined.listOfFontSizes[ fontSizeSelectionIndex ].size;
+	}
+
+	// database / file settings
+	settings->databaseInLocalFiles = settingsWindow.radio1file->get_active();
+
+	settings->dbAddress = settingsWindow.editDbAddress->get_text();
+	settings->dbUser = settingsWindow.editDbUser->get_text();
+	settings->dbPassword = settingsWindow.editDbPassword->get_text();
+	settings->dbPort = atoi( settingsWindow.editDbPort->get_text().c_str() );
+
+	settings->SaveSettings();
+	settings->Apply();
+}
+
+// ======================================================
+// ======================================================
 
 void BurzaDialogs::EditMessageBoxClickedOk( void )
 {
@@ -1886,13 +1974,6 @@ void BurzaDialogs::on_column_checkbox_edited( Glib::ustring rowNumberText )
 	
 	Centrala::Storage().ModifyItem(item.id, item);
 	RegisterDisplaySeller( RegisterGetSelectedSeller() );
-}
-
-void BurzaDialogs::SettingsClickedButtonOk( void )
-{
-	Centrala::Settings().m_name_of_the_sale = settingsWindow.editBurzaName->get_text();
-		
-	Centrala::Settings().SaveSettings();
 }
 
 void BurzaDialogs::RegisterButtonReviewOfSellers( void )
