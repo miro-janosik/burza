@@ -67,7 +67,7 @@ enum SellerStatus {
 	imported = 0,
 	// items are taken from seller in, items are being sold
 	// selling
-	received,
+	receivedSelling,
 	// items are handed back to the seller
 	// returned
 	handedOut,

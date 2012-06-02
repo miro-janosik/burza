@@ -86,6 +86,7 @@ public:
 public:
 	
 	// "register" dialog functions
+	void RegisterEditLookupSellerChanged( void );
 	void RegisterButtonImportSeller( void );
 	void RegisterButtonAddSeller( void );
 	void RegisterButtonUpdateSeller( void );
@@ -104,6 +105,7 @@ public:
 	bool RegisterButtonStats( GdkEventButton* button );
 	bool RegisterButtonSaveSellerOverview( GdkEventButton* button );
 	bool RegisterButtonSettings( GdkEventButton* button );
+	void RegisterSellerStatusRadioChanged( void );
 
 	void CashoutItemsTreeSelectChanged( void );
 	
@@ -181,6 +183,7 @@ public:
 
 	// register dialog
 	ComboBoxTextDer	*m_pComboSeller;
+	Gtk::Entry		*m_pEntryRegistryLookupSeller;
 	Gtk::Button		*m_pButtonImportSeller;
 	Gtk::Button		*m_pButtonAddSeller;
 	Gtk::Button		*m_pButtonUpdateSeller;
@@ -198,6 +201,9 @@ public:
 	// Gtk::Button		*m_pRegisterButtonReviewOfSellers;
 	// Gtk::Button		*m_pButtonSettings;
 	Gtk::Button		*m_pRegisterOtherActions;
+	Gtk::RadioButton	*m_pRegisterRadioSellerStatus1NotImported;
+	Gtk::RadioButton	*m_pRegisterRadioSellerStatus2ImportedSelling;
+	Gtk::RadioButton	*m_pRegisterRadioSellerStatus3ReturnedBack;
 	
 	Glib::RefPtr<Gtk::TreeSelection>	m_RegisterItemsSelection;
 	Glib::RefPtr<Gtk::ListStore>	m_RegisterItemsListModel;

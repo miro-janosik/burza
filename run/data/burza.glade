@@ -498,12 +498,10 @@
             </child>
             <child>
               <widget class="GtkButton" id="button add seller">
-                <property name="label" translatable="yes" comments="inport seller">Pridaj predajcu ru&#x10D;ne</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="border_width">10</property>
-                <property name="use_stock">True</property>
               </widget>
               <packing>
                 <property name="position">1</property>
@@ -544,38 +542,7 @@
               </packing>
             </child>
             <child>
-              <widget class="GtkButton" id="button_finish_accepting_items">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="border_width">10</property>
-                <child>
-                  <widget class="GtkHBox" id="hbox15">
-                    <property name="visible">True</property>
-                    <child>
-                      <widget class="GtkImage" id="image3">
-                        <property name="visible">True</property>
-                        <property name="stock">gtk-go-forward</property>
-                      </widget>
-                      <packing>
-                        <property name="position">0</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <widget class="GtkLabel" id="label7">
-                        <property name="visible">True</property>
-                        <property name="label" translatable="yes">Dokon&#x10D;i preberanie</property>
-                      </widget>
-                      <packing>
-                        <property name="position">1</property>
-                      </packing>
-                    </child>
-                  </widget>
-                </child>
-              </widget>
-              <packing>
-                <property name="position">3</property>
-              </packing>
+              <placeholder/>
             </child>
           </widget>
           <packing>
@@ -671,8 +638,35 @@
               </packing>
             </child>
             <child>
-              <widget class="GtkFixed" id="fixed4">
+              <widget class="GtkButton" id="button_finish_accepting_items">
                 <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="border_width">10</property>
+                <child>
+                  <widget class="GtkHBox" id="hbox15">
+                    <property name="visible">True</property>
+                    <child>
+                      <widget class="GtkImage" id="image3">
+                        <property name="visible">True</property>
+                        <property name="stock">gtk-go-forward</property>
+                      </widget>
+                      <packing>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <widget class="GtkLabel" id="label7">
+                        <property name="visible">True</property>
+                        <property name="yalign">0.89999997615814209</property>
+                        <property name="label" translatable="yes">x Dokon&#x10D;i preberanie x</property>
+                      </widget>
+                      <packing>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
+                  </widget>
+                </child>
               </widget>
               <packing>
                 <property name="position">3</property>
@@ -727,7 +721,7 @@
             <property name="height_request">60</property>
             <property name="visible">True</property>
             <child>
-              <widget class="GtkFixed" id="fixed3">
+              <widget class="GtkLabel" id="label fee">
                 <property name="visible">True</property>
               </widget>
               <packing>
@@ -735,8 +729,50 @@
               </packing>
             </child>
             <child>
-              <widget class="GtkLabel" id="label fee">
+              <widget class="GtkVBox" id="vbox1">
                 <property name="visible">True</property>
+                <property name="orientation">vertical</property>
+                <child>
+                  <widget class="GtkRadioButton" id="radiobuttonSellerStateImported">
+                    <property name="label" translatable="yes">Neprebran&#xFD;</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">False</property>
+                    <property name="active">True</property>
+                    <property name="draw_indicator">True</property>
+                  </widget>
+                  <packing>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <widget class="GtkRadioButton" id="radiobuttonSellerStateSelling">
+                    <property name="label" translatable="yes">Prebran&#xFD;, pred&#xE1;va sa</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">False</property>
+                    <property name="active">True</property>
+                    <property name="draw_indicator">True</property>
+                    <property name="group">radiobuttonSellerStateImported</property>
+                  </widget>
+                  <packing>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <widget class="GtkRadioButton" id="radiobuttonSellerStateReturned">
+                    <property name="label" translatable="yes">Vydan&#xFD; sp&#xE4;&#x165;</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">False</property>
+                    <property name="active">True</property>
+                    <property name="draw_indicator">True</property>
+                    <property name="group">radiobuttonSellerStateImported</property>
+                  </widget>
+                  <packing>
+                    <property name="position">2</property>
+                  </packing>
+                </child>
               </widget>
               <packing>
                 <property name="position">1</property>
@@ -854,7 +890,7 @@
           <widget class="GtkTable" id="table1">
             <property name="visible">True</property>
             <property name="border_width">5</property>
-            <property name="n_rows">3</property>
+            <property name="n_rows">4</property>
             <property name="n_columns">2</property>
             <property name="column_spacing">5</property>
             <property name="row_spacing">5</property>
@@ -924,6 +960,31 @@
               <packing>
                 <property name="left_attach">1</property>
                 <property name="right_attach">2</property>
+              </packing>
+            </child>
+            <child>
+              <widget class="GtkLabel" id="sellerCat">
+                <property name="visible">True</property>
+                <property name="label" translatable="yes">Kateg&#xF3;ria</property>
+                <property name="justify">right</property>
+              </widget>
+              <packing>
+                <property name="top_attach">3</property>
+                <property name="bottom_attach">4</property>
+                <property name="x_options">GTK_FILL</property>
+              </packing>
+            </child>
+            <child>
+              <widget class="GtkComboBox" id="combobox1">
+                <property name="visible">True</property>
+              </widget>
+              <packing>
+                <property name="left_attach">1</property>
+                <property name="right_attach">2</property>
+                <property name="top_attach">3</property>
+                <property name="bottom_attach">4</property>
+                <property name="x_options">GTK_FILL</property>
+                <property name="y_options">GTK_EXPAND</property>
               </packing>
             </child>
           </widget>
@@ -1379,6 +1440,7 @@
             <child>
               <widget class="GtkVBox" id="vbox1">
                 <property name="visible">True</property>
+                <property name="border_width">20</property>
                 <property name="orientation">vertical</property>
                 <child>
                   <widget class="GtkLabel" id="label3">
@@ -1391,7 +1453,7 @@
                   </packing>
                 </child>
                 <child>
-                  <widget class="GtkRadioButton" id="radiobutton1">
+                  <widget class="GtkRadioButton" id="radio_1file">
                     <property name="label" translatable="yes">Oddelene v s&#xFA;bore</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
@@ -1404,14 +1466,14 @@
                   </packing>
                 </child>
                 <child>
-                  <widget class="GtkRadioButton" id="radiobutton2">
+                  <widget class="GtkRadioButton" id="radio_2db">
                     <property name="label" translatable="yes">Prepojen&#xE9; cez datab&#xE1;zu</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">False</property>
                     <property name="active">True</property>
                     <property name="draw_indicator">True</property>
-                    <property name="group">radiobutton1</property>
+                    <property name="group">radio_1file</property>
                   </widget>
                   <packing>
                     <property name="position">2</property>

@@ -9,6 +9,7 @@
 #include "stringencoding.h"
 #include "translate.h"
 #include "errhandler.h"
+#include "log.h"
 
 using namespace Burza;
 using namespace BurzaTable;
@@ -412,7 +413,7 @@ void Recipees::PrintStats( PdfWrapperBase& pdf )
 		case SellerStatus::imported:
 			imported.push_back( allSorted[ i ] );
 			break;
-		case SellerStatus::received:
+		case SellerStatus::receivedSelling:
 			received.push_back( allSorted[ i ] );
 			break;
 		case SellerStatus::handedOut:
@@ -501,6 +502,8 @@ void Recipees::PrintStats( PdfWrapperBase& pdf )
 		costOfItemsInStatus[ i ] = 0.0;
 	}
 
+	LogS( InfoMajor, "Counting up sum\n" );
+
 	for( int s = 0; s < sellers.size(); ++s ) {
 
 		ItemDataArray items = Centrala::Storage().GetSellerItems( sellers[ s ].id );
@@ -517,6 +520,9 @@ void Recipees::PrintStats( PdfWrapperBase& pdf )
 		}
 
 		numberOfItems += items.size();
+
+		LogS( InfoMajor, "After seller %s - %s : %i\n", 
+			sellers[ s ].shortcode.c_str(), sellers[ s ].name.c_str(), (int)costOfAllItems );
 	}
 
 	ypos = AdvanceYpos( ypos, lineSpacing );

@@ -58,28 +58,23 @@ int main2( int argc, char **argv )
 	setlocale(LC_ALL,"C");
 	
 	// ============
-	
-	Centrala::Dialogs().SetupDialogs();
-	
-	try {
-		pcentrala->Register().m_storage = new CachedDataTextfile( Centrala::Settings().m_data_dir_path );
-		// pcentrala->Register().m_storage = new DataPostgresPqxx();
-	}
-	catch(...) {
-		return 0;
-	}
-
-	// Centrala::Register().NacitajVsetkychPredajcov();
-	Centrala::Dialogs().initializing = true;
-
-	Centrala::Dialogs().FillSellerCombos();
-	Centrala::Dialogs().RegisterDisplaySellerByIndex( 0 );
-
-	Centrala::Dialogs().initializing = false;
 
 	std::string exceptionMessage;
 	
 	try {
+		Centrala::Settings().LoadSettings();
+		Centrala::Settings().Apply();
+
+		Centrala::Dialogs().SetupDialogs();
+
+		// Centrala::Register().NacitajVsetkychPredajcov();
+		Centrala::Dialogs().initializing = true;
+
+		Centrala::Dialogs().FillSellerCombos();
+		Centrala::Dialogs().RegisterDisplaySellerByIndex( 0 );
+
+		Centrala::Dialogs().initializing = false;
+
 		Gtk::Main::run();
 	}
 	catch (std::exception& ex) {
@@ -131,6 +126,7 @@ double BurzaRegister::CalculateFee( SellerData& seller, ItemDataArray& items )
 
 BurzaRegister::BurzaRegister()
 {
+	m_storage = NULL;
 }
 
 BurzaRegister::~BurzaRegister()

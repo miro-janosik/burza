@@ -145,7 +145,7 @@ int BurzaDialogs::SetupDialogs( void )
 		( m_pWndCashOut == NULL ) ||
 		( m_pWndSeller == NULL ) ||
 		( m_pWndItem == NULL )) {
-		error = "Dialog file is corrupt [3].";
+		error = "Dialog file is corrupt [windows].";
 		throw;
 	}
 	
@@ -153,6 +153,7 @@ int BurzaDialogs::SetupDialogs( void )
 	m_pWndRegister->maximize();
 	
 	xmlWndRegister->get_widget_derived( "combobox seller", m_pComboSeller );
+	xmlWndRegister->get_widget( "entry_find_seller", m_pEntryRegistryLookupSeller );
 	xmlWndRegister->get_widget( "button import seller", m_pButtonImportSeller );
 	xmlWndRegister->get_widget( "button add seller", m_pButtonAddSeller );
 	xmlWndRegister->get_widget( "button update seller", m_pButtonUpdateSeller );
@@ -170,6 +171,9 @@ int BurzaDialogs::SetupDialogs( void )
 	// xmlWndRegister->get_widget( "button_review_of_sellers", m_pRegisterButtonReviewOfSellers );
 	// xmlWndRegister->get_widget( "button_settings", m_pButtonSettings );
 	xmlWndRegister->get_widget( "button_other_actions", m_pRegisterOtherActions );
+	xmlWndRegister->get_widget( "radiobuttonSellerStateImported", m_pRegisterRadioSellerStatus1NotImported );
+	xmlWndRegister->get_widget( "radiobuttonSellerStateSelling", m_pRegisterRadioSellerStatus2ImportedSelling );
+	xmlWndRegister->get_widget( "radiobuttonSellerStateReturned", m_pRegisterRadioSellerStatus3ReturnedBack );
 	
 	xmlWndRegisterPopupMenu->get_widget( "menuRegisterOtherActions", menuRegisterOtherActions );
 	xmlWndRegisterPopupMenu->get_widget( "menuItemSettings", menuItemSettings );
@@ -177,6 +181,7 @@ int BurzaDialogs::SetupDialogs( void )
 	xmlWndRegisterPopupMenu->get_widget( "menuitemStats", menuitemStats );
 	
 	if (( m_pComboSeller == NULL ) ||
+		( m_pEntryRegistryLookupSeller == NULL ) ||
 		( m_pButtonImportSeller == NULL ) ||
 		( m_pButtonAddSeller == NULL ) ||
 		( m_pButtonUpdateSeller == NULL ) ||
@@ -184,8 +189,12 @@ int BurzaDialogs::SetupDialogs( void )
 		( m_pTreeViewItems == NULL ) ||
 		( m_pButtonAddItem == NULL ) ||
 		( m_pButtonModifyItem == NULL ) ||
-		( m_pButtonRemoveItem == NULL ) ||
-		( m_pButtonAcceptUnaccept == NULL ) ||
+		( m_pButtonRemoveItem == NULL )) {
+		error = "Dialog file is corrupt [register 1].";
+		throw;
+	}
+
+	if (( m_pButtonAcceptUnaccept == NULL ) ||
 		// ( m_pButtonCalcFee == NULL ) ||
 		( m_pButtonCalcRepayment == NULL ) ||
 		( m_pLabelFee == NULL ) ||
@@ -198,9 +207,17 @@ int BurzaDialogs::SetupDialogs( void )
 		( menuItemSettings == NULL ) ||
 		( menuItemSaveSellerOverview == NULL ) ||
 		( menuitemStats == NULL )) {
-		error = "Dialog file is corrupt [1].";
+		error = "Dialog file is corrupt [register 2].";
 		throw;
 	}
+
+	if (( m_pRegisterRadioSellerStatus1NotImported == NULL ) ||
+		( m_pRegisterRadioSellerStatus2ImportedSelling == NULL ) ||
+		( m_pRegisterRadioSellerStatus3ReturnedBack == NULL )) {
+		error = "Dialog file is corrupt [register 3].";
+		throw;
+	}
+
 	
 	m_pButtonImportSeller->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonImportSeller ) );
 	m_pButtonAddSeller->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonAddSeller ) );
@@ -222,7 +239,10 @@ int BurzaDialogs::SetupDialogs( void )
 	menuitemStats->signal_button_release_event().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonStats ) );
 
 	m_pComboSeller->signal_changed().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterComboChangedSeller ) );
-	
+	m_pEntryRegistryLookupSeller->signal_changed().connect( sigc::mem_fun( this, &BurzaDialogs::RegisterEditLookupSellerChanged ) );
+
+	m_pRegisterRadioSellerStatus1NotImported->signal_toggled().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterSellerStatusRadioChanged ) );
+
 	m_RegisterItemsSelection = m_pTreeViewItems->get_selection();
 	m_RegisterItemsSelection->set_mode( Gtk::SELECTION_MULTIPLE );
 	
@@ -589,7 +609,6 @@ void BurzaDialogs::RegisterDisplaySellerByIndex( unsigned int idx )
 
 
 
-
 CellItem_Bug::CellItem_Bug()
 {
   m_fixed = false;
@@ -622,6 +641,11 @@ CellItem_Bug& CellItem_Bug::operator=(const CellItem_Bug& src)
 
 void BurzaDialogs::RegisterDisplaySeller(SellerData& seller)
 {
+	if ( m_RegisterSelectedSellerId != seller.id ) {
+		if (!initializing)
+			RegisterAskToFinishAcceptingSellerChanges();
+	}
+
 	m_RegisterSelectedSellerId = seller.id;
 	
 	m_pLabelSellerNote->set_label( seller.note );
@@ -669,6 +693,18 @@ void BurzaDialogs::RegisterDisplaySeller(SellerData& seller)
 	}
 	m_pComboSeller->set_active( idx );
 	// i = m_pComboSeller->get_active_row_number();
+
+	switch ( seller.status ) {
+	case SellerStatus::imported:
+		m_pRegisterRadioSellerStatus1NotImported->set_active( true );
+		break;
+	case SellerStatus::receivedSelling:
+		m_pRegisterRadioSellerStatus2ImportedSelling->set_active( true );
+		break;
+	case SellerStatus::handedOut:
+		m_pRegisterRadioSellerStatus3ReturnedBack->set_active( true );
+		break;
+	}
 }
 
 void BurzaDialogs::ReloadSellers( void )
@@ -693,6 +729,15 @@ void BurzaDialogs::FillSellerCombos( void )
 
 		m_pComboSeller->append_text( str );
 		m_pCashoutComboLookupSeller->append_text( str );
+	}
+}
+
+void BurzaDialogs::RegisterEditLookupSellerChanged( void )
+{
+	string str = m_pEntryRegistryLookupSeller->get_text();
+	int idx = DataAccessInterface::FindSellerIndexByCode( m_DisplayedSellers, str );
+	if ( idx != -1 ) {
+		RegisterDisplaySeller( m_DisplayedSellers[ idx ] );
 	}
 }
 
@@ -852,7 +897,7 @@ void BurzaDialogs::RegisterButtonFinishAcceptingItems( void )
 		Centrala::Storage().ModifySellerStart( m_RegisterSelectedSellerId );
 		
 		seller.note += _( "Prijatý " ) + preberajuci;
-		seller.status = SellerStatus::received;
+		seller.status = SellerStatus::receivedSelling;
 
 		Centrala::Storage().ModifySellerEnd( m_RegisterSelectedSellerId, seller );
 	}
@@ -1105,9 +1150,6 @@ void BurzaDialogs::CashoutButtonSwitchToRegister( void )
 
 void BurzaDialogs::RegisterComboChangedSeller( void )
 {
-	if (!initializing)
-		RegisterAskToFinishAcceptingSellerChanges();
-
 	int i = m_pComboSeller->get_active_row_number();
 	
 	if ( i == -1 )
@@ -1848,6 +1890,11 @@ bool BurzaDialogs::RegisterButtonSettings( GdkEventButton* button )
 {
 	ProgramSettings* settings = & Centrala::Settings();
 
+	// license
+	string licenseText = Licence::Instance().IsDemo() ? _( "DEMO" ) : 
+		Licence::Instance().GetLicenseUser();
+	settingsWindow.labelCurrentLicence->set_text( licenseText );
+
 	// setup 'font' combo
 	settingsWindow.comboFontSize->clear();
 	int selectedFontIndex = 0;
@@ -2093,6 +2140,13 @@ bool BurzaDialogs::RegisterAskToFinishAcceptingSellerChanges( void )
 	if (seller.status != SellerStatus::imported) 
 		return true;
 
+	DisplayOkMessageBox( 
+		ConvFuncs::FormatStdStr( _( "Predajca '%s - %s' zatiaľ nieje prijatý." ), 
+			seller.shortcode.c_str(), 
+			seller.name.c_str() ), 
+		_("Nieje prijatý") );
+
+	/*
 	// first ask if user wants to finish
 	if ( DisplayYesNoMessageBox( 
 			_( "Chceš zmeniť predajcu na 'prijatého'?" ), 
@@ -2107,7 +2161,7 @@ bool BurzaDialogs::RegisterAskToFinishAcceptingSellerChanges( void )
 	try {
 		Centrala::Storage().ModifySellerStart( seller.id );
 		
-		seller.status = SellerStatus::received;
+		seller.status = SellerStatus::receivedSelling;
 		seller.note += _( " Prijal:" ) + personAcceptingItems;
 
 		Centrala::Storage().ModifySellerEnd( seller.id, seller );
@@ -2118,4 +2172,54 @@ bool BurzaDialogs::RegisterAskToFinishAcceptingSellerChanges( void )
 	}
 	
 	RegisterSellerModified( seller );
+	*/
+
+	return true;
+}
+
+void BurzaDialogs::RegisterSellerStatusRadioChanged( void )
+{
+	SellerStatus newState;
+
+	if ( m_pRegisterRadioSellerStatus1NotImported->get_active() ) {
+		newState = SellerStatus::imported;
+	}
+	else 
+	if ( m_pRegisterRadioSellerStatus2ImportedSelling->get_active() ) {
+		newState = SellerStatus::receivedSelling;
+	}
+	if ( m_pRegisterRadioSellerStatus3ReturnedBack->get_active() ) {
+		newState = SellerStatus::handedOut;
+	}
+	
+	if ( !RegisterAnySelectedSeller() )
+		return;
+
+	SellerData seller = RegisterGetSelectedSeller();
+	if ( seller.status == newState ) {
+		return;
+	}
+
+	// Change status of the seller
+
+	// ask for name of person who finished it.
+	if ( false == MessageEditBox( _( "Kto prebral tovar tohoto predajcu?" ), 
+		personAcceptingItems ) )
+		return false;
+
+	try {
+		Centrala::Storage().ModifySellerStart( seller.id );
+		
+		seller.status = SellerStatus::receivedSelling;
+		seller.note += _( " Prijal:" ) + personAcceptingItems;
+
+		Centrala::Storage().ModifySellerEnd( seller.id, seller );
+	}
+	catch(exception& e)
+	{
+		ErrorHandling::HandleException(e);
+	}
+	
+	RegisterSellerModified( seller );
+
 }

@@ -148,6 +148,8 @@ int XmlWrapperTool::CXmlWrapperTools::WriteSimpleXmlFile( XmlWrapperTool::CXmlTr
 	// CXmlTreeSingleNode::t_children::iterator	chit, chite;
 	// number of spaces in front of every line
 	std::string		tablevel = "";
+	const char*		tabchars = "\t";
+	const char*		eol = "\n"; // "\n\r";
 		
 	// default parent is root. Find first sub object and set it as current index
 	// and push that index into [position]
@@ -184,76 +186,49 @@ int XmlWrapperTool::CXmlWrapperTools::WriteSimpleXmlFile( XmlWrapperTool::CXmlTr
 		file.Print( "%s<%s", tablevel.c_str(), curnode->GetNameCstr() );
 
 		// sum up all 'attributes', write them. Also see if there are any sub-children.
-		node_has_sub_children = false;
-
-		/*
-		for( i=0; i<curnode->GetNumOfChildren(); i++ ) {
-
-			walk = curnode->GetChildByIndex( i );
-
-			if ( walk->GetType() == tot_object )
-				node_has_sub_children = true;
-
-			if ( walk->GetType() == tot_attribute ) {
-				file.Print( " %s=\"%s\"", walk->GetNameCstr(), walk->GetValueCstr() );
-			}
-		}
-		*/
 		for( i=0; i<curnode->GetNumOfAttributes(); i++ ) {
 
 			walk = curnode->GetAttributeByIndex( i );
 
-			file.Print( "%s  %s=\"%s\"\r\n", tablevel.c_str(), walk->GetNameCstr(), walk->GetValueCstr() );
+			file.Print( "%s%s%s%s=\"%s\"", eol, tablevel.c_str(), tabchars, walk->GetNameCstr(), walk->GetValueCstr() );
 		}
+
 		node_has_sub_children = ( curnode->GetNumOfChildren() > 0 );
 
-
+		if ( curnode->GetNumOfAttributes() > 0 )
+			file.Print( "%s%s%s", eol, tablevel.c_str(), tabchars );
+		
 		// node has subnodes ? write data, end tag and dive into first child.
 		// finished current node ? write data, end tag and move out.
 		if ( node_has_sub_children == false ) {
 
 			if ( curnode->GetValue().empty() ) {
-				file.Print( " />\r\n" );
+				file.Print( " />%s", eol );
 			} else {
 				file.Print( ">" );
 				// data can be quite long. Print() is length-limited, Write is not.
 				file.Write( curnode->GetValueCstr() );
-				file.Print( "</%s>\r\n", curnode->GetNameCstr() );
+				file.Print( "%s</%s>%s", eol, curnode->GetNameCstr(), eol );
 			}
 
 		} else {
 
-			file.Print( ">\r\n" );
+			file.Print( ">%s", eol );
 
 			if ( ! curnode->GetValue().empty() ) {
 				file.Print( walk->GetValueCstr() );
 			}
-		}
 
-		// dive in to child object node - push back current node index, 
-		// set parent to current node. Also increase number of spaces in [tablevel]
-		if ( node_has_sub_children ) {
+			// dive in to child object node - push back current node index, 
+ 			// set parent to current node. Also increase number of spaces in [tablevel]
 
 			position.push_front( curidx );
 			parentnode = curnode;
 			curidx = -1;
-			tablevel += "  ";
+			tablevel += tabchars;
 		}
 
 		// move to next child object of current parent.
-		/*
-		int numchildren = parentnode->GetNumOfChildren();
-		do {
-
-			curidx++;
-			if ( curidx >= numchildren ) {
-				curnode = & CXmlTreeSingleNode::m_null_child;
-				break;
-			}
-			curnode = parentnode->GetChildByIndex( curidx );
-
-		} while ( curnode->GetType() != tot_object );
-		*/
 		curidx++;
 		curnode = parentnode->GetChildByIndex( curidx );
 
@@ -267,28 +242,16 @@ int XmlWrapperTool::CXmlWrapperTools::WriteSimpleXmlFile( XmlWrapperTool::CXmlTr
 			if ( parentnode == &root )
 				break;
 
-			assert( tablevel.size() >= 2 );
-			tablevel.erase( tablevel.begin(), tablevel.begin() + 2 );
-			file.Print( "%s</%s>\r\n", tablevel.c_str(), parentnode->GetNameCstr() );
+			assert( tablevel.size() >= strlen( tabchars ) );
+			tablevel.erase( tablevel.begin(), tablevel.begin() + strlen( tabchars ) );
+			file.Print( "%s</%s>%s", tablevel.c_str(), parentnode->GetNameCstr(), eol );
 
 			parentnode = parentnode->GetParent();
 
 			// move to next child object
 			curidx = * position.begin();
 			position.erase( position.begin() );
-			/*
-			int numchildren = parentnode->GetNumOfChildren();
-			do {
 
-				curidx++;
-				if ( curidx >= numchildren ) {
-					curnode == & CXmlTreeSingleNode::m_null_child;
-					break;
-				}
-				curnode = parentnode->GetChildByIndex( curidx );
-
-			} while ( curnode->GetType() != tot_object );
-			*/
 			curidx++;
 			curnode = parentnode->GetChildByIndex( curidx );
 			

@@ -27,9 +27,9 @@ namespace Burza {
 	class ItemSearch;
 	
 class BurzaRegister {
+	friend class ProgramSettings;
+	friend class Centrala;
 public:
-	
-	DataAccessInterface		*m_storage;
 	
 	BurzaRegister();
 	~BurzaRegister();
@@ -67,6 +67,8 @@ public:
   private:
 	ItemCategory	temporaryItemCategory;
 	SellerCategory	temporarySellerCategory;
+	
+	DataAccessInterface		*m_storage;
 	
 } ;
 

@@ -1,5 +1,12 @@
+#include <string>
 #include <assert.h>
+
+#include <gtkmm.h>
+
 #include "bdhelper.h"
+#include "convfncs.h"
+
+using namespace std;
 
 void BurzaDialogsHelper::ChangeGtkmmAppFontSize( int fontSize )
 {
@@ -13,5 +20,5 @@ void BurzaDialogsHelper::ChangeGtkmmAppFontSize( int fontSize )
 		fontSize
 		);
 
-	gtk_rc_parse_string( str );
+	gtk_rc_parse_string( str.c_str() );
 }

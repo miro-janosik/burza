@@ -1,3 +1,6 @@
+#ifndef _settings_h_
+#define _settings_h_
+
 #include <string>
 #include <vector>
 
@@ -75,3 +78,5 @@ private:
 } ;
 
 } ; // end namespace Burza
+
+#endif
