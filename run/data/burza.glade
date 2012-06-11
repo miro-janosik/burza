@@ -475,6 +475,7 @@
                       <widget class="GtkImage" id="image4">
                         <property name="visible">True</property>
                         <property name="stock">gtk-open</property>
+                        <property name="icon-size">2</property>
                       </widget>
                       <packing>
                         <property name="position">0</property>
@@ -502,6 +503,30 @@
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="border_width">10</property>
+                <child>
+                  <widget class="GtkHBox" id="hbox1">
+                    <property name="visible">True</property>
+                    <child>
+                      <widget class="GtkImage" id="image1">
+                        <property name="visible">True</property>
+                        <property name="stock">gtk-add</property>
+                        <property name="icon-size">2</property>
+                      </widget>
+                      <packing>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <widget class="GtkLabel" id="label2">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">Na&#x10D;&#xED;taj predajcu zo s&#xFA;boru</property>
+                      </widget>
+                      <packing>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
+                  </widget>
+                </child>
               </widget>
               <packing>
                 <property name="position">1</property>
@@ -520,6 +545,7 @@
                       <widget class="GtkImage" id="image5">
                         <property name="visible">True</property>
                         <property name="stock">gtk-edit</property>
+                        <property name="icon-size">2</property>
                       </widget>
                       <packing>
                         <property name="position">0</property>
@@ -638,39 +664,7 @@
               </packing>
             </child>
             <child>
-              <widget class="GtkButton" id="button_finish_accepting_items">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="border_width">10</property>
-                <child>
-                  <widget class="GtkHBox" id="hbox15">
-                    <property name="visible">True</property>
-                    <child>
-                      <widget class="GtkImage" id="image3">
-                        <property name="visible">True</property>
-                        <property name="stock">gtk-go-forward</property>
-                      </widget>
-                      <packing>
-                        <property name="position">0</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <widget class="GtkLabel" id="label7">
-                        <property name="visible">True</property>
-                        <property name="yalign">0.89999997615814209</property>
-                        <property name="label" translatable="yes">x Dokon&#x10D;i preberanie x</property>
-                      </widget>
-                      <packing>
-                        <property name="position">1</property>
-                      </packing>
-                    </child>
-                  </widget>
-                </child>
-              </widget>
-              <packing>
-                <property name="position">3</property>
-              </packing>
+              <placeholder/>
             </child>
             <child>
               <widget class="GtkButton" id="button toggle accepted">
@@ -721,10 +715,12 @@
             <property name="height_request">60</property>
             <property name="visible">True</property>
             <child>
-              <widget class="GtkLabel" id="label fee">
+              <widget class="GtkLabel" id="label seller type">
                 <property name="visible">True</property>
+                <property name="label" translatable="yes">Dobrovo&#x13E;n&#xED;k</property>
               </widget>
               <packing>
+                <property name="expand">False</property>
                 <property name="position">0</property>
               </packing>
             </child>
@@ -775,6 +771,7 @@
                 </child>
               </widget>
               <packing>
+                <property name="padding">10</property>
                 <property name="position">1</property>
               </packing>
             </child>

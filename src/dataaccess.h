@@ -124,6 +124,7 @@ struct SellerCategory {
 	SELLER_CATEGORY_ID	id;
 	char				letter;
 	double				seller_fee;
+	string				name;
 };
 
 struct ItemCategory {

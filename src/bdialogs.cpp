@@ -157,7 +157,6 @@ int BurzaDialogs::SetupDialogs( void )
 	xmlWndRegister->get_widget( "button import seller", m_pButtonImportSeller );
 	xmlWndRegister->get_widget( "button add seller", m_pButtonAddSeller );
 	xmlWndRegister->get_widget( "button update seller", m_pButtonUpdateSeller );
-	xmlWndRegister->get_widget( "button_finish_accepting_items", m_pButtonFinishAcceptingItems );
 	xmlWndRegister->get_widget( "treeview items", m_pTreeViewItems );
 	xmlWndRegister->get_widget( "button add item", m_pButtonAddItem );
 	xmlWndRegister->get_widget( "button modify item", m_pButtonModifyItem );
@@ -165,7 +164,7 @@ int BurzaDialogs::SetupDialogs( void )
 	xmlWndRegister->get_widget( "button toggle accepted", m_pButtonAcceptUnaccept );
 	// xmlWndRegister->get_widget( "button calc fee", m_pButtonCalcFee );
 	xmlWndRegister->get_widget( "button calc repayment", m_pButtonCalcRepayment );
-	xmlWndRegister->get_widget( "label fee", m_pLabelFee );
+	xmlWndRegister->get_widget( "label seller type", m_pLabelSellerType );
 	xmlWndRegister->get_widget( "label seller note", m_pLabelSellerNote );
 	xmlWndRegister->get_widget( "button cashout", m_pButtonCashout );
 	// xmlWndRegister->get_widget( "button_review_of_sellers", m_pRegisterButtonReviewOfSellers );
@@ -185,7 +184,6 @@ int BurzaDialogs::SetupDialogs( void )
 		( m_pButtonImportSeller == NULL ) ||
 		( m_pButtonAddSeller == NULL ) ||
 		( m_pButtonUpdateSeller == NULL ) ||
-		( m_pButtonFinishAcceptingItems == NULL ) ||
 		( m_pTreeViewItems == NULL ) ||
 		( m_pButtonAddItem == NULL ) ||
 		( m_pButtonModifyItem == NULL ) ||
@@ -197,7 +195,7 @@ int BurzaDialogs::SetupDialogs( void )
 	if (( m_pButtonAcceptUnaccept == NULL ) ||
 		// ( m_pButtonCalcFee == NULL ) ||
 		( m_pButtonCalcRepayment == NULL ) ||
-		( m_pLabelFee == NULL ) ||
+		( m_pLabelSellerType == NULL ) ||
 		( m_pLabelSellerNote == NULL ) ||
 		( m_pButtonCashout  == NULL ) ||
 		// ( m_pRegisterButtonReviewOfSellers == NULL ) ||
@@ -222,7 +220,6 @@ int BurzaDialogs::SetupDialogs( void )
 	m_pButtonImportSeller->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonImportSeller ) );
 	m_pButtonAddSeller->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonAddSeller ) );
 	m_pButtonUpdateSeller->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonUpdateSeller ) );
-	m_pButtonFinishAcceptingItems->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonFinishAcceptingItems ) );
 	m_pButtonAddItem->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonAddItem ) );
 	m_pButtonModifyItem->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonModifyItem ) );
 	m_pButtonRemoveItem->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonRemoveItem ) );
@@ -705,6 +702,11 @@ void BurzaDialogs::RegisterDisplaySeller(SellerData& seller)
 		m_pRegisterRadioSellerStatus3ReturnedBack->set_active( true );
 		break;
 	}
+
+	SellerCategory sellerCat = Centrala::Storage().GetSellerCategory( seller.category );
+	sellerCat.seller_fee
+
+	m_pLabelSellerType->set_text( 
 }
 
 void BurzaDialogs::ReloadSellers( void )
@@ -1024,13 +1026,13 @@ void BurzaDialogs::RegisterButtonCalcFee( void )
 
 	double fee = Centrala::Register().CalculateFee( seller, items );
 	
-	m_pLabelFee->set_text( ConvFuncs::FormatStdStr( "%0.2f %s", fee, 
-		Centrala::Settings().currencySign.c_str() ) );
+	// m_pLabelFee->set_text( ConvFuncs::FormatStdStr( "%0.2f %s", fee, 
+	//	Centrala::Settings().currencySign.c_str() ) );
 }
 
 void BurzaDialogs::RegisterButtonCalcRepayment( void )
 {
-	m_pLabelFee->set_text( string( "-" ) + Centrala::Settings().currencySign );
+	// m_pLabelFee->set_text( string( "-" ) + Centrala::Settings().currencySign );
 	
 	if ( !RegisterAnySelectedSeller() ) {
 		return;
@@ -1144,8 +1146,6 @@ void BurzaDialogs::CashoutButtonSwitchToRegister( void )
 	ReloadSellers();
 
 	initializing = false;
-
-	m_pLabelFee->set_text( "" );
 }
 
 void BurzaDialogs::RegisterComboChangedSeller( void )
@@ -2184,11 +2184,10 @@ void BurzaDialogs::RegisterSellerStatusRadioChanged( void )
 	if ( m_pRegisterRadioSellerStatus1NotImported->get_active() ) {
 		newState = SellerStatus::imported;
 	}
-	else 
-	if ( m_pRegisterRadioSellerStatus2ImportedSelling->get_active() ) {
+	else if ( m_pRegisterRadioSellerStatus2ImportedSelling->get_active() ) {
 		newState = SellerStatus::receivedSelling;
 	}
-	if ( m_pRegisterRadioSellerStatus3ReturnedBack->get_active() ) {
+	else if ( m_pRegisterRadioSellerStatus3ReturnedBack->get_active() ) {
 		newState = SellerStatus::handedOut;
 	}
 	
@@ -2205,7 +2204,7 @@ void BurzaDialogs::RegisterSellerStatusRadioChanged( void )
 	// ask for name of person who finished it.
 	if ( false == MessageEditBox( _( "Kto prebral tovar tohoto predajcu?" ), 
 		personAcceptingItems ) )
-		return false;
+		return;
 
 	try {
 		Centrala::Storage().ModifySellerStart( seller.id );

@@ -187,7 +187,6 @@ public:
 	Gtk::Button		*m_pButtonImportSeller;
 	Gtk::Button		*m_pButtonAddSeller;
 	Gtk::Button		*m_pButtonUpdateSeller;
-	Gtk::Button		*m_pButtonFinishAcceptingItems;
 	Gtk::TreeView	*m_pTreeViewItems;
 	Gtk::Button		*m_pButtonAddItem;
 	Gtk::Button		*m_pButtonModifyItem;
@@ -195,7 +194,7 @@ public:
 	Gtk::Button		*m_pButtonAcceptUnaccept;
 	// Gtk::Button		*m_pButtonCalcFee;
 	Gtk::Button		*m_pButtonCalcRepayment;
-	Gtk::Label		*m_pLabelFee;
+	Gtk::Label		*m_pLabelSellerType;
 	Gtk::Label		*m_pLabelSellerNote;
 	Gtk::Button		*m_pButtonCashout;
 	// Gtk::Button		*m_pRegisterButtonReviewOfSellers;

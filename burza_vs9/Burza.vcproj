@@ -101,6 +101,7 @@
 			IntermediateDirectory="$(SolutionDir)\..\temp\$(ConfigurationName)"
 			ConfigurationType="1"
 			InheritedPropertySheets="..\..\gtkmm\MSVC\gtkmm-vc90-2_4.vsprops"
+			UseOfMFC="1"
 			CharacterSet="0"
 			WholeProgramOptimization="1"
 			>
@@ -145,6 +146,7 @@
 				AdditionalDependencies="libxl.lib libpqxx.lib libhpdf.lib"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="&quot;$(ProjectDir)/../lib/libXL&quot;;&quot;$(ProjectDir)/../lib/pqxx&quot;;&quot;$(ProjectDir)/../lib/libharu&quot;"
+				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				OptimizeReferences="2"

@@ -301,11 +301,13 @@ SellerCategoryArray DataPostgresPqxx::GetSellersCategories(vector<SELLER_CATEGOR
 	
 	cat.letter = 's';
 	cat.seller_fee = 0.0;
+	cat.name = "Cat1";
 
 	for( ; i < c; ++i ) {
 		cat.id = ids[ i ];
 		cats.push_back(cat);
 	}
+
 	return cats;
 }
 
@@ -319,6 +321,7 @@ SellerCategoryArray DataPostgresPqxx::GetSellersCategoriesByLetter(vector<char>&
 	for( ; i < c; ++i ) {
 		cats.push_back(cat);
 	}
+
 	return cats;
 }
 
