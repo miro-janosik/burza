@@ -1,4 +1,4 @@
--- Table: item_category
+﻿-- Table: item_category
 
 -- DROP TABLE item_category;
 
@@ -44,7 +44,6 @@ COMMENT ON TABLE items IS 'List of all items of all sellers.';
 
 
 -- Table: seller_category
-
 -- DROP TABLE seller_category;
 
 CREATE TABLE seller_category
@@ -52,15 +51,30 @@ CREATE TABLE seller_category
   "ID" integer NOT NULL DEFAULT (-1),
   "LETTER" character(1),
   "NAME" text,
-  "FEE_PER_SALE" double precision,
+  "FEE" double precision DEFAULT 0, -- Fee is {value}.
+  "FEE_SOLD_PERC" double precision DEFAULT 0, -- Fee is {value}% of the price of all sold items.
+  "FEE_SOLD_ITEM" double precision DEFAULT 0, -- Fee is {value} for every sold item.
+  "FEE_ITEM" double precision DEFAULT 0, -- Fee is {value} for every item.
+  "FEE_ITEM_PERC" double precision DEFAULT 0, -- Fee is {value}% of price for every item.
   CONSTRAINT "seller category id is unique" PRIMARY KEY ("ID")
 )
-WITH (
-  OIDS=FALSE
-);
+WITH (OIDS=FALSE);
 ALTER TABLE seller_category OWNER TO postgres;
 COMMENT ON TABLE seller_category IS 'Seller categories.';
+COMMENT ON COLUMN seller_category."FEE" IS 'Fee is {value}.';
+COMMENT ON COLUMN seller_category."FEE_SOLD_PERC" IS 'Fee is {value}% of the price of all sold items.';
+COMMENT ON COLUMN seller_category."FEE_SOLD_ITEM" IS 'Fee is {value} for every sold item.';
+COMMENT ON COLUMN seller_category."FEE_ITEM" IS 'Fee is {value} for every item.';
+COMMENT ON COLUMN seller_category."FEE_ITEM_PERC" IS 'Fee is {value}% of price for every item.';
 
+-- Create default content of 'seller category' table
+INSERT INTO seller_category(
+	"ID", "LETTER", "NAME", 
+	"FEE", "FEE_SOLD_PERC", "FEE_SOLD_ITEM", "FEE_ITEM", "FEE_ITEM_PERC")
+    VALUES 
+    (1, 'p', 'Predajca', 0.0, 10.0, 0.00, 0.10, 0.0),
+    (2, 's', 'Sympatizant', 0.0, 10.0, 0.00, 0.0, 0.0),
+    (3, 'd', 'Organizator', 0.0, 0.0, 0.00, 0.0, 0.0);
 
 
 
@@ -85,3 +99,5 @@ WITH (
 );
 ALTER TABLE sellers OWNER TO postgres;
 COMMENT ON TABLE sellers IS 'List of sellers.';
+
+
