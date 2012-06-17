@@ -56,6 +56,7 @@ public:
 	void RegisterDisplaySeller( SellerData& seller );
 	void RegisterDisplaySeller( const char* kod );
 	void RegisterDisplaySellerByIndex( unsigned int idx );
+	void RegisterDisplaySellerUpdateSellerStatus( Burza::SellerStatus status );
 	
 	void CashoutSellerChanged( void );
 	

@@ -115,7 +115,7 @@ double BurzaRegister::CalculateFee( SellerData& seller, ItemDataArray& items )
 	
 	SellerCategory scat = m_storage->GetSellerCategory(seller.category);
 	
-	fee += scat.seller_fee;
+	fee += scat.fee_per_sale;
 
 	return -4.0;
 }

@@ -73,12 +73,16 @@ class DataPostgresPqxx : public DataAccessInterface
 
 	//! function that parses one result row that queried for a seller into the ItemData
 	void DbDataToItemData( const result::tuple& result, ItemData& itemData );
-	
+
+	void DbDataToSellerCategoryData( const result::tuple& result, SellerCategory& data );
+
 	//! query for items
 	//! singleItem: if returned value is not single item, runtime_exception will be thrown
 	ItemDataArray QueryForItems( string query, string queryName, bool singleItem );
 
 	SellerDataArray QueryForSellers( string query, string queryName, bool singleSellers );
+	
+	SellerCategoryArray QueryForSellerCategories( string query, string queryName );
 	
 	string SellerToQueryValuesString( SellerData& seller );
 	string SellerToQueryUpdateValuesString( SellerData& data );

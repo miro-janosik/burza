@@ -691,7 +691,15 @@ void BurzaDialogs::RegisterDisplaySeller(SellerData& seller)
 	m_pComboSeller->set_active( idx );
 	// i = m_pComboSeller->get_active_row_number();
 
-	switch ( seller.status ) {
+	RegisterDisplaySellerUpdateSellerStatus( seller.status );
+
+	SellerCategory sellerCat = Centrala::Storage().GetSellerCategory( seller.category );
+	m_pLabelSellerType->set_text( sellerCat.name );
+}
+
+void BurzaDialogs::RegisterDisplaySellerUpdateSellerStatus( Burza::SellerStatus status )
+{
+	switch ( status ) {
 	case SellerStatus::imported:
 		m_pRegisterRadioSellerStatus1NotImported->set_active( true );
 		break;
@@ -702,11 +710,6 @@ void BurzaDialogs::RegisterDisplaySeller(SellerData& seller)
 		m_pRegisterRadioSellerStatus3ReturnedBack->set_active( true );
 		break;
 	}
-
-	SellerCategory sellerCat = Centrala::Storage().GetSellerCategory( seller.category );
-	sellerCat.seller_fee
-
-	m_pLabelSellerType->set_text( 
 }
 
 void BurzaDialogs::ReloadSellers( void )
@@ -2199,13 +2202,117 @@ void BurzaDialogs::RegisterSellerStatusRadioChanged( void )
 		return;
 	}
 
+	// check if it is possible to switch state
+	bool returnStateBack = false;
+
+	switch ( seller.status ) {
+	case SellerStatus::imported:
+		
+		if ( newState == SellerStatus::receivedSelling ) {
+
+			// changing from 'imported' to 'selling' can be done only
+			// if all items are marked as 'received on stock'.
+			bool itemInvalidState = false;
+
+			ItemDataArray items = DemoLimitsGetSellerItems(seller.id);
+			int pcs = 0;
+			for( int i=0; i < items.size(); ++i ) {
+
+				switch ( items[ i ].status ) {
+				case ItemStatus::on_stock:
+				case ItemStatus::returned:
+				case ItemStatus::given_as_gift:
+				case ItemStatus::lost:
+					break;
+				default:
+					itemInvalidState = true;
+					++pcs;
+					break;
+				}
+			}
+
+			if ( itemInvalidState ) {
+				DisplayErrorMessageBox(
+					ConvFuncs::FormatStdStr( _( "%i kus(ov) tovaru nieje prebratých."), pcs ),
+					_( "Prosím opravte" ) );
+
+				returnStateBack = true;
+			}
+		}
+
+		if ( newState == SellerStatus::handedOut ) {
+			returnStateBack = true;
+		}
+
+		break;
+
+	case SellerStatus::receivedSelling:
+
+		if ( newState == SellerStatus::handedOut ) {
+
+			// changing from 'selling' to 'handed out' can be done only
+			// if no items are left to sale.
+			bool itemInvalidState = false;
+
+			ItemDataArray items = DemoLimitsGetSellerItems(seller.id);
+			int pcs = 0;
+			for( int i=0; i < items.size(); ++i ) {
+
+				switch ( items[ i ].status ) {
+				case ItemStatus::sold:
+				case ItemStatus::returned:
+				case ItemStatus::given_as_gift:
+				case ItemStatus::lost:
+					break;
+				default:
+					itemInvalidState = true;
+					++pcs;
+					break;
+				}
+			}
+
+			if ( itemInvalidState ) {
+				DisplayErrorMessageBox(
+					ConvFuncs::FormatStdStr( _( "%i kus(ov) tovaru nieje predaných/vrátených/stratených/darovaných."), pcs ),
+					_( "Prosím opravte" ) );
+
+				returnStateBack = true;
+			}
+		}
+
+		if ( newState == SellerStatus::imported ) {
+			returnStateBack = true;
+		}
+
+		break;
+
+	case SellerStatus::handedOut:
+
+		if ( newState == SellerStatus::imported ) {
+			returnStateBack = true;
+			break;
+		}
+		
+		break;
+
+	default:
+		assert( false );
+		return;
+	}
+	
+	if (returnStateBack) {
+		RegisterDisplaySellerUpdateSellerStatus( seller.status );
+		return;
+	}
+
 	// Change status of the seller
+	
 
 	// ask for name of person who finished it.
 	if ( false == MessageEditBox( _( "Kto prebral tovar tohoto predajcu?" ), 
 		personAcceptingItems ) )
 		return;
-
+		
 	try {
 		Centrala::Storage().ModifySellerStart( seller.id );
 		
@@ -2220,5 +2327,4 @@ void BurzaDialogs::RegisterSellerStatusRadioChanged( void )
 	}
 	
 	RegisterSellerModified( seller );
-
 }

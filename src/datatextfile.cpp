@@ -31,7 +31,7 @@ DataTextfile::DataTextfile( string& datapath )
 	
 	scat.id = 4;
 	scat.letter = 'a';
-	scat.seller_fee = 1.0;
+	scat.fee_item = 1.0;
 	m_SellerCategories.push_back(scat);
 }
 

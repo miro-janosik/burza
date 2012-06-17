@@ -123,8 +123,12 @@ public:
 struct SellerCategory {
 	SELLER_CATEGORY_ID	id;
 	char				letter;
-	double				seller_fee;
 	string				name;
+	double				fee_per_sale;
+	double				fee_whole_sold_sum_percentage;
+	double				fee_sold_item;
+	double				fee_item;
+	double				fee_item_perc;
 };
 
 struct ItemCategory {
