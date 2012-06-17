@@ -777,13 +777,15 @@
             </child>
             <child>
               <widget class="GtkButton" id="button calc repayment">
-                <property name="label" translatable="yes" comments="calc cash to return">Vyr&#xE1;taj v&#xFD;platu</property>
+                <property name="label" translatable="yes" comments="calc cash to return">xx Vyr&#xE1;taj v&#xFD;platu x</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="extension_events">cursor</property>
                 <property name="border_width">15</property>
               </widget>
               <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
                 <property name="position">2</property>
               </packing>
             </child>
