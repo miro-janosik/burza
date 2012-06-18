@@ -469,23 +469,25 @@ int BurzaDialogs::SetupDialogs( void )
 	
 	// == seller details edit dialog == 
 
-	xmlWndModifySeller->get_widget( "sellerName", m_pSellerEditName );
-	xmlWndModifySeller->get_widget( "sellerCode", m_pSellerEditCode );
-	xmlWndModifySeller->get_widget( "sellerNote", m_pSellerEditNote );
-	xmlWndModifySeller->get_widget( "sellerButton_ok", m_pSellerEditOk );
-	xmlWndModifySeller->get_widget( "sellerButton_cancel", m_pSellerEditCancel );
+	xmlWndModifySeller->get_widget( "sellerName", sellerEdit.editName );
+	xmlWndModifySeller->get_widget( "sellerCode", sellerEdit.eCode );
+	xmlWndModifySeller->get_widget( "sellerNote", sellerEdit.editNote );
+	xmlWndModifySeller->get_widget_derived( "sellerCategory", sellerEdit.comboCategory );
+	xmlWndModifySeller->get_widget( "sellerButton_ok", sellerEdit.buttonOk );
+	xmlWndModifySeller->get_widget( "sellerButton_cancel", sellerEdit.buttonCancel );
 	
-	if (( m_pSellerEditName == NULL ) ||
-		( m_pSellerEditCode == NULL ) ||
-		( m_pSellerEditNote == NULL ) ||
-		( m_pSellerEditOk == NULL ) ||
-		( m_pSellerEditCancel == NULL )) {
+	if (( sellerEdit.editName == NULL ) ||
+		( sellerEdit.editCode == NULL ) ||
+		( sellerEdit.comboCategory == NULL ) ||
+		( sellerEdit.editNote == NULL ) ||
+		( sellerEdit.buttonOk == NULL ) ||
+		( sellerEdit.buttonCancel == NULL )) {
 		error = "Dialog file is corrupt [6=Seller edit].";
 		throw;
 	}
 	
-	m_pSellerEditOk->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonSellerEditOk ) );
-	m_pSellerEditCancel->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonSellerEditCancel ) );
+	sellerEdit.buttonOk->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonSellerEditOk ) );
+	sellerEdit.buttonCancel->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonSellerEditCancel ) );
 	m_pWndSeller->signal_delete_event().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonSellerEditClose ) );
 
 	// === --- === --- === edit message box === --- === --- ===
@@ -979,24 +981,43 @@ void BurzaDialogs::RegisterButtonAcceptUnaccept( void )
 	if ( !RegisterAnySelectedSeller() )
 		return;
 	
-	// ask user if he is sure
-	if ( DisplayYesNoMessageBox( "Ste si istý že chcete preznacit tovar?", _("Oznacenie / odznacenie tovaru") ) == false )
-		return;
-
-	ItemDataArray items = Centrala::Storage().GetSellerItems(m_RegisterSelectedSellerId);
+	SellerData seller = RegisterGetSelectedSeller();
+	ItemDataArray items = Centrala::Storage().GetSellerItems( RegisterGetSelectedSellerId() );
 	
 	if ( items.empty() )
 		return;
 
-	ItemStatus newValue = ( items[ 0 ].status == Burza::on_stock ) ? Burza::not_in_stock_yet : Burza::on_stock;
+	ItemStatus statusFrom, statusTo;
+
+	switch ( seller.status ) {
+	case SellerStatus::imported:
+		statusFrom = Burza::not_in_stock_yet;
+		statusTo = Burza::on_stock;
+		break;
+	case SellerStatus::receivedSelling:
+		statusFrom = Burza::on_stock;
+		statusTo = Burza::returned;
+		break;
+	}
+
+	// ask user if he is sure
+	string newStatusText = _("Tovar sa označí na ");
+	newStatusText += DataAccessInterface::ItemStatus2String( statusTo );
+
+	if ( DisplayYesNoMessageBox( 
+		_("Ste si istý že chcete preznacit tovar?"), 
+		newStatusText ) == false )
+		return;
 
 	for( int i=0; i<items.size(); ++i ) {
 		
-		items[ i ].status = newValue;
-		
-		Centrala::Storage().ModifyItem( items[ i ].id, items[ i ] );
+		if ( items[ i ].status == statusFrom )
+		{
+			items[ i ].status = statusTo;
+			Centrala::Storage().ModifyItem( items[ i ].id, items[ i ] );
+		}
 	}
-
+	
 	// update seller
 	SellerData seller;
 
@@ -1630,9 +1651,9 @@ void BurzaDialogs::HighlightEditItemOff( void )
 
 void BurzaDialogs::HighlightEditSellerOff( void )
 {
-	HighlightWidgetOff( *m_pSellerEditName );
-	HighlightWidgetOff( *m_pSellerEditCode );
-	HighlightWidgetOff( *m_pSellerEditNote );
+	HighlightWidgetOff( *sellerEdit.editName );
+	HighlightWidgetOff( *sellerEdit.editCode );
+	HighlightWidgetOff( *sellerEdit.editNote );
 }
 
 void BurzaDialogs::RegisterComboItemEditStatusChanged( void )
@@ -1642,6 +1663,8 @@ void BurzaDialogs::RegisterComboItemEditStatusChanged( void )
 void BurzaDialogs::RegisterStartDialogEditSeller( SELLER_ID id )
 {
 	SellerData seller; 
+	vector<SELLER_CATEGORY_ID> ids;
+	SellerCategoryArray categories = Centrala::Storage().GetSellersCategories( ids );
 	
 	if ( id != SELLER_ID_NONE ) {
 		try {
@@ -1656,13 +1679,13 @@ void BurzaDialogs::RegisterStartDialogEditSeller( SELLER_ID id )
 	} else {
 		seller.name = _( "Nový predajca" );
 		seller.note = _( "za MC prijal: !zatiaľ neprebrané!" );
-		seller.category = 0;
 		seller.id = SELLER_ID_NONE;
+		seller.category = categories.empty() ? SELLER_CATEGORY_ID_NONE : categories.begin()->id;
 	}
 	
-	m_pSellerEditName->set_text( seller.name );
-	m_pSellerEditCode->set_text( seller.shortcode );
-	m_pSellerEditNote->set_text( seller.note );
+	sellerEdit.editName->set_text( seller.name );
+	sellerEdit.editCode->set_text( seller.shortcode );
+	sellerEdit.editNote->set_text( seller.note );
 	
 	HighlightEditSellerOff();
 
@@ -1675,26 +1698,33 @@ void BurzaDialogs::RegisterButtonSellerEditOk( void )
 	// validate
 	string str;
 	
-	if ( m_pSellerEditName->get_text().empty() ) {
-		m_pSellerEditName->set_text( _( "Nový predajca" ) );
-		HighlightWidgetRed( *m_pSellerEditName );
+	if ( sellerEdit.editName->get_text().empty() ) {
+		sellerEdit.editName->set_text( _( "Nový predajca" ) );
+		HighlightWidgetRed( *sellerEdit.editName );
 		return;
 	}
 	
 	string sellerOriginalCode = m_EditedSeller.shortcode;
-	str = m_pSellerEditCode->get_text();
+	str = sellerEdit.editCode->get_text();
 	// check new code and set it to seller
 	str = Centrala::Storage().GenerateSellerUniqueCode( m_EditedSeller.name, str, m_EditedSeller.id );
-	if ( m_pSellerEditCode->get_text() != str ) {
+	if ( sellerEdit.editCode->get_text() != str ) {
 		m_EditedSeller.shortcode = str;
-		m_pSellerEditCode->set_text( m_EditedSeller.shortcode );
-		HighlightWidgetRed( *m_pSellerEditCode );
+		sellerEdit.editCode->set_text( m_EditedSeller.shortcode );
+		HighlightWidgetRed( *sellerEdit.editCode );
 		return;
 	}
 	
-	m_EditedSeller.name = m_pSellerEditName->get_text();
-	m_EditedSeller.note = m_pSellerEditNote->get_text();
-	m_EditedSeller.shortcode = m_pSellerEditCode->get_text();
+	m_EditedSeller.name = sellerEdit.editName->get_text();
+	m_EditedSeller.note = sellerEdit.editNote->get_text();
+	m_EditedSeller.shortcode = sellerEdit.editCode->get_text();
+	m_EditedSeller.category = sellerEdit.comboCategory.
+
+		settingsWindow.comboFontSize->clear();
+		settingsWindow.comboFontSize->append_text( 
+			ProgramSettings::predefined.listOfFontSizes[ i ].text );
+	settingsWindow.comboFontSize->set_active( selectedFontIndex );
+	int fontSizeSelectionIndex = settingsWindow.comboFontSize->get_active_row_number();
 	
 	m_pWndSeller->hide();
 	
@@ -1951,8 +1981,15 @@ void BurzaDialogs::SettingsClickedButtonOk( void )
 
 	// font size
 	int fontSizeSelectionIndex = settingsWindow.comboFontSize->get_active_row_number();
+	int newFontSize = -1;
 	if ( fontSizeSelectionIndex != -1 ) {
-		settings->fontSize = ProgramSettings::predefined.listOfFontSizes[ fontSizeSelectionIndex ].size;
+		newFontSize = ProgramSettings::predefined.listOfFontSizes[ fontSizeSelectionIndex ].size;
+	}
+
+	bool fontSizeChanged = false;
+	if ( newFontSize != settings->fontSize ) {
+		newFontSize = settings->fontSize;
+		fontSizeChanged = true;
 	}
 
 	// database / file settings
@@ -1965,6 +2002,10 @@ void BurzaDialogs::SettingsClickedButtonOk( void )
 
 	settings->SaveSettings();
 	settings->Apply();
+
+	if ( fontSizeChanged ) {
+		DisplayOkMessageBox( _("Zmena veľkosti písma sa prejaví pri ďalšom spustení programu") , _( "Veľkosť písma zmenená" ));
+	}
 }
 
 // ======================================================
@@ -2208,80 +2249,88 @@ void BurzaDialogs::RegisterSellerStatusRadioChanged( void )
 	switch ( seller.status ) {
 	case SellerStatus::imported:
 		
-		if ( newState == SellerStatus::receivedSelling ) {
+		switch ( newState ) {
+		case SellerStatus::receivedSelling:
+			{
+				// changing from 'imported' to 'selling' can be done only
+				// if all items are marked as 'received on stock'.
+				int itemInvalidStatePcs = 0;
 
-			// changing from 'imported' to 'selling' can be done only
-			// if all items are marked as 'received on stock'.
-			bool itemInvalidState = false;
+				ItemDataArray items = DemoLimitsGetSellerItems(seller.id);
+				for( int i=0; i < items.size(); ++i ) {
 
-			ItemDataArray items = DemoLimitsGetSellerItems(seller.id);
-			int pcs = 0;
-			for( int i=0; i < items.size(); ++i ) {
+					switch ( items[ i ].status ) {
+					case ItemStatus::on_stock:
+					case ItemStatus::returned:
+					case ItemStatus::given_as_gift:
+					case ItemStatus::lost:
+						break;
+					default:
+						++itemInvalidStatePcs;
+						break;
+					}
+				}
 
-				switch ( items[ i ].status ) {
-				case ItemStatus::on_stock:
-				case ItemStatus::returned:
-				case ItemStatus::given_as_gift:
-				case ItemStatus::lost:
-					break;
-				default:
-					itemInvalidState = true;
-					++pcs;
-					break;
+				if ( itemInvalidStatePcs > 0 ) {
+					DisplayErrorMessageBox(
+						ConvFuncs::FormatStdStr( _( "%i kus(ov) tovaru nieje prebratých."), itemInvalidStatePcs ),
+						_( "Prosím opravte" ) );
+
+					returnStateBack = true;
 				}
 			}
-
-			if ( itemInvalidState ) {
-				DisplayErrorMessageBox(
-					ConvFuncs::FormatStdStr( _( "%i kus(ov) tovaru nieje prebratých."), pcs ),
-					_( "Prosím opravte" ) );
-
-				returnStateBack = true;
-			}
-		}
-
-		if ( newState == SellerStatus::handedOut ) {
+			break;
+		case SellerStatus::handedOut:
 			returnStateBack = true;
+			break;
+		default:
+			assert( false );
+			return;
 		}
 
 		break;
 
 	case SellerStatus::receivedSelling:
 
-		if ( newState == SellerStatus::handedOut ) {
+		switch ( newState ) {
+		case SellerStatus::handedOut:
+			{
+				// changing from 'selling' to 'handed out' can be done only
+				// if no items are left to sale.
+				int itemInvalidStatePcs = 0;
 
-			// changing from 'selling' to 'handed out' can be done only
-			// if no items are left to sale.
-			bool itemInvalidState = false;
+				ItemDataArray items = DemoLimitsGetSellerItems(seller.id);
+				for( int i=0; i < items.size(); ++i ) {
 
-			ItemDataArray items = DemoLimitsGetSellerItems(seller.id);
-			int pcs = 0;
-			for( int i=0; i < items.size(); ++i ) {
+					switch ( items[ i ].status ) {
+					case ItemStatus::sold:
+					case ItemStatus::returned:
+					case ItemStatus::given_as_gift:
+					case ItemStatus::lost:
+						break;
+					default:
+						++itemInvalidStatePcs;
+						break;
+					}
+				}
 
-				switch ( items[ i ].status ) {
-				case ItemStatus::sold:
-				case ItemStatus::returned:
-				case ItemStatus::given_as_gift:
-				case ItemStatus::lost:
-					break;
-				default:
-					itemInvalidState = true;
-					++pcs;
-					break;
+				if ( itemInvalidStatePcs > 0 ) {
+					DisplayErrorMessageBox(
+						ConvFuncs::FormatStdStr( _( "%i kus(ov) tovaru nieje predaných/vrátených/stratených/darovaných."), itemInvalidStatePcs ),
+						_( "Prosím opravte" ) );
+
+					returnStateBack = true;
 				}
 			}
+		break;
 
-			if ( itemInvalidState ) {
-				DisplayErrorMessageBox(
-					ConvFuncs::FormatStdStr( _( "%i kus(ov) tovaru nieje predaných/vrátených/stratených/darovaných."), pcs ),
-					_( "Prosím opravte" ) );
-
-				returnStateBack = true;
-			}
-		}
-
-		if ( newState == SellerStatus::imported ) {
+		case SellerStatus::imported:
 			returnStateBack = true;
+			break;
+
+		default:
+			assert( false );
+			return;
 		}
 
 		break;
@@ -2309,15 +2358,29 @@ void BurzaDialogs::RegisterSellerStatusRadioChanged( void )
 	
 
 	// ask for name of person who finished it.
-	if ( false == MessageEditBox( _( "Kto prebral tovar tohoto predajcu?" ), 
-		personAcceptingItems ) )
-		return;
-		
+	do {
+		if ( false == MessageEditBox( _( "Kto prebral tovar tohoto predajcu?" ), 
+			personAcceptingItems ) ) {
+			return;
+		}
+	} while( personAcceptingItems.empty() );
+
 	try {
 		Centrala::Storage().ModifySellerStart( seller.id );
 		
 		seller.status = SellerStatus::receivedSelling;
-		seller.note += _( " Prijal:" ) + personAcceptingItems;
+
+		string activity = "?";
+		switch ( newState ) {
+			case SellerStatus::receivedSelling:
+				activity = _( "Prijal" );
+				break;
+			case SellerStatus::handedOut:
+				activity = _( "Vydal" );
+				break;
+		}
+		
+		seller.note += " " + activity + ":" + personAcceptingItems;
 
 		Centrala::Storage().ModifySellerEnd( seller.id, seller );
 	}

@@ -891,7 +891,7 @@
             <property name="border_width">5</property>
             <property name="n_rows">4</property>
             <property name="n_columns">2</property>
-            <property name="column_spacing">5</property>
+            <property name="column_spacing">20</property>
             <property name="row_spacing">5</property>
             <child>
               <widget class="GtkEntry" id="sellerNote">
@@ -908,6 +908,7 @@
             <child>
               <widget class="GtkLabel" id="sellerNote1">
                 <property name="visible">True</property>
+                <property name="xalign">0.80000001192092896</property>
                 <property name="label" translatable="yes">Pozn&#xE1;mka</property>
                 <property name="justify">right</property>
               </widget>
@@ -920,6 +921,7 @@
             <child>
               <widget class="GtkLabel" id="sellerCode1">
                 <property name="visible">True</property>
+                <property name="xalign">0.80000001192092896</property>
                 <property name="label" translatable="yes">K&#xF3;d</property>
                 <property name="justify">right</property>
               </widget>
@@ -932,6 +934,7 @@
             <child>
               <widget class="GtkLabel" id="sellerName1">
                 <property name="visible">True</property>
+                <property name="xalign">1</property>
                 <property name="label" translatable="yes">Meno</property>
               </widget>
               <packing>
@@ -941,14 +944,13 @@
             <child>
               <widget class="GtkEntry" id="sellerCode">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
               </widget>
               <packing>
                 <property name="left_attach">1</property>
                 <property name="right_attach">2</property>
                 <property name="top_attach">1</property>
                 <property name="bottom_attach">2</property>
-                <property name="x_options">GTK_EXPAND</property>
+                <property name="y_options">GTK_FILL</property>
               </packing>
             </child>
             <child>
@@ -964,6 +966,7 @@
             <child>
               <widget class="GtkLabel" id="sellerCat">
                 <property name="visible">True</property>
+                <property name="xalign">1</property>
                 <property name="label" translatable="yes">Kateg&#xF3;ria</property>
                 <property name="justify">right</property>
               </widget>
@@ -974,7 +977,7 @@
               </packing>
             </child>
             <child>
-              <widget class="GtkComboBox" id="combobox1">
+              <widget class="GtkComboBox" id="sellerCategory">
                 <property name="visible">True</property>
               </widget>
               <packing>
@@ -1004,7 +1007,6 @@
                 <property name="use_stock">True</property>
               </widget>
               <packing>
-                <property name="fill">False</property>
                 <property name="padding">20</property>
                 <property name="position">0</property>
               </packing>
@@ -1020,6 +1022,7 @@
               </widget>
               <packing>
                 <property name="fill">False</property>
+                <property name="padding">20</property>
                 <property name="position">1</property>
               </packing>
             </child>
@@ -1027,6 +1030,7 @@
           <packing>
             <property name="expand">False</property>
             <property name="fill">False</property>
+            <property name="padding">20</property>
             <property name="position">1</property>
           </packing>
         </child>

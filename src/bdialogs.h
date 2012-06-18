@@ -238,11 +238,14 @@ public:
 	Gtk::Button		*m_pItemeditCancel;
 	
 	// seller details edit dialog
-	Gtk::Entry		*m_pSellerEditName;
-	Gtk::Entry		*m_pSellerEditCode;
-	Gtk::Entry		*m_pSellerEditNote;
-	Gtk::Button		*m_pSellerEditOk;
-	Gtk::Button		*m_pSellerEditCancel;
+	struct {
+		Gtk::Entry		*editName;
+		Gtk::Entry		*editCode;
+		Gtk::Entry		*editNote;
+		Gtk::Button		*buttonOk;
+		Gtk::Button		*buttonCancel;
+		ComboBoxTextDer	*comboCategory;
+	} sellerEdit;
 	
 	// these controls will be passed to the message box control
 	s_messageEditBoxWindowControls	messageEditBoxWindowControls;
