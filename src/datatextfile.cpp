@@ -27,11 +27,28 @@ DataTextfile::DataTextfile( string& datapath )
 	cat.fee_per_item = 4.0;
 	m_ItemCategories.push_back(cat);
 	
+
 	SellerCategory scat;
-	
-	scat.id = 4;
-	scat.letter = 'a';
-	scat.fee_item = 1.0;
+
+	scat.id = 11;
+	scat.name = "Predajca";
+	scat.letter = 'p';
+	scat.fee_whole_sold_sum_percentage = 10.0;
+	scat.fee_item = 0.1;
+	m_SellerCategories.push_back(scat);
+
+	scat.id = 12;
+	scat.name = "Sympatizant";
+	scat.letter = 's';
+	scat.fee_whole_sold_sum_percentage = 10.0;
+	scat.fee_item = 0.0;
+	m_SellerCategories.push_back(scat);
+
+	scat.id = 13;
+	scat.name = "Organizator";
+	scat.letter = 'd';
+	scat.fee_whole_sold_sum_percentage = 0.0;
+	scat.fee_item = 0.0;
 	m_SellerCategories.push_back(scat);
 }
 

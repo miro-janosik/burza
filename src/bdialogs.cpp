@@ -470,7 +470,7 @@ int BurzaDialogs::SetupDialogs( void )
 	// == seller details edit dialog == 
 
 	xmlWndModifySeller->get_widget( "sellerName", sellerEdit.editName );
-	xmlWndModifySeller->get_widget( "sellerCode", sellerEdit.eCode );
+	xmlWndModifySeller->get_widget( "sellerCode", sellerEdit.editCode );
 	xmlWndModifySeller->get_widget( "sellerNote", sellerEdit.editNote );
 	xmlWndModifySeller->get_widget_derived( "sellerCategory", sellerEdit.comboCategory );
 	xmlWndModifySeller->get_widget( "sellerButton_ok", sellerEdit.buttonOk );
@@ -513,8 +513,9 @@ int BurzaDialogs::SetupDialogs( void )
 		throw;
 	}
 	
-	messageEditBoxWindowControls.buttonOk->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::EditMessageBoxClickedOk ) );
-	messageEditBoxWindowControls.buttonCancel->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::EditMessageBoxClickedCancel ) );
+	EditMessageBox& msgBox = EditMessageBox::Instance();
+	messageEditBoxWindowControls.buttonOk->signal_clicked().connect( sigc::mem_fun( msgBox, &EditMessageBox::EditMessageBoxClickedOk ) );
+	messageEditBoxWindowControls.buttonCancel->signal_clicked().connect( sigc::mem_fun( msgBox, &EditMessageBox::EditMessageBoxClickedCancel ) );
 
 	EditMessageBox::Initialize( messageEditBoxWindowControls );
 
@@ -1019,7 +1020,6 @@ void BurzaDialogs::RegisterButtonAcceptUnaccept( void )
 	}
 	
 	// update seller
-	SellerData seller;
 
 	try {
 		seller = Centrala::Storage().GetSeller( m_RegisterSelectedSellerId );
@@ -1664,7 +1664,7 @@ void BurzaDialogs::RegisterStartDialogEditSeller( SELLER_ID id )
 {
 	SellerData seller; 
 	vector<SELLER_CATEGORY_ID> ids;
-	SellerCategoryArray categories = Centrala::Storage().GetSellersCategories( ids );
+	SellerCategoryArray categories = Centrala::Storage().GetSellersCategories();
 	
 	if ( id != SELLER_ID_NONE ) {
 		try {
@@ -1686,7 +1686,19 @@ void BurzaDialogs::RegisterStartDialogEditSeller( SELLER_ID id )
 	sellerEdit.editName->set_text( seller.name );
 	sellerEdit.editCode->set_text( seller.shortcode );
 	sellerEdit.editNote->set_text( seller.note );
-	
+
+	sellerEdit.comboCategory->clear();
+	sellerEdit.categories = categories;
+	int index = 0;
+	for( int i=0; i < categories.size(); ++i ) {
+		sellerEdit.comboCategory->append_text( categories[ i ].name );
+
+		if ( categories[ i ].id == seller.category )
+			index = i;
+	}
+
+	sellerEdit.comboCategory->set_active( index );
+
 	HighlightEditSellerOff();
 
 	m_EditedSeller = seller;
@@ -1718,14 +1730,12 @@ void BurzaDialogs::RegisterButtonSellerEditOk( void )
 	m_EditedSeller.name = sellerEdit.editName->get_text();
 	m_EditedSeller.note = sellerEdit.editNote->get_text();
 	m_EditedSeller.shortcode = sellerEdit.editCode->get_text();
-	m_EditedSeller.category = sellerEdit.comboCategory.
-
-		settingsWindow.comboFontSize->clear();
-		settingsWindow.comboFontSize->append_text( 
-			ProgramSettings::predefined.listOfFontSizes[ i ].text );
-	settingsWindow.comboFontSize->set_active( selectedFontIndex );
-	int fontSizeSelectionIndex = settingsWindow.comboFontSize->get_active_row_number();
 	
+	// get category
+	int categoryIndex = sellerEdit.comboCategory->get_active_row_number();
+	assert( categoryIndex < sellerEdit.categories.size() );
+	m_EditedSeller.category = sellerEdit.categories[ categoryIndex ].id;
+
 	m_pWndSeller->hide();
 	
 	int action = m_EditedSeller.id == SELLER_ID_NONE ? ea_add : ea_modify;
@@ -2010,16 +2020,6 @@ void BurzaDialogs::SettingsClickedButtonOk( void )
 
 // ======================================================
 // ======================================================
-
-void BurzaDialogs::EditMessageBoxClickedOk( void )
-{
-
-}
-
-void BurzaDialogs::EditMessageBoxClickedCancel( void )
-{
-
-}
 
 bool BurzaDialogs::MessageEditBox( std::string message, std::string& edit)
 {
@@ -2325,7 +2325,6 @@ void BurzaDialogs::RegisterSellerStatusRadioChanged( void )
 		break;
 
 		case SellerStatus::imported:
-			returnStateBack = true;
 			break;
 
 		default:
@@ -2359,8 +2358,9 @@ void BurzaDialogs::RegisterSellerStatusRadioChanged( void )
 
 	// ask for name of person who finished it.
 	do {
-		if ( false == MessageEditBox( _( "Kto prebral tovar tohoto predajcu?" ), 
-			personAcceptingItems ) ) {
+		if ( false == MessageEditBox( _( "Kto prebral tovar tohoto predajcu?" ), personAcceptingItems ) ) 
+		{
+			RegisterDisplaySellerUpdateSellerStatus( seller.status );
 			return;
 		}
 	} while( personAcceptingItems.empty() );

@@ -136,9 +136,6 @@ public:
 	void SettingsClickedButtonInstallLicence( void );
 	void SettingsClickedButtonOk( void );
 
-	void EditMessageBoxClickedOk( void );
-	void EditMessageBoxClickedCancel( void );
-	
 	bool MessageEditBox( std::string message, std::string& edit);
 
 	// "cash-out" helper functions
@@ -245,6 +242,7 @@ public:
 		Gtk::Button		*buttonOk;
 		Gtk::Button		*buttonCancel;
 		ComboBoxTextDer	*comboCategory;
+		SellerCategoryArray categories;
 	} sellerEdit;
 	
 	// these controls will be passed to the message box control

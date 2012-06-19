@@ -23,6 +23,7 @@ class EditMessageBox : public Singleton< EditMessageBox >
 {
 private:
 	static bool initialized;
+	int resultButtonIndex;
 
 	s_messageEditBoxWindowControls controls;
 
@@ -46,12 +47,23 @@ public:
 		instance->controls.labelText->set_text( message );
 		instance->controls.entryText->set_text( edit );
 
-		int res = instance->controls.dialog->run();
+		instance->controls.dialog->run();
+		int res = instance->resultButtonIndex;
 
 		edit = instance->controls.entryText->get_text();
 		instance->controls.dialog->hide();
 
 		return res == 0;
+	}
+
+	void EditMessageBoxClickedOk( void )
+	{
+		EditMessageBox::Instance().resultButtonIndex = 0;
+	}
+
+	void EditMessageBoxClickedCancel( void )
+	{
+		EditMessageBox::Instance().resultButtonIndex = 1;
 	}
 
 } ;
