@@ -239,6 +239,8 @@ int BurzaDialogs::SetupDialogs( void )
 	m_pEntryRegistryLookupSeller->signal_changed().connect( sigc::mem_fun( this, &BurzaDialogs::RegisterEditLookupSellerChanged ) );
 
 	m_pRegisterRadioSellerStatus1NotImported->signal_toggled().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterSellerStatusRadioChanged ) );
+	m_pRegisterRadioSellerStatus2ImportedSelling->signal_toggled().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterSellerStatusRadioChanged ) );
+	m_pRegisterRadioSellerStatus3ReturnedBack->signal_toggled().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterSellerStatusRadioChanged ) );
 
 	m_RegisterItemsSelection = m_pTreeViewItems->get_selection();
 	m_RegisterItemsSelection->set_mode( Gtk::SELECTION_MULTIPLE );
@@ -2042,7 +2044,7 @@ void BurzaDialogs::CreateStatusImages( void )
 	registerColumnStateImages[ sold ]->fill( ColorToPixel( 128, 128, 128 ) );
 	registerColumnStateImages[ returned ]->fill( ColorToPixel( 50, 50, 50 ) );
 	registerColumnStateImages[ given_as_gift ]->fill( ColorToPixel( 255, 0, 255 ) );
-	registerColumnStateImages[ lost ]->fill( ColorToPixel( 255, 0, 255 ) );
+	registerColumnStateImages[ lost ]->fill( ColorToPixel( 255, 80, 80 ) );
 	registerColumnStateImages[ undefined ]->fill( ColorToPixel( 255, 0, 0 ) );
 }
 
@@ -2057,12 +2059,44 @@ void BurzaDialogs::on_column_checkbox_edited( Glib::ustring rowNumberText )
 		return;
 	}
 
+	SellerData seller = RegisterGetSelectedSeller();
 	ItemData item = items[ row ];
 
-	item.status = 
-		( item.status == Burza::on_stock ) ?
-		Burza::not_in_stock_yet : Burza::on_stock;
-	
+	switch (seller.status)
+	{
+	case SellerStatus::imported:
+
+		switch ( item.status )
+		{
+		case ItemStatus::on_stock:
+			item.status = ItemStatus::not_in_stock_yet;
+			break;
+		case ItemStatus::not_in_stock_yet:
+			item.status = ItemStatus::on_stock;
+			break;
+		default:
+			// any other state can't be flipped by checkbox
+			return;
+		}
+		break;
+	case SellerStatus::receivedSelling:
+
+		switch ( item.status )
+		{
+		case ItemStatus::on_stock:
+			item.status = ItemStatus::returned;
+			break;
+		case ItemStatus::returned:
+			item.status = ItemStatus::on_stock;
+			break;
+		default:
+			// any other state can't be flipped by checkbox
+			return;
+		}
+
+		break;
+	}
+
 	Centrala::Storage().ModifyItem(item.id, item);
 	RegisterDisplaySeller( RegisterGetSelectedSeller() );
 }
@@ -2245,6 +2279,7 @@ void BurzaDialogs::RegisterSellerStatusRadioChanged( void )
 
 	// check if it is possible to switch state
 	bool returnStateBack = false;
+	bool addComment = false;
 
 	switch ( seller.status ) {
 	case SellerStatus::imported:
@@ -2278,6 +2313,8 @@ void BurzaDialogs::RegisterSellerStatusRadioChanged( void )
 
 					returnStateBack = true;
 				}
+
+				addComment = true;
 			}
 			break;
 		case SellerStatus::handedOut:
@@ -2293,6 +2330,9 @@ void BurzaDialogs::RegisterSellerStatusRadioChanged( void )
 	case SellerStatus::receivedSelling:
 
 		switch ( newState ) {
+		case SellerStatus::imported:
+			break;
+
 		case SellerStatus::handedOut:
 			{
 				// changing from 'selling' to 'handed out' can be done only
@@ -2321,10 +2361,9 @@ void BurzaDialogs::RegisterSellerStatusRadioChanged( void )
 
 					returnStateBack = true;
 				}
-			}
-		break;
 
-		case SellerStatus::imported:
+				addComment = true;
+			}
 			break;
 
 		default:
@@ -2336,9 +2375,15 @@ void BurzaDialogs::RegisterSellerStatusRadioChanged( void )
 
 	case SellerStatus::handedOut:
 
-		if ( newState == SellerStatus::imported ) {
+		switch ( newState ) {
+		case SellerStatus::imported:
 			returnStateBack = true;
 			break;
+		case SellerStatus::receivedSelling:
+			break;
+		default:
+			assert( false );
+			return;
 		}
 		
 		break;
@@ -2357,30 +2402,36 @@ void BurzaDialogs::RegisterSellerStatusRadioChanged( void )
 	
 
 	// ask for name of person who finished it.
-	do {
-		if ( false == MessageEditBox( _( "Kto prebral tovar tohoto predajcu?" ), personAcceptingItems ) ) 
-		{
-			RegisterDisplaySellerUpdateSellerStatus( seller.status );
-			return;
-		}
-	} while( personAcceptingItems.empty() );
+	if ( addComment )
+	{
+		do {
+			if ( false == MessageEditBox( _( "Kto prebral tovar tohoto predajcu?" ), personAcceptingItems ) ) 
+			{
+				RegisterDisplaySellerUpdateSellerStatus( seller.status );
+				return;
+			}
+		} while( personAcceptingItems.empty() );
+	}
 
 	try {
 		Centrala::Storage().ModifySellerStart( seller.id );
 		
-		seller.status = SellerStatus::receivedSelling;
+		seller.status = newState;
 
-		string activity = "?";
-		switch ( newState ) {
-			case SellerStatus::receivedSelling:
-				activity = _( "Prijal" );
-				break;
-			case SellerStatus::handedOut:
-				activity = _( "Vydal" );
-				break;
+		if ( addComment )
+		{
+			string activity = "?";
+			switch ( newState ) {
+				case SellerStatus::receivedSelling:
+					activity = _( "Prijal" );
+					break;
+				case SellerStatus::handedOut:
+					activity = _( "Vydal" );
+					break;
+			}
+			
+			seller.note += " " + activity + ":" + personAcceptingItems;
 		}
-		
-		seller.note += " " + activity + ":" + personAcceptingItems;
 
 		Centrala::Storage().ModifySellerEnd( seller.id, seller );
 	}

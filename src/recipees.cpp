@@ -229,9 +229,11 @@ void Recipees::PrintRecipeeAtEndOfCheckout( ItemDataArray& items, PdfWrapperBase
 void Recipees::PrintSellerReturnSheet( PdfWrapperBase& pdf, SELLER_ID id )
 {
 	SellerData seller;
+	SellerCategory sellerCat;
 
 	try {
 		seller = Centrala::Storage().GetSeller( id );
+		sellerCat = Centrala::Storage().GetSellerCategory( seller.category );
 	}
 	catch(exception& e)
 	{
@@ -244,8 +246,9 @@ void Recipees::PrintSellerReturnSheet( PdfWrapperBase& pdf, SELLER_ID id )
 	pdf.SetFontSize(1.2);
 	double ypos = marginTop;
 	
-	pdf.WriteSingleText( 10, ypos, ConvFuncs::FormatStdStr(_("Predávajúci: %s - %s"), 
-		seller.shortcode.c_str(), seller.name.c_str() ));
+	pdf.WriteSingleText( 10, ypos, ConvFuncs::FormatStdStr(_("Predávajúci: %s - %s (%s)"), 
+		seller.shortcode.c_str(), seller.name.c_str(),
+		sellerCat.name.c_str() ));
 	ypos += 1.6;
 	pdf.WriteSingleText( 10, ypos, ConvFuncs::FormatStdStr(_("( %s )"), seller.note.c_str() ));
 	ypos += 1.6;
@@ -267,7 +270,6 @@ void Recipees::PrintSellerReturnSheet( PdfWrapperBase& pdf, SELLER_ID id )
 	
 	items.Resize(sellerItems.size(), columns.m_columns.size());
 	double sum = 0;
-	float paymentPerPiece = 0.10;
 	int piecesPriceOverPayPerPiece = 0;
 	int piecesAccepted = 0;
 
@@ -288,19 +290,27 @@ void Recipees::PrintSellerReturnSheet( PdfWrapperBase& pdf, SELLER_ID id )
 			sum += sellerItems[ i ].price;
 		}
 
-		// if item was accepted for sale, and it is over 'paymentPerPiece' it will be counted.
-		switch ( sellerItems[ i ].status )
-		{
-		case on_stock:
-		case sold:
-		case returned:
-			if ( sellerItems[ i ].price > paymentPerPiece + 0.0001 )
+		// if item was accepted for sale, and it is over 'sellerCat.fee_item' it will be counted.
+		if ( sellerCat.fee_item != 0 ) {
+
+			switch ( sellerItems[ i ].status )
 			{
-				++piecesPriceOverPayPerPiece;
+			//case on_stock:
+			//case sold:
+			//case returned:
+			case ItemStatus::not_in_stock_yet:
+				break;
+			default:
+				if ( sellerItems[ i ].price > sellerCat.fee_item + 0.0001 )
+				{
+					++piecesPriceOverPayPerPiece;
+				}
+				break;
 			}
-			break;
 		}
 	}
+
+	sum = RoundTo5Cents( sum );
 
 	ypos = DrawTableSplitOnPages( pdf, 10, ypos, items, columns );
 	
@@ -320,30 +330,43 @@ void Recipees::PrintSellerReturnSheet( PdfWrapperBase& pdf, SELLER_ID id )
 	int row = 0;
 	sumCells.Cell( row, 0 ) = _( "Súčet predaných vecí" );
 	sumCells.Cell( row, 1 ) = ConvFuncs::FormatStdStr( "%0.2f", sum );
-	
-	++row;
-	double billForSold = sum * 0.10;
-	sumCells.Cell( row, 0 ) = _( "- 10% poplatok z predaných vecí" );
-	sumCells.Cell( row, 1 ) = ConvFuncs::FormatStdStr( "- %0.2f", billForSold );
+
+	double finalSum = sum;
+
+	if ( sellerCat.fee_whole_sold_sum_percentage != 0 )
+	{
+		++row;
+		double billForSold = sum * sellerCat.fee_whole_sold_sum_percentage / 100.0;
+		sumCells.Cell( row, 0 ) = ConvFuncs::FormatStdStr( _( "- %0.0f%% poplatok z predaných vecí (%0.0f%% z %0.2f)" ), 
+			sellerCat.fee_whole_sold_sum_percentage,
+			sellerCat.fee_whole_sold_sum_percentage,
+			sum );
+		sumCells.Cell( row, 1 ) = ConvFuncs::FormatStdStr( "- %0.2f", billForSold );
+
+		++row;
+		finalSum -= RoundTo5Cents( billForSold );
+
+		sumCells.Cell( row, 0 ) = ConvFuncs::FormatStdStr( _( "Súčet predaných vecí - %0.0f%% " ), 
+			sellerCat.fee_whole_sold_sum_percentage );
+		sumCells.Cell( row, 1 ) = ConvFuncs::FormatStdStr( "%0.2f", finalSum );
+	}
+
+	if ( sellerCat.fee_item != 0 )
+	{
+		++row;
+		double billForPieces = RoundTo5Cents( piecesPriceOverPayPerPiece * sellerCat.fee_item );
+		str = ConvFuncs::FormatStdStr(
+			_( "Manipulačný poplatok - %0.2f za každý kus drahší ako %0.2f (%i ks)" ), 
+				sellerCat.fee_item, sellerCat.fee_item, piecesPriceOverPayPerPiece );
+		sumCells.Cell( row, 0 ) = str;
+		sumCells.Cell( row, 1 ) = ConvFuncs::FormatStdStr( "- %0.2f", billForPieces );
+
+		finalSum -= billForPieces;
+	}
 
 	++row;
-	double a = RoundTo5Cents( sum - billForSold );
-
-	sumCells.Cell( row, 0 ) = _( "Súčet predaných vecí - 10% " );
-	sumCells.Cell( row, 1 ) = ConvFuncs::FormatStdStr( "%0.2f", a );
-
-	++row;
-	double billForPieces = piecesPriceOverPayPerPiece * paymentPerPiece;
-	str = ConvFuncs::FormatStdStr(
-		_( "Manipulačný poplatok - %0.2f za každý kus drahší ako %0.2f" ), 
-			paymentPerPiece, paymentPerPiece );
-	sumCells.Cell( row, 0 ) = str;
-	sumCells.Cell( row, 1 ) = ConvFuncs::FormatStdStr( "- %0.2f", billForPieces );
-	
-	++row;
-	double moneyCashback = RoundTo5Cents( sum - billForSold - billForPieces );
 	sumCells.Cell( row, 0 ) = _( "Celkom vyplatené (eur) :" );
-	sumCells.Cell( row, 1 ) = ConvFuncs::FormatStdStr( "%0.2f", moneyCashback );
+	sumCells.Cell( row, 1 ) = ConvFuncs::FormatStdStr( "%0.2f", finalSum );
 	
 	++row;
 	++row;
