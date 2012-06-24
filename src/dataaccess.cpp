@@ -7,8 +7,8 @@ const ITEM_ID ITEM_ID_NONE = -1;
 const SELLER_CATEGORY_ID SELLER_CATEGORY_ID_NONE = -1;
 const ITEM_CATEGORY_ID ITEM_CATEGORY_ID_NONE = -1;
 
-char DataAccessInterface::m_status_character_in_file[ ItemStatusCount + 1 ] = "ospvdnu";
-string DataAccessInterface::m_status_string[ ItemStatusCount ] = {
+char DataAccessInterface::m_status_character_in_file[ ItemStatusCountWithUndefined + 1 ] = "ospvdnu";
+string DataAccessInterface::m_status_string[ ItemStatusCountWithUndefined ] = {
   "Nezaradene",
   "Skladom",
   "Predane",

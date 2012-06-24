@@ -10,6 +10,7 @@
 #include "translate.h"
 #include "errhandler.h"
 #include "log.h"
+#include "fees.h"
 
 using namespace Burza;
 using namespace BurzaTable;
@@ -24,9 +25,11 @@ PdfWrapperBase *Recipees::currentPdf = NULL;
 void Recipees::PrintSellerStatus( PdfWrapperBase& pdf, SELLER_ID id )
 {
 	SellerData seller;
+	SellerCategory sellerCat;
 
 	try {
 		seller = Centrala::Storage().GetSeller( id );
+		sellerCat = Centrala::Storage().GetSellerCategory( seller.category );
 	}
 	catch(exception& e)
 	{
@@ -39,8 +42,9 @@ void Recipees::PrintSellerStatus( PdfWrapperBase& pdf, SELLER_ID id )
 	pdf.SetFontSize(1.2);
 	double ypos = marginTop;
 	
-	pdf.WriteSingleText( 10, ypos, ConvFuncs::FormatStdStr(_("Predávajúci: %s - %s"), 
-		seller.shortcode.c_str(), seller.name.c_str() ));
+	pdf.WriteSingleText( 10, ypos, ConvFuncs::FormatStdStr(_("Predávajúci: %s - %s (%s)"), 
+		seller.shortcode.c_str(), seller.name.c_str(),
+		sellerCat.name.c_str() ));
 	ypos += 1.6;
 	pdf.WriteSingleText( 10, ypos, ConvFuncs::FormatStdStr(_("( %s )"), seller.note.c_str() ));
 	ypos += 1.6;
@@ -267,11 +271,9 @@ void Recipees::PrintSellerReturnSheet( PdfWrapperBase& pdf, SELLER_ID id )
 	columns.AddColumn( _("predane"), 7 );
 	
 	ItemDataArray sellerItems = Centrala::Storage().GetSellerItems( id );
-	
+
 	items.Resize(sellerItems.size(), columns.m_columns.size());
 	double sum = 0;
-	int piecesPriceOverPayPerPiece = 0;
-	int piecesAccepted = 0;
 
 	for(int i=0; i<sellerItems.size(); ++i ) {
 		
@@ -289,28 +291,7 @@ void Recipees::PrintSellerReturnSheet( PdfWrapperBase& pdf, SELLER_ID id )
 			items.Cell( i, 5 ) = ConvFuncs::FormatStdStr( "%0.2f", sellerItems[ i ].price );
 			sum += sellerItems[ i ].price;
 		}
-
-		// if item was accepted for sale, and it is over 'sellerCat.fee_item' it will be counted.
-		if ( sellerCat.fee_item != 0 ) {
-
-			switch ( sellerItems[ i ].status )
-			{
-			//case on_stock:
-			//case sold:
-			//case returned:
-			case ItemStatus::not_in_stock_yet:
-				break;
-			default:
-				if ( sellerItems[ i ].price > sellerCat.fee_item + 0.0001 )
-				{
-					++piecesPriceOverPayPerPiece;
-				}
-				break;
-			}
-		}
 	}
-
-	sum = RoundTo5Cents( sum );
 
 	ypos = DrawTableSplitOnPages( pdf, 10, ypos, items, columns );
 	
@@ -331,39 +312,21 @@ void Recipees::PrintSellerReturnSheet( PdfWrapperBase& pdf, SELLER_ID id )
 	sumCells.Cell( row, 0 ) = _( "Súčet predaných vecí" );
 	sumCells.Cell( row, 1 ) = ConvFuncs::FormatStdStr( "%0.2f", sum );
 
-	double finalSum = sum;
+	SellerFees fees = SellerFees::CalculateSellerFees( sellerCat, sellerItems );
+	double finalSum = fees.sumOfSoldItems;
 
-	if ( sellerCat.fee_whole_sold_sum_percentage != 0 )
+	for( int i = 0; i < fees.fees.size(); ++i )
 	{
 		++row;
-		double billForSold = sum * sellerCat.fee_whole_sold_sum_percentage / 100.0;
-		sumCells.Cell( row, 0 ) = ConvFuncs::FormatStdStr( _( "- %0.0f%% poplatok z predaných vecí (%0.0f%% z %0.2f)" ), 
-			sellerCat.fee_whole_sold_sum_percentage,
-			sellerCat.fee_whole_sold_sum_percentage,
-			sum );
-		sumCells.Cell( row, 1 ) = ConvFuncs::FormatStdStr( "- %0.2f", billForSold );
+		sumCells.Cell( row, 0 ) = fees.fees[ i ].name;
+		sumCells.Cell( row, 1 ) = ConvFuncs::FormatStdStr( "- %0.2f", fees.fees[ i ].price );
 
+		finalSum -= fees.fees[ i ].price;
 		++row;
-		finalSum -= RoundTo5Cents( billForSold );
-
-		sumCells.Cell( row, 0 ) = ConvFuncs::FormatStdStr( _( "Súčet predaných vecí - %0.0f%% " ), 
-			sellerCat.fee_whole_sold_sum_percentage );
 		sumCells.Cell( row, 1 ) = ConvFuncs::FormatStdStr( "%0.2f", finalSum );
 	}
 
-	if ( sellerCat.fee_item != 0 )
-	{
-		++row;
-		double billForPieces = RoundTo5Cents( piecesPriceOverPayPerPiece * sellerCat.fee_item );
-		str = ConvFuncs::FormatStdStr(
-			_( "Manipulačný poplatok - %0.2f za každý kus drahší ako %0.2f (%i ks)" ), 
-				sellerCat.fee_item, sellerCat.fee_item, piecesPriceOverPayPerPiece );
-		sumCells.Cell( row, 0 ) = str;
-		sumCells.Cell( row, 1 ) = ConvFuncs::FormatStdStr( "- %0.2f", billForPieces );
-
-		finalSum -= billForPieces;
-	}
-
+	++row;
 	++row;
 	sumCells.Cell( row, 0 ) = _( "Celkom vyplatené (eur) :" );
 	sumCells.Cell( row, 1 ) = ConvFuncs::FormatStdStr( "%0.2f", finalSum );
@@ -375,14 +338,6 @@ void Recipees::PrintSellerReturnSheet( PdfWrapperBase& pdf, SELLER_ID id )
 	DrawTableSplitOnPages( pdf, 15, ypos, sumCells, sumColumns );
 
 	// nepredané veci a peniaze prevzal : 		
-}
-
-double Recipees::RoundTo5Cents( double price )
-{
-	int a = ( price + 0.001 ) * 20;
-	double b = (double)a / 20.0;
-
-	return b;
 }
 
 float Recipees::AdvanceYpos( float ypos, float percent )
@@ -403,12 +358,23 @@ float Recipees::AdvanceYpos( float ypos, float percent )
 bool SortSellerDataPtrsByShortcode(SellerData* a, SellerData *b) { 
 	return (stricmp( a->shortcode.c_str(), b->shortcode.c_str()) < 0); }
 
+string GetSellerCategoryNameById( SellerCategoryArray& categories, SELLER_CATEGORY_ID id )
+{
+	for( int i=0; i< categories.size(); ++i )
+		if ( categories[ i ].id == id )
+			return categories[ i ].name;
+
+	return "?";
+}
+
 void Recipees::PrintStats( PdfWrapperBase& pdf )
 {
 	SellerDataArray sellers;
+	SellerCategoryArray categories;
 
 	try {
 		sellers = Centrala::Storage().GetSellers();
+		categories = Centrala::Storage().GetSellersCategories();
 	}
 	catch(exception& e)
 	{
@@ -467,6 +433,7 @@ void Recipees::PrintStats( PdfWrapperBase& pdf )
 	columns.AddColumn( _("Kód"), 5 );
 	columns.AddColumn( _("Meno"), 35 );
 	columns.AddColumn( _("Poznámka"), 35 );
+	columns.AddColumn( _("Kategória"), 10 );
 
 	unsigned int row = 0;
 
@@ -480,6 +447,8 @@ void Recipees::PrintStats( PdfWrapperBase& pdf )
 		cells.Cell( row, 0 ).SetText( imported[ i ]->shortcode );
 		cells.Cell( row, 1 ).SetText( imported[ i ]->name );
 		cells.Cell( row, 2 ).SetText( imported[ i ]->note );
+		cells.Cell( row, 3 ).SetText( GetSellerCategoryNameById( categories, imported[ i ]->category ) );
+
 		++row;
 	}
 
@@ -491,6 +460,7 @@ void Recipees::PrintStats( PdfWrapperBase& pdf )
 		cells.Cell( row, 0 ).SetText( received[ i ]->shortcode );
 		cells.Cell( row, 1 ).SetText( received[ i ]->name );
 		cells.Cell( row, 2 ).SetText( received[ i ]->note );
+		cells.Cell( row, 3 ).SetText( GetSellerCategoryNameById( categories, received[ i ]->category ) );
 		++row;
 	}
 
@@ -502,6 +472,7 @@ void Recipees::PrintStats( PdfWrapperBase& pdf )
 		cells.Cell( row, 0 ).SetText( handedOut[ i ]->shortcode );
 		cells.Cell( row, 1 ).SetText( handedOut[ i ]->name );
 		cells.Cell( row, 2 ).SetText( handedOut[ i ]->note );
+		cells.Cell( row, 3 ).SetText( GetSellerCategoryNameById( categories, handedOut[ i ]->category ) );
 		++row;
 	}
 
@@ -515,8 +486,8 @@ void Recipees::PrintStats( PdfWrapperBase& pdf )
 	// price of items not brought in, items on stock, items handed out, items sold, items lost
 	int numberOfItems = 0;
 	float costOfAllItems = 0.0;
-	int numberOfItemsInStatus[ ItemStatus::ItemStatusCount ];
-	float costOfItemsInStatus[ ItemStatus::ItemStatusCount ];
+	int numberOfItemsInStatus[ ItemStatus::ItemStatusCountWithUndefined ];
+	float costOfItemsInStatus[ ItemStatus::ItemStatusCountWithUndefined ];
 	float price;
 	ItemStatus status;
 
@@ -569,16 +540,11 @@ void Recipees::PrintStats( PdfWrapperBase& pdf )
 	for( int i = 0; i < ItemStatus::ItemStatusCount; ++i ) {
 
 		ypos = AdvanceYpos( ypos, lineSpacing );
-		pdf.WriteSingleText( textPosX, ypos, ConvFuncs::FormatStdStr(_( "Kusov v '%s' : %i" ), 
+		pdf.WriteSingleText( textPosX, ypos, ConvFuncs::FormatStdStr(_( "Kusov v '%s' : %i , cena tovaru : %0.0f %s" ), 
 			DataAccessInterface::ItemStatus2String( Burza::ItemStatus( i ) ), 
-			numberOfItemsInStatus[ i ] ));
-
-		ypos = AdvanceYpos( ypos, lineSpacing );
-		pdf.WriteSingleText( textPosX, ypos, ConvFuncs::FormatStdStr(_( "Cena tovaru '%s' : %0.0f %s" ), 
-			DataAccessInterface::ItemStatus2String( Burza::ItemStatus( i ) ), 
+			numberOfItemsInStatus[ i ],
 			costOfItemsInStatus[ i ],
-			Centrala::Settings().currencyInternationalShort.c_str() ));
-
+			Centrala::Settings().currencyInternationalShort.c_str() ) );
 	}
 
 	currentPdf = NULL;

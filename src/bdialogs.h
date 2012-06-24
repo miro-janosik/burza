@@ -293,7 +293,7 @@ public:
 		Gtk::TreeModelColumn<bool> m_state_checkbox;
 	};
 
-	Glib::RefPtr<Gdk::Pixbuf>	registerColumnStateImages[ Burza::ItemStatusCount ];
+	Glib::RefPtr<Gdk::Pixbuf>	registerColumnStateImages[ Burza::ItemStatusCountWithUndefined ];
 
 	std::vector< CellItem_Bug > registerItemCheckBoxes;
 	bool registerItemCheckBoxes2[ 100 ];

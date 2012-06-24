@@ -24,8 +24,6 @@ private:
   //! returns Y position on page in percent, where table ended.
   float static DrawTableSplitOnPages( PdfWrapperBase& pdf, float fx, float fy, TableOfCells& table, TableColumnSpecs& columns );
  
-  static double RoundTo5Cents( double price );
-
   //! Takes Y position, advances it by some percents (down), returns the position.
   //! If position would be over bottom margin, new page is created and Y is moved
   //! to start of page.

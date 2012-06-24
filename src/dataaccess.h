@@ -99,8 +99,9 @@ enum ItemStatus {
 	returned,
 	given_as_gift,
 	lost,
-	undefined,
-	ItemStatusCount
+	ItemStatusCount,
+	undefined = ItemStatusCount,
+	ItemStatusCountWithUndefined,
 } ;
 
 struct ItemData {
@@ -272,15 +273,14 @@ class DataAccessInterface {
   //! Get all item categories
   virtual ItemCategoryArray GetItemsCategories( void ) = 0;
 
-  //! Get all seller categories5
-  virtual SellerCategoryArray GetSellersCategories( void ) = 0;
-
   virtual ItemCategory GetItemCategory(ITEM_CATEGORY_ID id);
   virtual ItemCategoryArray GetItemsCategories(vector<ITEM_CATEGORY_ID>& ids) { throw NotImplementedException(); }
 
   virtual ItemCategory GetItemCategoryByLetter(char letter);
   virtual ItemCategoryArray GetItemsCategoriesByLetter(vector<char>& letters) { throw NotImplementedException(); }
 
+  //! Get all seller categories5
+  virtual SellerCategoryArray GetSellersCategories( void ) = 0;
   virtual SellerCategory GetSellerCategory(SELLER_CATEGORY_ID id);
   virtual SellerCategoryArray GetSellersCategories(vector<SELLER_CATEGORY_ID>& ids) { throw NotImplementedException(); }
 
@@ -360,8 +360,8 @@ public:
   static ItemStatus Char2ItemStatus( char c );
   
 private:
-  static char	m_status_character_in_file[ ItemStatusCount + 1 ];
-  static string m_status_string[ ItemStatusCount ];
+  static char	m_status_character_in_file[ ItemStatusCountWithUndefined + 1 ];
+  static string m_status_string[ ItemStatusCountWithUndefined ];
 };
 
 //! Base class that should be used as base for classes that read and write data.

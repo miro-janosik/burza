@@ -444,6 +444,14 @@
 			>
 		</File>
 		<File
+			RelativePath="..\src\fees.cpp"
+			>
+		</File>
+		<File
+			RelativePath="..\src\fees.h"
+			>
+		</File>
+		<File
 			RelativePath="..\src\licence.cpp"
 			>
 		</File>

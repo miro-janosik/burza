@@ -25,6 +25,7 @@ namespace Burza {
 	
 	class PdfWrapperBase;
 	class ItemSearch;
+	class Fee;
 	
 class BurzaRegister {
 	friend class ProgramSettings;
@@ -58,8 +59,9 @@ public:
 	//! Returns valid number for item. Looks through seller item numbers, and if other item
 	//! has the same number, new item number is calculated.
 	int VerifyItemNumber( ItemData& item, int newNumber );
-	
-	double CalculateFee( SellerData& seller, ItemDataArray& items );
+
+	//! Returns list of fees that user has to pay
+	Fees& CalculateSellerFees( SellerData& seller, ItemDataArray& items );
 
 	//! displays specified PDF file in system-specific PDF viewer
 	int DisplayPdf( const char* fileName );

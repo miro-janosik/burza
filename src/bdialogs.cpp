@@ -1049,11 +1049,6 @@ void BurzaDialogs::RegisterButtonCalcFee( void )
 	{
 		ErrorHandling::HandleException(e);
 	}
-
-	double fee = Centrala::Register().CalculateFee( seller, items );
-	
-	// m_pLabelFee->set_text( ConvFuncs::FormatStdStr( "%0.2f %s", fee, 
-	//	Centrala::Settings().currencySign.c_str() ) );
 }
 
 void BurzaDialogs::RegisterButtonCalcRepayment( void )
@@ -2000,7 +1995,7 @@ void BurzaDialogs::SettingsClickedButtonOk( void )
 
 	bool fontSizeChanged = false;
 	if ( newFontSize != settings->fontSize ) {
-		newFontSize = settings->fontSize;
+		settings->fontSize = newFontSize;
 		fontSizeChanged = true;
 	}
 
@@ -2034,7 +2029,7 @@ void BurzaDialogs::CreateStatusImages( void )
 	int sizex = 10;
 	int sizey = 24;
 
-	for( int i=0; i < ItemStatusCount; ++i ) 
+	for( int i=0; i < ItemStatusCountWithUndefined; ++i ) 
 	{
 		registerColumnStateImages[ i ] = Gdk::Pixbuf::create(Gdk::Colorspace::COLORSPACE_RGB, FALSE, 8, sizex, sizey);
 	}
