@@ -25,7 +25,7 @@ namespace Burza {
 	
 	class PdfWrapperBase;
 	class ItemSearch;
-	class Fee;
+	class Fees;
 	
 class BurzaRegister {
 	friend class ProgramSettings;

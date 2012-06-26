@@ -14,6 +14,10 @@ public:
   //! handles the exception. If exception can't be handled it will be thrown again
   static void HandleException(const std::exception& e);
   
+  //! Logs and displays message box.
+  //! returns false if not handled.
+  static bool HandlePdfExceptions( std::exception& e );
+
 } ;
 
 }

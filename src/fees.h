@@ -4,11 +4,10 @@
 #include <string>
 #include <vector>
 
+#include "dataaccess.h"
+
 using namespace std;
 namespace Burza {
-
-class SellerData;
-class ItemDataArray;
 
 struct Fee {
 	string	name;
@@ -26,6 +25,7 @@ class SellerFees
 public:
 	SellerFees(void)
 	{
+		sumOfSoldItems = 0.0;
 		finalSumToGiveToSeller = 0.0;
 	}
 
@@ -40,7 +40,7 @@ public:
 	static double RoundTo5Cents( double price );
 
 	//! find out all the fees
-	static SellerFees& CalculateSellerFees( SellerCategory& sellerCategory, ItemDataArray& items );
+	static SellerFees CalculateSellerFees( SellerCategory& sellerCategory, ItemDataArray& items );
 };
 
 } // namespace Burza

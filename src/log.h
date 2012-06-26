@@ -122,7 +122,7 @@ public:
 
 	BiturnLog() {
 		LoggingSucces = 1;
-		LogFileName = "c:\\burza.log";
+		LogFileName = "log.txt";
 		LoggingMood = LoggingMoodLight;
 
 		last_log_line[ 0 ] = 0;

@@ -14,10 +14,6 @@ public:
 	//! Opens "save" dialog in the 'documents' directory, asks user to save.
 	//! Returns selected filename with full path, or string.empty() if cancelled
 	static std::string AskToSaveDocumentFile( std::string fileName );
-
-	//! Logs and displays message box.
-	//! returns false if not handled.
-	static bool HandlePdfExceptions( std::exception& e );
 };
 
 #endif

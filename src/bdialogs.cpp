@@ -1085,12 +1085,8 @@ void BurzaDialogs::RegisterButtonCalcRepayment( void )
 
 		storingFinished = true;
 
-	} catch( runtime_error& e ) {
-		DisplayErrorMessageBox( "PDF error", e.what() );
-	} catch( out_of_range& e ) {
-		DisplayErrorMessageBox( "PDF out of range error", e.what() );
-	} catch( ... ) {
-		DisplayErrorMessageBox( "PDF error" );
+	} catch( std::exception& e ) {
+		ErrorHandling::HandlePdfExceptions( e );
 	}
 
 	if (storingFinished) {
@@ -1911,7 +1907,7 @@ bool BurzaDialogs::RegisterButtonStats( GdkEventButton* button )
 		Centrala::Register().DisplayPdf( name.c_str() );
 	} 
 	catch( std::exception& e ) {
-		BurzaDialogsFileHelper::HandlePdfExceptions( e );
+		ErrorHandling::HandlePdfExceptions( e );
 	}
 
 	return true;
@@ -2121,7 +2117,7 @@ void BurzaDialogs::RegisterButtonReviewOfSellers( void )
 		
 	}
 	catch( std::exception& e ) {
-		BurzaDialogsFileHelper::HandlePdfExceptions( e );
+		ErrorHandling::HandlePdfExceptions( e );
 	}
 
 	if (storingFinished) {

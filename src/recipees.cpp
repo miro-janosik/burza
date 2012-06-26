@@ -306,13 +306,13 @@ void Recipees::PrintSellerReturnSheet( PdfWrapperBase& pdf, SELLER_ID id )
 	sumColumns.AddColumn( "", 20 );
 
 	// add sum of the items that were sold
-	sumCells.Resize( 7, sumColumns.m_columns.size() );
+	SellerFees fees = SellerFees::CalculateSellerFees( sellerCat, sellerItems );
+
+	sumCells.Resize( 6 + fees.fees.size() * 2, sumColumns.m_columns.size() );
 
 	int row = 0;
 	sumCells.Cell( row, 0 ) = _( "Súčet predaných vecí" );
 	sumCells.Cell( row, 1 ) = ConvFuncs::FormatStdStr( "%0.2f", sum );
-
-	SellerFees fees = SellerFees::CalculateSellerFees( sellerCat, sellerItems );
 	double finalSum = fees.sumOfSoldItems;
 
 	for( int i = 0; i < fees.fees.size(); ++i )

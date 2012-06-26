@@ -4,6 +4,7 @@
 #include <gtkmm.h>
 #include <gtkmm/main.h>
 #include <libglademm.h>
+#include <string>
 
 #include "convfncs.h"
 #include "translate.h"
@@ -46,20 +47,4 @@ string BurzaDialogsFileHelper::AskToSaveDocumentFile( string fileName )
 	
 	string name = dlg.get_filename();
 	return name;
-}
-
-bool BurzaDialogsFileHelper::HandlePdfExceptions( std::exception& e )
-{
-	try {
-		throw e;
-	} catch( runtime_error& e ) {
-		BurzaDialogs::DisplayErrorMessageBox( "PDF runtime error", e.what() );
-	} catch( out_of_range& e ) {
-		BurzaDialogs::DisplayErrorMessageBox( "PDF out of range error", e.what() );
-	} catch( ... ) {
-		BurzaDialogs::DisplayErrorMessageBox( "Unknown PDF error" );
-		return false;
-	}
-
-	return true;
 }

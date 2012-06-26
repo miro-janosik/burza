@@ -30,6 +30,7 @@ DataTextfile::DataTextfile( string& datapath )
 
 	SellerCategory scat;
 
+	scat.Reset();
 	scat.id = 11;
 	scat.name = "Predajca";
 	scat.letter = 'p';
@@ -37,6 +38,7 @@ DataTextfile::DataTextfile( string& datapath )
 	scat.fee_item = 0.1;
 	m_SellerCategories.push_back(scat);
 
+	scat.Reset();
 	scat.id = 12;
 	scat.name = "Sympatizant";
 	scat.letter = 's';
@@ -44,6 +46,7 @@ DataTextfile::DataTextfile( string& datapath )
 	scat.fee_item = 0.0;
 	m_SellerCategories.push_back(scat);
 
+	scat.Reset();
 	scat.id = 13;
 	scat.name = "Organizator";
 	scat.letter = 'd';

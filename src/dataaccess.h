@@ -130,6 +130,18 @@ struct SellerCategory {
 	double				fee_sold_item;
 	double				fee_item;
 	double				fee_item_perc;
+
+	void Reset()
+	{
+		id = -1;
+		letter = ' ';
+		name = "";
+		fee_per_sale = 0.0;
+		fee_whole_sold_sum_percentage = 0.0;
+		fee_sold_item = 0.0;
+		fee_item = 0.0;
+		fee_item_perc = 0.0;
+	}
 };
 
 struct ItemCategory {

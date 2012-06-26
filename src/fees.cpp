@@ -1,7 +1,8 @@
 #include "fees.h"
 #include "recipees.h"
-
+#include "translate.h"
 using namespace Burza;
+using namespace std;
 
 double SellerFees::RoundTo5Cents( double price )
 {
@@ -11,7 +12,7 @@ double SellerFees::RoundTo5Cents( double price )
 	return b;
 }
 
-SellerFees& SellerFees::CalculateSellerFees( SellerCategory& sellerCat, ItemDataArray& sellerItems )
+SellerFees SellerFees::CalculateSellerFees( SellerCategory& sellerCat, ItemDataArray& sellerItems )
 {
 	double sum = 0.0;
 	int piecesPriceOverPayPerPiece = 0;
@@ -43,34 +44,38 @@ SellerFees& SellerFees::CalculateSellerFees( SellerCategory& sellerCat, ItemData
 		}
 	}
 	
-	sum = Recipees::RoundTo5Cents( sum );
+	sum = SellerFees::RoundTo5Cents( sum );
+	output.sumOfSoldItems = sum;
 	
 	double finalSum = sum;
 
 	if ( sellerCat.fee_whole_sold_sum_percentage != 0 )
 	{
 		double billForSold = sum * sellerCat.fee_whole_sold_sum_percentage / 100.0;
-		billForSold = Recipees::RoundTo5Cents( billForSold );
-		
+		billForSold = SellerFees::RoundTo5Cents( billForSold );
+		finalSum -= billForSold;
+
 		Fee fee( 
 			ConvFuncs::FormatStdStr( _( "- %0.0f%% poplatok z predaných vecí (%0.0f%% z %0.2f)" ), 
 				sellerCat.fee_whole_sold_sum_percentage,
 				sellerCat.fee_whole_sold_sum_percentage,
-				sum ),
+				sum ).c_str(),
 			billForSold );
 		output.fees.push_back( fee );
 	}
 
 	if ( sellerCat.fee_item != 0 )
 	{
-		double billForPieces = Recipees::RoundTo5Cents( piecesPriceOverPayPerPiece * sellerCat.fee_item );
-		str = ConvFuncs::FormatStdStr(
+		double billForPieces = SellerFees::RoundTo5Cents( piecesPriceOverPayPerPiece * sellerCat.fee_item );
+		string str = ConvFuncs::FormatStdStr(
 			_( "Manipulaèný poplatok - %0.2f za každý kus drahší ako %0.2f (%i ks)" ), 
 				sellerCat.fee_item, sellerCat.fee_item, piecesPriceOverPayPerPiece );
-		
-		Fee fee( str, billForPieces );
+		finalSum -= billForPieces;
+
+		Fee fee( str.c_str(), billForPieces );
 		output.fees.push_back( fee );
 	}
 
+	output.finalSumToGiveToSeller = finalSum;
 	return output;
 }

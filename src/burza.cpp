@@ -21,6 +21,7 @@
 #include "burza.h"
 #include "bdialogs.h"
 #include "stringencoding.h"
+#include "log.h"
 
 // not required here, only for test
 #include "pdfwrap.h"
@@ -43,6 +44,9 @@ Centrala* Centrala::m_instance = NULL;
 int main2( int argc, char **argv )
 {
 	Glib::init();
+
+	BiturnLogInstance()->SetLogFileName( "burza-log.txt" );
+	BiturnLogInstance()->SetLoggingMood( BiturnLog::LoggingMoodHeavy );
 
 	Centrala		*pcentrala = Centrala::Instance();
 
@@ -101,6 +105,7 @@ int main2( int argc, char **argv )
 // ==============================================
 // ==============================================
 
+/*
 double BurzaRegister::CalculateFee( SellerData& seller, ItemDataArray& items )
 {
 	double fee = 0;
@@ -119,6 +124,7 @@ double BurzaRegister::CalculateFee( SellerData& seller, ItemDataArray& items )
 
 	return -4.0;
 }
+*/
 
 // ==============================================
 // ==============================================
@@ -180,12 +186,8 @@ void BurzaRegister::FinishCheckout( ItemDataArray& items )
 	  
 	  pdf.ClosePDF();
 	  
-	} catch( runtime_error& e ) {
-		Centrala::Dialogs().DisplayErrorMessageBox( "PDF error", e.what() );
-	} catch( out_of_range& e ) {
-		Centrala::Dialogs().DisplayErrorMessageBox( "PDF out of range error", e.what() );
-	} catch( ... ) {
-		Centrala::Dialogs().DisplayErrorMessageBox( "PDF error" );
+	} catch( std::exception& e ) {
+		ErrorHandling::HandlePdfExceptions( e );
 	}
 
 	// mark items in register as sold
