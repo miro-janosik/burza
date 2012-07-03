@@ -7,6 +7,8 @@
 using namespace std;
 
 /*
+Not actual, to be updated from DB init script:
+
 TABLES:
 ITEMS
 	primary key int ITEM_ID
@@ -42,12 +44,6 @@ ITEM_CATEGORY
 	primary key int ID
 	char LETTER
 	double FEE_PER_ITEM
-
-xx SETTINGS
-	primary key string key
-	string value
-SETTINGS
-KEY	VALUE
 */
 
 namespace Burza {
@@ -71,6 +67,8 @@ enum SellerStatus {
 	// items are handed back to the seller
 	// returned
 	handedOut,
+
+	count,
 };
 
 struct SellerData {

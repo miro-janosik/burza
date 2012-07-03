@@ -6,10 +6,10 @@
 		>
 		<server
 			databaseInLocalFiles="True"
-			address="192.168.1.10" 
-			user="postgres" 
-			password="dlhehony" 
-			dbname="burzadb" 
+			address="192.168.1.10"
+			user="postgres"
+			password="dlhehony"
+			dbname="burzadb"
 			port="5433"
 			 />
 		<License

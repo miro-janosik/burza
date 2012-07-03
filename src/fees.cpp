@@ -76,6 +76,10 @@ SellerFees SellerFees::CalculateSellerFees( SellerCategory& sellerCat, ItemDataA
 		output.fees.push_back( fee );
 	}
 
+	if ( finalSum < 0 ) {
+		finalSum = 0;
+	}
+
 	output.finalSumToGiveToSeller = finalSum;
 	return output;
 }

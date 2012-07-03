@@ -33,7 +33,7 @@ public:
 
 	double sumOfSoldItems;
 
-	// sum minus all fees
+	// sum of sold items minus all fees. If sum is less than zero, then it is zero.
 	double finalSumToGiveToSeller;
 
 	//! rounds the price to 5 cents ( 0.05 )

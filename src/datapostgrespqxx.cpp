@@ -262,16 +262,6 @@ ItemCategoryArray DataPostgresPqxx::GetItemsCategories( void )
 	return cats;
 }
 
-
-SellerCategoryArray DataPostgresPqxx::GetSellersCategories( void )
-{
-	SellerCategoryArray cats;
-	SellerCategory cat;
-	cats.push_back(cat);
-	return cats;
-}
-
-
 ItemCategoryArray DataPostgresPqxx::GetItemsCategories(vector<ITEM_CATEGORY_ID>& ids)
 {
 	ItemCategoryArray cats;
@@ -301,7 +291,7 @@ ItemCategoryArray DataPostgresPqxx::GetItemsCategoriesByLetter(vector<char>& let
 	return cats;
 }
 
-SellerCategoryArray DataPostgresPqxx::GetSellersCategories(vector<SELLER_CATEGORY_ID>& ids)
+SellerCategoryArray DataPostgresPqxx::GetSellersCategories( void )
 {
 	string query = ConvFuncs::FormatStdStr( "SELECT * FROM seller_category" );
 	
@@ -317,6 +307,11 @@ SellerCategoryArray DataPostgresPqxx::GetSellersCategories(vector<SELLER_CATEGOR
 	}
 }
 
+SellerCategoryArray DataPostgresPqxx::GetSellersCategories(vector<SELLER_CATEGORY_ID>& ids)
+{
+	return GetSellersCategories();
+}
+
 
 SellerCategoryArray DataPostgresPqxx::GetSellersCategoriesByLetter(vector<char>& letters)
 {
@@ -325,6 +320,8 @@ SellerCategoryArray DataPostgresPqxx::GetSellersCategoriesByLetter(vector<char>&
 	int i = 0, c = letters.size();
 	
 	for( ; i < c; ++i ) {
+		cat.Reset();
+		cat.letter = letters[ i ];
 		cats.push_back(cat);
 	}
 

@@ -90,6 +90,11 @@ void DataTextfile::SaveSellerToTxtFile( SellerData& seller, ItemDataArray& items
 	file.Write( seller.name.c_str() );
 	file.Write( "*" );
 	file.Write( seller.note.c_str() );
+	file.Write( "*" );
+	SellerCategory sellerCat = GetSellerCategory( seller.category );
+	file.Write( ConvFuncs::FormatCstr( "%c", sellerCat.letter ) );
+	file.Write( "*" );
+	file.Write( ConvFuncs::FormatCstr( "%i", (int) seller.status ) );
 	file.Write( "\n" );
 	
 	string s;
@@ -136,6 +141,17 @@ SELLER_ID DataTextfile::LoadFromTxtFile( string filename, SellerData& seller, It
 	seller.shortcode = ConvFuncsInstance->StrItem( linebuffer, 1, file_field_delimiters );
 	seller.name = ConvFuncsInstance->StrItem( linebuffer, 2, file_field_delimiters );
 	seller.note = ConvFuncsInstance->StrItem( linebuffer, 3, file_field_delimiters );
+
+	// status and category have to be converted
+	const char* categoryLetterString = ConvFuncsInstance->StrItem( linebuffer, 4, file_field_delimiters );
+	char categoryLetter = strlen( categoryLetterString ) > 0 ? categoryLetterString[ 0 ] : ' ';
+	seller.category = GetSellerCategoryByLetter( categoryLetter ).id;
+
+	const char* statusString = ConvFuncsInstance->StrItem( linebuffer, 5, file_field_delimiters );
+	int status = atoi( statusString );
+	seller.status = (SellerStatus) status;
+	if ((seller.status < 0 ) || (seller.status >= SellerStatus::count))
+		seller.status = SellerStatus::imported;
 	
 	while( 1 ) {
 		if ( file.Eof() )
