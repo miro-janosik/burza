@@ -130,12 +130,19 @@ SELLER_ID DataTextfile::LoadFromTxtFile( string filename, SellerData& seller, It
 	static const int linebuffer_len = 512;
 	char linebuffer[ linebuffer_len ];
 	char namebuffer[ linebuffer_len ];
+	char unicodeTextHeader[ 3 ] = { 0xEF, 0xBB, 0xBF };
 	unsigned short strpos;
 	ItemData	item;
 	
 	const char* cp, *linep;
 	
 	file.gets( linebuffer, linebuffer_len );
+
+	if (( strlen( linebuffer ) >= 3 ) && (memcmp( linebuffer, unicodeTextHeader, 3 ) == 0))
+	{
+		strcpy( linebuffer, linebuffer + 3 );
+	}
+
 	// GetNewSellerId();
 	seller.id = atoi( ConvFuncsInstance->StrItem( linebuffer, 0, file_field_delimiters ) );
 	seller.shortcode = ConvFuncsInstance->StrItem( linebuffer, 1, file_field_delimiters );

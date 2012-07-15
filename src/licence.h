@@ -17,8 +17,8 @@ public:
 	void ValidateLicence( void );
 	bool IsDemo( void ) { return !licenceValid; }
 
-	unsigned int GetLimitSellers( void ) { return IsDemo() ? 2 : 10000; }
-	unsigned int GetLimitItems( void ) { return IsDemo() ? 4 : 10000; }
+	unsigned int GetLimitSellers( void ) { return IsDemo() ? 6 : 10000; }
+	unsigned int GetLimitItems( void ) { return IsDemo() ? 15 : 10000; }
 
 	string GetLicenseUser( void ) { return userName; }
 
