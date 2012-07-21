@@ -1,5 +1,5 @@
-373*IW*Igor Wiesenganger*kolega z práce
+373*IW*Igor Wiesenganger*kolega z práce Prijal:Mirko*p*1
 1*Názov*1.0*a*s
 2*Názov*1.0*a*s
 3*Názov*1.0*a*s
-4*Názov*1.0*a*s
+4*Teplomer okenny*2.3*a*s

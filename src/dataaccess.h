@@ -368,10 +368,14 @@ public:
   //! converts status to short character and back.
   static char ItemStatus2Char( ItemStatus status );
   static ItemStatus Char2ItemStatus( char c );
+
+  //! Returns string representing 'seller status'
+  static const char* SellerStatus2String( SellerStatus status );
   
 private:
   static char	m_status_character_in_file[ ItemStatusCountWithUndefined + 1 ];
-  static string m_status_string[ ItemStatusCountWithUndefined ];
+  static string itemStatusString[ ItemStatusCountWithUndefined ];
+  static string sellerStatusString[ SellerStatus::count ];
 };
 
 //! Base class that should be used as base for classes that read and write data.

@@ -25,6 +25,7 @@ public:
 	// Converts non-ASCII characters to ISO8859_2 chars.
 	static void		UTF8ToISO8859_2( std::string& str );
 	static void		ISO8859_2ToUTF8( std::string& str );
+	static std::string	ISO8859_2ToUTF8ret( std::string str );
 	/*
 	struct EncodingTranslatorTable {
 			unsigned char UTF8[2];

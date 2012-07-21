@@ -250,9 +250,10 @@ void Recipees::PrintSellerReturnSheet( PdfWrapperBase& pdf, SELLER_ID id )
 	pdf.SetFontSize(1.2);
 	double ypos = marginTop;
 	
-	pdf.WriteSingleText( 10, ypos, ConvFuncs::FormatStdStr(_("Predávajúci: %s - %s (%s)"), 
+	pdf.WriteSingleText( 10, ypos, ConvFuncs::FormatStdStr(_("Predávajúci: %s - %s (%s), stav '%s'"), 
 		seller.shortcode.c_str(), seller.name.c_str(),
-		sellerCat.name.c_str() ));
+		sellerCat.name.c_str(),
+		DataAccessInterface::SellerStatus2String( seller.status ) ));
 	ypos += 1.6;
 	pdf.WriteSingleText( 10, ypos, ConvFuncs::FormatStdStr(_("( %s )"), seller.note.c_str() ));
 	ypos += 1.6;
@@ -452,7 +453,8 @@ void Recipees::PrintStats( PdfWrapperBase& pdf )
 	cells.Resize( 3 + allSorted.size(), columns.m_columns.size());
 
 	// received, imported, but items are not taken in
-	cells.Cell( row, 1 ).SetText( ConvFuncs::FormatStdStr(_( "Neprebratí - predajcov: %i" ), imported.size() ) );
+	cells.Cell( row, 2 ).SetText( ConvFuncs::FormatStdStr(_( " %i ks - %s" ), imported.size(),
+		DataAccessInterface::SellerStatus2String( SellerStatus::imported ) ));
 	++row;
 
 	for( unsigned int i = 0; i < imported.size(); ++i ) {
@@ -464,7 +466,8 @@ void Recipees::PrintStats( PdfWrapperBase& pdf )
 	}
 
 	// items taken from seller
-	cells.Cell( row, 1 ).SetText( ConvFuncs::FormatStdStr(_( "Tovar prebratý - predajcov: %i" ), received.size() ) );
+	cells.Cell( row, 2 ).SetText( ConvFuncs::FormatStdStr(_( " %i ks - %s" ), received.size(),
+		DataAccessInterface::SellerStatus2String( SellerStatus::receivedSelling ) ));
 	++row;
 
 	SellerCategory sellerCat;
@@ -485,7 +488,8 @@ void Recipees::PrintStats( PdfWrapperBase& pdf )
 	}
 
 	// remaining items handed out back
-	cells.Cell( row, 1 ).SetText( ConvFuncs::FormatStdStr(_( "Tovar vydaný späť - predajcov: %i" ), handedOut.size() ) );
+	cells.Cell( row, 2 ).SetText( ConvFuncs::FormatStdStr(_( " %i ks - %s" ), handedOut.size(),
+		DataAccessInterface::SellerStatus2String( SellerStatus::handedOut ) ));
 	++row;
 
 	for( unsigned int i = 0; i < handedOut.size(); ++i ) {

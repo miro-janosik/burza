@@ -2,13 +2,15 @@
 
 using namespace Burza;
 
+#include "stringencoding.h"
+
 const SELLER_ID SELLER_ID_NONE = -1;
 const ITEM_ID ITEM_ID_NONE = -1;
 const SELLER_CATEGORY_ID SELLER_CATEGORY_ID_NONE = -1;
 const ITEM_CATEGORY_ID ITEM_CATEGORY_ID_NONE = -1;
 
 char DataAccessInterface::m_status_character_in_file[ ItemStatusCountWithUndefined + 1 ] = "ospvdnu";
-string DataAccessInterface::m_status_string[ ItemStatusCountWithUndefined ] = {
+string DataAccessInterface::itemStatusString[ ItemStatusCountWithUndefined ] = {
   "Nezaradene",
   "Skladom",
   "Predane",
@@ -16,6 +18,12 @@ string DataAccessInterface::m_status_string[ ItemStatusCountWithUndefined ] = {
   "Dar",
   "Dohladat",
   "Nedefinovane",
+};
+
+string DataAccessInterface::sellerStatusString[ SellerStatus::count ] = {
+  "Zatiaæ nepred·va",
+  "Pred·va",
+  StringEncoding::ISO8859_2ToUTF8ret( "Vydan˝ sp‰ù" ),
 };
 
 SellerData::SellerData()
@@ -176,7 +184,7 @@ const char* DataAccessInterface::ItemStatus2String( ItemStatus status )
 	if (( status < 0 ) || ( status >= ItemStatusCount ))
 		return "?";
 	
-	return m_status_string[ status ].c_str();
+	return itemStatusString[ status ].c_str();
 }
 
 char DataAccessInterface::ItemStatus2Char( ItemStatus status )
@@ -194,6 +202,14 @@ ItemStatus DataAccessInterface::Char2ItemStatus( char c )
 			return (Burza::ItemStatus) i;
 	
 	return undefined;
+}
+
+const char* DataAccessInterface::SellerStatus2String( SellerStatus status )
+{
+	if (( status < 0 ) || ( status >= SellerStatus::count ))
+		return "?";
+	
+	return sellerStatusString[ status ].c_str();
 }
 
 ConvFuncs::s_datetime DataAccessInterface::GetCurrentTime( void )

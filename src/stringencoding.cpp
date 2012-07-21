@@ -110,6 +110,13 @@ void StringEncoding::ISO8859_2ToUTF8( std::string& str )
 	str = resultstr;
 }
 
+std::string StringEncoding::ISO8859_2ToUTF8ret( std::string str )
+{
+	std::vector<char> result;
+	result = OneToAnother( str.c_str(), str.size(), "ISO_8859-2", "UTF-8" );
+	return std::string( result.begin(), result.end() );
+}
+
 std::string StringEncoding::WStringToUTF8(std::wstring &str)
 {
 	std::vector<char> result;

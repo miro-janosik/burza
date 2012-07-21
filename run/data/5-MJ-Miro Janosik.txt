@@ -1,10 +1,10 @@
-﻿5*MJ*Miro Janosik*mirojanosik@email.email 0101-102020 Prijal:Miro Prijal:Miro Vydal:Miro*s*2
+5*MJ*Miro Janosik*mirojanosik@email.email 0101-102020 Prijal:Miro Vydal:Miro*s*2
 1*Čiapočka s kvetinkami*2.2*a*v
 2*Šaty prúžkované bielo-modré*14.2*a*p
 3*Topánočky hnedé slon*20.0*a*p
 4*Ponožky biele*0.5*a*v
 5*Kočík skladací per-perego*155.0*a*o
-6*Kočík skladací makyta*200.0*a*o
+6*Kočík skladací makyta*200.0*a*n
 7*Body modré s macíkom*2.0*a*o
 8*Zimná kombinéza bledomodrá s rukavičkami a papučkami, 3-6 mes., v predu bledý macko*6.0*a*o
 9*Prechodná bundička športová bledomodo-tamvomodro-červená zn.rosh*2.0*a*o

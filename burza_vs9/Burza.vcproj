@@ -432,6 +432,10 @@
 			</File>
 		</Filter>
 		<File
+			RelativePath="..\run\data\burza.ico"
+			>
+		</File>
+		<File
 			RelativePath="..\src\burzamain.cpp"
 			>
 		</File>

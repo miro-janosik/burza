@@ -2030,10 +2030,10 @@ void BurzaDialogs::CreateStatusImages( void )
 		registerColumnStateImages[ i ] = Gdk::Pixbuf::create(Gdk::Colorspace::COLORSPACE_RGB, FALSE, 8, sizex, sizey);
 	}
 
-	registerColumnStateImages[ not_in_stock_yet ]->fill( ColorToPixel( 50, 50, 255 ) );
+	registerColumnStateImages[ not_in_stock_yet ]->fill( ColorToPixel( 50, 50, 50 ) );
 	registerColumnStateImages[ on_stock ]->fill( ColorToPixel( 100, 255, 100 ) );
-	registerColumnStateImages[ sold ]->fill( ColorToPixel( 128, 128, 128 ) );
-	registerColumnStateImages[ returned ]->fill( ColorToPixel( 50, 50, 50 ) );
+	registerColumnStateImages[ sold ]->fill( ColorToPixel( 255, 190, 50 ) );
+	registerColumnStateImages[ returned ]->fill( ColorToPixel( 50, 50, 255 ) );
 	registerColumnStateImages[ given_as_gift ]->fill( ColorToPixel( 255, 0, 255 ) );
 	registerColumnStateImages[ lost ]->fill( ColorToPixel( 255, 80, 80 ) );
 	registerColumnStateImages[ undefined ]->fill( ColorToPixel( 255, 0, 0 ) );

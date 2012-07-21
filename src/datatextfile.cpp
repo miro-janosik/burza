@@ -130,7 +130,6 @@ SELLER_ID DataTextfile::LoadFromTxtFile( string filename, SellerData& seller, It
 	static const int linebuffer_len = 512;
 	char linebuffer[ linebuffer_len ];
 	char namebuffer[ linebuffer_len ];
-	char unicodeTextHeader[ 3 ] = { 0xEF, 0xBB, 0xBF };
 	unsigned short strpos;
 	ItemData	item;
 	
@@ -138,6 +137,9 @@ SELLER_ID DataTextfile::LoadFromTxtFile( string filename, SellerData& seller, It
 	
 	file.gets( linebuffer, linebuffer_len );
 
+	// if text file is UTF-something then it contains the UTF-something header. I don't know
+	// how to read it properly (portable) so I'm just skipping those bytes.
+	char unicodeTextHeader[ 3 ] = { 0xEF, 0xBB, 0xBF };
 	if (( strlen( linebuffer ) >= 3 ) && (memcmp( linebuffer, unicodeTextHeader, 3 ) == 0))
 	{
 		strcpy( linebuffer, linebuffer + 3 );
