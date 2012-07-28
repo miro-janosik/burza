@@ -6,7 +6,7 @@
 Name "Burza"
 
 ; The file to write
-OutFile "..\Burza_inst.exe"
+OutFile "..\Burza_1_0.exe"
 
 ; The default installation directory
 InstallDir $PROGRAMFILES\Burza
@@ -21,15 +21,15 @@ RequestExecutionLevel admin
 ; The /SOLID lzma compressor created the smallest installer
 SetCompressor /SOLID lzma
 
-Icon main.ico
-UninstallIcon data/burza.ico
+Icon "data/burza.ico"
+UninstallIcon "data/burza.ico"
 
 
 ;--------------------------------
 
 ; Pages
 
-Page components
+; Page components
 Page directory
 Page instfiles
  
@@ -53,7 +53,8 @@ Section "Burza"
   File "burza.xml"
   File "*.dll"
 
-  File "vcredist_x86.exe"
+  File "vcredist_2008_x86.exe"
+  File "vcredist_2005_sp1_x86.exe"
 
   ; doc directory
   SetOutPath $INSTDIR\documents
@@ -67,10 +68,10 @@ Section "Burza"
   File "data\*.txt"
 
   SetOutPath $INSTDIR\lib\gtk-2.0\2.10.0\loaders
-  File lib\gtk-2.0\2.10.0\loaders\libpixbufloader-bmp.dll 
-  File lib\gtk-2.0\2.10.0\loaders\libpixbufloader-ico.dll
+  File lib\gtk-2.0\2.10.0\loaders\*.*
 
-x druhy loader dir
+  SetOutPath $INSTDIR\etc\gtk-2.0
+  File etc\gtk-2.0\*.*
 
   ; Write the installation path into the registry
   WriteRegStr HKLM SOFTWARE\Burza "Install_Dir" "$INSTDIR"
@@ -82,11 +83,19 @@ x druhy loader dir
   WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Burza" "NoRepair" 1
   WriteUninstaller "uninstall.exe"
 
-  ; install vs2008 sp1 redistributable
+  ; install vs redistributable
+  SetDetailsPrint both
   DetailPrint ""
-  DetailPrint "Please wait few seconds while installing VS2008 SP1 ..."
+  DetailPrint "Please wait few seconds while installing VS 2005 SP1 redistributable ..."
   SetDetailsPrint none
-  ExecWait '"$INSTDIR\vcredist_x86.exe" /q'
+  ExecWait '"$INSTDIR\vcredist_2005_sp1_x86.exe" /q:a /c:"msiexec /i vcredist.msi /qn /l*v %temp%\vcredist_x86.log"'
+
+  SetDetailsPrint both
+  DetailPrint ""
+  DetailPrint "Please wait few seconds while installing VS 2008 redistributable ..."
+  SetDetailsPrint none
+  ExecWait '"$INSTDIR\vcredist_2008_x86.exe" /q'
+
   SetDetailsPrint both
   
 SectionEnd
@@ -111,9 +120,9 @@ SectionEnd
 
 Section "Uninstall"
 
-  ; uninstall vs2008 sp1 redist
-  ; but - its not really necessary to uninstal such upgrade, is it ?
-  ; ExecWait '"$INSTDIR\vcredist_x86.exe" /qu'
+  ; uninstall vs redists ...
+  ; ... but - its not really necessary to uninstal such upgrade, is it ?
+  ; ExecWait '"$INSTDIR\vcredist_2008_x86.exe" /qu'
   
   ; Remove registry keys
   DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Burza"
@@ -124,20 +133,29 @@ Section "Uninstall"
   Delete $INSTDIR\*.dll
   Delete $INSTDIR\*.xml
 
-  Delete $INSTDIR\vcredist_x86.exe
-
   ; files created by program
   Delete $INSTDIR\burza.log
 
   ; etc a lib directories
-  Delete $INSTDIR\etc\gtk-2.0\gdk-pixbuf.loaders
-  Delete $INSTDIR\lib\gtk-2.0\2.10.0\loaders\libpixbufloader-bmp.dll
-  Delete $INSTDIR\lib\gtk-2.0\2.10.0\loaders\libpixbufloader-ico.dll
+  Delete $INSTDIR\etc\gtk-2.0\*.*
+  RMDir $INSTDIR\etc
+  Delete $INSTDIR\lib\gtk-2.0\2.10.0\loaders\*.*
+  RMDir $INSTDIR\lib
+
+
+  ; doc directory
+  ; SetOutPath $INSTDIR\documents
+  ; data directory
+  ; SetOutPath $INSTDIR\data
+
+  Delete $INSTDIR\data\*.gif
+  Delete $INSTDIR\data\*.glade
+  Delete $INSTDIR\data\*.ico
 
   ; Remove shortcuts, if any
   Delete "$SMPROGRAMS\Burza.lnk"
   Delete "$DESKTOP\Burza.lnk"
 
-  ; RMDir "$INSTDIR"
+  ; Do not remove RMDir "$INSTDIR"
 
 SectionEnd

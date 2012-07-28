@@ -43,19 +43,24 @@ Centrala* Centrala::m_instance = NULL;
 
 int main2( int argc, char **argv )
 {
-	Glib::init();
-
 	BiturnLogInstance()->SetLogFileName( "burza-log.txt" );
 	BiturnLogInstance()->SetLoggingMood( BiturnLog::LoggingMoodHeavy );
+	Log( InfoMajor, "main2 starting\n" );
 
+	Log( InfoMajor, "Call to Glib::init\n" );
+	Glib::init();
+
+	Log( InfoMajor, "Creating central instance\n" );
 	Centrala		*pcentrala = Centrala::Instance();
 
 	//TODO: dispose dataStorage in destructor somehow.
 	//	DataTextfile dataStorage = new DataTextfile( Centrala::Instancia()->Nastavenia()->m_data_dir_path );
 	//	m_storage = new CachedDataStorage(*dataStorage);
 	
+	Log( InfoMajor, "Creating conv funcs\n" );
 	ConvFuncs::SingletonInstanceCreate();
 	
+	Log( InfoMajor, "Gtk::Main\n" );
 	Gtk::Main	kit( argc, argv );
 	
 	// do not use local settings, use international. I want '.' as decimal delimiter.
@@ -66,9 +71,11 @@ int main2( int argc, char **argv )
 	std::string exceptionMessage;
 	
 	try {
+		Log( InfoMajor, "Loading and applying settings\n" );
 		Centrala::Settings().LoadSettings();
 		Centrala::Settings().Apply();
 
+		Log( InfoMajor, "SetupDialogs\n" );
 		Centrala::Dialogs().SetupDialogs();
 
 		// Centrala::Register().NacitajVsetkychPredajcov();
@@ -79,6 +86,7 @@ int main2( int argc, char **argv )
 
 		Centrala::Dialogs().initializing = false;
 
+		Log( InfoMajor, "Gtk::Main::run()\n" );
 		Gtk::Main::run();
 	}
 	catch (std::exception& ex) {
@@ -93,10 +101,13 @@ int main2( int argc, char **argv )
 
 	// --=============================--
 	
+	Log( InfoMajor, "Finishing application...\n" );
 	ConvFuncs::SingletonInstanceDelete();
 	
+	Log( InfoMajor, "Removing central instance\n" );
 	Centrala::Zmaz();
 	
+	Log( InfoMajor, "Finished.\n" );
 	return 0;
 }
 
