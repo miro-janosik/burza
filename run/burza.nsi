@@ -6,7 +6,7 @@
 Name "Burza"
 
 ; The file to write
-OutFile "..\Burza_1_0.exe"
+OutFile "..\Burza_1_01.exe"
 
 ; The default installation directory
 InstallDir $PROGRAMFILES\Burza
@@ -88,7 +88,8 @@ Section "Burza"
   DetailPrint ""
   DetailPrint "Please wait few seconds while installing VS 2005 SP1 redistributable ..."
   SetDetailsPrint none
-  ExecWait '"$INSTDIR\vcredist_2005_sp1_x86.exe" /q:a /c:"msiexec /i vcredist.msi /qn /l*v %temp%\vcredist_x86.log"'
+  ; Quiet install does not install correctly: ExecWait '"$INSTDIR\vcredist_2005_sp1_x86.exe" /q:a /c:"msiexec /i vcredist.msi /qn /l*v %temp%\vcredist_x86.log"'
+  ExecWait '"$INSTDIR\vcredist_2005_sp1_x86.exe" /q'
 
   SetDetailsPrint both
   DetailPrint ""
