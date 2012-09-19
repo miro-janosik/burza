@@ -51,6 +51,11 @@ void XmlWrapperTool::CXmlWrapperTools::ReadTreeFromIrrXml( irr::io::IrrXMLReader
 		if ( node_name == NULL )
 			node_name = empty_str;
 		
+		if ( node_type == irr::io::EXN_NONE ) {
+			// EOF
+			break;
+		}
+			
 		if ( node_type == irr::io::EXN_ELEMENT ) {
 			
 			curnode = curnode->AddChild( node_name, "" );

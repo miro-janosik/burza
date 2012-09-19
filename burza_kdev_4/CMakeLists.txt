@@ -1,6 +1,9 @@
 PROJECT(Burza)
 
 cmake_minimum_required(VERSION 2.8)
+
+set(PROJECT_ROOT  ${PROJECT_SOURCE_DIR}/..)
+
 set(CMAKE_MODULE_PATH  ${PROJECT_SOURCE_DIR})
 MESSAGE("CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
 
@@ -8,25 +11,31 @@ set(Burza_VERSION_MAJOR 0)
 set(Burza_VERSION_MINOR 5)
 ADD_DEFINITIONS(-D_UNIX)
 
-OPTION( DOES_NOTHING "This option does nothig, it is as hint." ON )
+OPTION( DOES_NOTHING "This option does nothing, it is as hint." ON )
 
 #get source files in the subdirectories instead of writing them all by hand.
-AUX_SOURCE_DIRECTORY(kdev_src KDEV_SRC_FILES)
-AUX_SOURCE_DIRECTORY(src SRC_FILES)
+AUX_SOURCE_DIRECTORY(${PROJECT_ROOT}/kdev_src KDEV_SRC_FILES)
+AUX_SOURCE_DIRECTORY(${PROJECT_ROOT}/src SRC_FILES)
+AUX_SOURCE_DIRECTORY(${PROJECT_ROOT}/src/irrxml SRC_IRRXML_FILES)
 
-SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/../run)
+SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_ROOT}/run)
 
-ADD_EXECUTABLE(burza_kdev src/burzadata.cpp 
+ADD_EXECUTABLE(burza_kdev ${PROJECT_ROOT}/src/burza.cpp 
 ${KDEV_SRC_FILES}
 ${SRC_FILES}
+${SRC_IRRXML_FILES}
 )
 
-include_directories(src; kdev_src)
+include_directories(
+  ${PROJECT_ROOT}/src; 
+  ${PROJECT_ROOT}/src/irrxml
+  ${PROJECT_ROOT}/kdev_src
+ )
 
 find_package(PkgConfig)
 pkg_check_modules(GTKMM REQUIRED gtkmm-2.4)
 pkg_check_modules(GLADEMM REQUIRED libglademm-2.4)
-pkg_check_modules(PQXX REQUIRED pqxx)
+pkg_check_modules(PQXX REQUIRED pqxx3)
 
 MESSAGE("gtkmm: ${GTKMM_FOUND}, ${GTKMM_INCLUDE_DIRS} , ${GTKMM_LIBRARY_DIRS}.")
 MESSAGE("Glade: ${GLADEMM_FOUND}, ${GLADEMM_LIBRARY_DIRS} , ${GLADEMM_INCLUDE_DIRS} , ${GLADEMM_LIBRARIES} .")

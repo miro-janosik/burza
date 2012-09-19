@@ -268,7 +268,7 @@ private:
 	CXmlTreeSingleNode	*m_parent;
 	
 	void Reset( void )
-		{ m_type = tot_object; m_name = ""; m_value = ""; m_children.clear(); m_parent = &CXmlTreeSingleNode::m_null_child; }
+		{ m_type = tot_object; m_name = ""; m_value = ""; m_children.clear(); m_children_attributes.clear(); m_parent = &CXmlTreeSingleNode::m_null_child; }
 	
 	//! -- type --
 	void SetType( e_tree_node_type t ) 
@@ -299,6 +299,7 @@ class CXmlWrapperTools {
 public:
 	
 	//! reads data from file through IrrXML reader
+	//! returns: 0 if successfull, 1 on error
 	static int ReadTreeFromDiskFile( const char* filename, CXmlTreeSingleNode& target_root );
 	static int ReadTreeFromDiskFile( CConvFile& file, CXmlTreeSingleNode& target_root );
 	

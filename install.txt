@@ -13,7 +13,7 @@ Instal packages:
 	=== Linux - development ===
 
 Install packages:
-	* pqxx
+	* pqxx (or pqxx3 and modify makefiles accordingly)
 
 	=== PostgreSQL server on Linux ===
 edit /etc/postgresql/8.4/main/postgresql.conf
