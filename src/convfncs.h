@@ -84,6 +84,7 @@ typedef long fract;
 	#endif
 	
 	#ifdef _UNIX
+		#include <strings.h>
 		#define stricmp(a, b) strcasecmp((a),(b))
 	#endif
 

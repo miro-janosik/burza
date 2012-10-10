@@ -288,8 +288,9 @@ public:
 		Gtk::TreeModelColumn<std::string> m_state;
 		Gtk::TreeModelColumn<int> m_seller_id;
 		Gtk::TreeModelColumn<int> m_item_id;
-
-		Gtk::TreeModelColumn<Glib::RefPtr<Gdk::Pixbuf>> m_state_pic;
+		
+		// space between "> >" because of gcc compile error
+		Gtk::TreeModelColumn<Glib::RefPtr<Gdk::Pixbuf> > m_state_pic;
 		Gtk::TreeModelColumn<bool> m_state_checkbox;
 	};
 

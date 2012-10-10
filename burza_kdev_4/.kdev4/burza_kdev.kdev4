@@ -1,32 +1,12 @@
 [Buildset]
-BuildItems=@Variant(\x00\x00\x00\t\x00\x00\x00\x00\x01\x00\x00\x00\x0b\x00\x00\x00\x00\x01\x00\x00\x00\x14\x00b\x00u\x00r\x00z\x00a\x00_\x00k\x00d\x00e\x00v)
+BuildItems=@Variant(\x00\x00\x00\t\x00\x00\x00\x00\x01\x00\x00\x00\x0b\x00\x00\x00\x00\x01\x00\x00\x00\x18\x00b\x00u\x00r\x00z\x00a\x00_\x00k\x00d\x00e\x00v\x00_\x004)
 
 [CMake]
-BuildDirs[$e]=/media/data/work/burza/temp/burza_kdev_debug/,/media/data/work/burza/temp/burza_kdev_release,/media/data/work/burza/burza_kdev_4/build,/media/data/work/burza/burza_kdev_4
+BuildDirs=/home/mirex/work/burza/burza_kdev_4/build
 CMakeDir=/usr/share/cmake-2.8/Modules
 Current CMake Binary=file:///usr/bin/cmake
-CurrentBuildDir=file:///media/data/work/burza/burza_kdev_4
+CurrentBuildDir=file:///home/mirex/work/burza/burza_kdev_4/build
 CurrentBuildType=Debug
-CurrentInstallDir=file:///usr/local
+CurrentInstallDir=
+Extra Arguments=
 ProjectRootRelative=./
-
-[Launch]
-Launch Configurations=Launch Configuration 0
-
-[Launch][Launch Configuration 0]
-Configured Launch Modes=execute
-Configured Launchers=nativeAppLauncher
-Name=New Native Application Configuration
-Type=Native Application
-
-[Launch][Launch Configuration 0][Data]
-Arguments=
-Dependencies=@Variant(\x00\x00\x00\t\x00\x00\x00\x00\x00)
-Dependency Action=Nothing
-EnvironmentGroup=default
-Executable=file:///home/mirex/burza/run/burza_kdev
-Working Directory=file:///home/mirex/burza/run
-isExecutable=true
-
-[MakeBuilder]
-Number Of Jobs=1

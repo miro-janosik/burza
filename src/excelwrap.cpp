@@ -190,11 +190,19 @@ void ExcelFileWrapper::ReadSeller( string filename, SellerData& seller, ItemData
 	int infotableRow, infotableColumn;
 	int codeRow, codeColumn;
 	int numberRow, numberColumn;
-	int nameRow, nameColumn;
+	int itemNameRow, itemNameColumn;
 	int priceRow, priceColumn;
+	int sellerCodeRow, sellerCodeColumn, sellerNoteRow, sellerNoteColumn, sellerNameRow, sellerNameColumn;
 
 	// TODO: XXX because of this year's mistake (2012/3) when we forgot '!infotable!'.
 	//itemsOk &= FindCellByText( "!infotable!", infotableRow, infotableColumn);
+	// We have repeated the same problem at 2012/10, now we added one more problem
+	// We have !name! at two places - one at Seller name, and one at Item name!
+
+	itemsOk &= FindCellByText( "!number!", numberRow, numberColumn);
+	itemsOk &= FindCellByText( "!price!", priceRow, priceColumn);
+
+	bool nameCellFound = FindCellByText( "!name!", nameRow, nameColumn);
 
 	bool infoTableFound = FindCellByText( "!infotable!", infotableRow, infotableColumn);
 	if (!infoTableFound) {
@@ -202,19 +210,36 @@ void ExcelFileWrapper::ReadSeller( string filename, SellerData& seller, ItemData
 		infotableColumn = 2;
 
 		infoTableFound = true;
-		infoTableFound &= m_sheet.Cell( infotableRow + 0, infotableColumn ).GetText().empty();
-		infoTableFound &= m_sheet.Cell( infotableRow + 1, infotableColumn ).GetText().empty() == false;
-		infoTableFound &= m_sheet.Cell( infotableRow + 2, infotableColumn ).GetText().empty() == false;
-		infoTableFound &= m_sheet.Cell( infotableRow + 3, infotableColumn ).GetText().empty() == false;
-		infoTableFound &= m_sheet.Cell( infotableRow + 4, infotableColumn ).GetText().empty();
+		
+		// handle 2012/10 problem
+		infoTableFound &= FindCellByText( "!code!", sellerCodeRow, sellerCodeColumn);
+		sellerCodeColumn--;
+		infoTableFound &= FindCellByText( "!note!", sellerNoteRow, sellerNoteColumn);
+		sellerNoteColumn--;
+		sellerNameRow = sellerCodeRow - 1;
+		sellerNameColumn = sellerCodeColumn;
+
+		// if it is not file from 2012/10 then maybe it is from 2012/03 ...
+		if (! infoTableFound)
+		{
+			infoTableFound &= m_sheet.Cell( infotableRow + 0, infotableColumn ).GetText().empty();
+			infoTableFound &= m_sheet.Cell( infotableRow + 1, infotableColumn ).GetText().empty() == false;
+			infoTableFound &= m_sheet.Cell( infotableRow + 2, infotableColumn ).GetText().empty() == false;
+			infoTableFound &= m_sheet.Cell( infotableRow + 3, infotableColumn ).GetText().empty() == false;
+			infoTableFound &= m_sheet.Cell( infotableRow + 4, infotableColumn ).GetText().empty();
+
+			// see above - 2012/10 bug
+			itemsOk &= FindCellByText( "!name!", nameRow, nameColumn);
+		}
 	}
 	itemsOk &= infoTableFound;
 
-	itemsOk &= FindCellByText( "!number!", numberRow, numberColumn);
-	itemsOk &= FindCellByText( "!name!", nameRow, nameColumn);
-	itemsOk &= FindCellByText( "!price!", priceRow, priceColumn);
+	if (!nameCellFound)
+	{
+		itemNameRow = numberRow; itemNameColumn = numberColumn + 1;
+	}
 
-	if ((numberRow != nameRow) || (numberRow != priceRow)) {
+	if ((numberRow != itemNameRow) || (numberRow != priceRow)) {
 		itemsOk = false;
 	}
 
@@ -225,9 +250,9 @@ void ExcelFileWrapper::ReadSeller( string filename, SellerData& seller, ItemData
 	
 	// Read seller info
 	try {
-		seller.name = m_sheet.Cell( infotableRow + 1, infotableColumn ).GetText();
-		seller.shortcode = m_sheet.Cell( infotableRow + 2, infotableColumn ).GetText();
-		seller.note = m_sheet.Cell( infotableRow + 3, infotableColumn ).GetText();
+		seller.name = m_sheet.Cell( sellerNameRow, sellerNameColumn ).GetText();
+		seller.shortcode = m_sheet.Cell( sellerCodeRow, sellerCodeColumn ).GetText();
+		seller.note = m_sheet.Cell( sellerNoteRow, sellerNoteColumn ).GetText();
 		seller.category = 0;
 	}
 	catch(std::out_of_range& e) {
@@ -244,12 +269,12 @@ void ExcelFileWrapper::ReadSeller( string filename, SellerData& seller, ItemData
 	while( true ) {
 		row++;
 
-		if (( m_sheet.Cell( row, numberColumn ) == "" ) &&
-			( m_sheet.Cell( row, nameColumn ) == "" ) &&
+		if (( m_sheet.Cell( row, itemNameColumn ) == "" ) &&
+			( m_sheet.Cell( row, itemNameColumn ) == "" ) &&
 			( m_sheet.Cell( row, priceColumn ) == "" )) 
 			break;
 
-		if (( m_sheet.Cell( row, nameColumn ) == "" ) || 
+		if (( m_sheet.Cell( row, itemNameColumn ) == "" ) || 
 			( m_sheet.Cell( row, priceColumn ) == "" )) {
 			continue;
 		}
@@ -270,7 +295,7 @@ void ExcelFileWrapper::ReadSeller( string filename, SellerData& seller, ItemData
 		}
 
 		items.push_back(ItemData(
-			m_sheet.Cell( row, nameColumn ), 
+			m_sheet.Cell( row, itemNameColumn ), 
 			num, 
 			atof( price.c_str() ), 
 			0, 

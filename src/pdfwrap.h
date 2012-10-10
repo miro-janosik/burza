@@ -9,7 +9,12 @@
 
 #include <string>
 
-#define HPDF_DLL
+#ifdef _WIN32
+  #define HPDF_DLL
+#else
+  
+#endif
+
 #include "hpdf.h"
 #include "table.h"
 

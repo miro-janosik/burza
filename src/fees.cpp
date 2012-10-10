@@ -32,7 +32,7 @@ SellerFees SellerFees::CalculateSellerFees( SellerCategory& sellerCat, ItemDataA
 			//case on_stock:
 			//case sold:
 			//case returned:
-			case ItemStatus::not_in_stock_yet:
+			case ::not_in_stock_yet:
 				break;
 			default:
 				if ( sellerItems[ i ].price > sellerCat.fee_item + 0.0001 )

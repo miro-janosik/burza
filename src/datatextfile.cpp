@@ -159,8 +159,8 @@ SELLER_ID DataTextfile::LoadFromTxtFile( string filename, SellerData& seller, It
 	const char* statusString = ConvFuncsInstance->StrItem( linebuffer, 5, file_field_delimiters );
 	int status = atoi( statusString );
 	seller.status = (SellerStatus) status;
-	if ((seller.status < 0 ) || (seller.status >= SellerStatus::count))
-		seller.status = SellerStatus::imported;
+	if ((seller.status < 0 ) || (seller.status >= SellerStatusCount))
+		seller.status = imported;
 	
 	while( 1 ) {
 		if ( file.Eof() )

@@ -1,8 +1,11 @@
-#include "itemsearch.h"
-
 #include <vector>
 #include <string>
 #include <algorithm>
+#ifdef _UNIX
+	#include <stdexcept>
+#endif
+
+#include "itemsearch.h"
 #include "dataaccess.h"
 #include "burza.h"
 #include "errhandler.h"
@@ -64,7 +67,7 @@ void ItemSearch::FetchLatestData( void )
 		ErrorHandling::HandleException(e);
 	}
 	catch(...) {
-		exception e("ItemSearch::FetchLatestData");
+		runtime_error e("ItemSearch::FetchLatestData");
 		ErrorHandling::HandleException(e);
 	}
 }

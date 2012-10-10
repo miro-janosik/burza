@@ -67,7 +67,8 @@ std::vector<char> StringEncoding::OneToAnother( const char* src, int sizeinbytes
 		}
 		
 		// return code of iconv()
-		int rc = iconv(cd, &inBufferPtr, &inleft, &outBufferPtr, &outleft);
+		// (char**) cast because of g++ strict warning
+		int rc = iconv(cd, (char**) &inBufferPtr, &inleft, &outBufferPtr, &outleft);
 		if (rc == -1) {
 			printErrno = errno;
 			iconv_close(cd);
@@ -121,6 +122,9 @@ std::string StringEncoding::WStringToUTF8(std::wstring &str)
 {
 	std::vector<char> result;
 	const char* cp = (const char*)str.c_str();
+	
+	// changed "UCS-2-INTERNAL" to different because on unix it is not known
+	// str.size() * 2, "WCHAR_T", "UTF-8"
 	result = OneToAnother( cp, str.size() * 2, "UCS-2-INTERNAL", "UTF-8" );
 	std::string resultstr( result.begin(), result.end() );
 	

@@ -68,7 +68,7 @@ enum SellerStatus {
 	// returned
 	handedOut,
 
-	count,
+	SellerStatusCount,
 };
 
 struct SellerData {
@@ -375,7 +375,7 @@ public:
 private:
   static char	m_status_character_in_file[ ItemStatusCountWithUndefined + 1 ];
   static string itemStatusString[ ItemStatusCountWithUndefined ];
-  static string sellerStatusString[ SellerStatus::count ];
+  static string sellerStatusString[ SellerStatusCount ];
 };
 
 //! Base class that should be used as base for classes that read and write data.

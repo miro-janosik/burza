@@ -67,13 +67,18 @@ bool BurzaDialogs::RegisterAnySelectedSeller( void )
 
 SellerData BurzaDialogs::RegisterGetSelectedSeller( void )
 { 
-	try {
-		return Centrala::Storage().GetSeller( m_RegisterSelectedSellerId );
-	}
-	catch(exception& e)
+	if (m_RegisterSelectedSellerId != SELLER_ID_NONE )
 	{
-		ErrorHandling::HandleException(e);
+		try {
+			return Centrala::Storage().GetSeller( m_RegisterSelectedSellerId );
+		}
+		catch(exception& e)
+		{
+			ErrorHandling::HandleException(e);
+		}
 	}
+	
+	throw runtime_error("No seller selected.");
 }
 
 SELLER_ID BurzaDialogs::RegisterGetSelectedSellerId( void )
@@ -705,13 +710,13 @@ void BurzaDialogs::RegisterDisplaySeller(SellerData& seller)
 void BurzaDialogs::RegisterDisplaySellerUpdateSellerStatus( Burza::SellerStatus status )
 {
 	switch ( status ) {
-	case SellerStatus::imported:
+	case imported:
 		m_pRegisterRadioSellerStatus1NotImported->set_active( true );
 		break;
-	case SellerStatus::receivedSelling:
+	case receivedSelling:
 		m_pRegisterRadioSellerStatus2ImportedSelling->set_active( true );
 		break;
-	case SellerStatus::handedOut:
+	case handedOut:
 		m_pRegisterRadioSellerStatus3ReturnedBack->set_active( true );
 		break;
 	}
@@ -907,7 +912,7 @@ void BurzaDialogs::RegisterButtonFinishAcceptingItems( void )
 		Centrala::Storage().ModifySellerStart( m_RegisterSelectedSellerId );
 		
 		seller.note += _( "Prijatý " ) + preberajuci;
-		seller.status = SellerStatus::receivedSelling;
+		seller.status = receivedSelling;
 
 		Centrala::Storage().ModifySellerEnd( m_RegisterSelectedSellerId, seller );
 	}
@@ -993,11 +998,11 @@ void BurzaDialogs::RegisterButtonAcceptUnaccept( void )
 	ItemStatus statusFrom, statusTo;
 
 	switch ( seller.status ) {
-	case SellerStatus::imported:
+	case imported:
 		statusFrom = Burza::not_in_stock_yet;
 		statusTo = Burza::on_stock;
 		break;
-	case SellerStatus::receivedSelling:
+	case receivedSelling:
 		statusFrom = Burza::on_stock;
 		statusTo = Burza::returned;
 		break;
@@ -1974,7 +1979,7 @@ void BurzaDialogs::SettingsClickedButtonInstallLicence( void )
 
 void BurzaDialogs::SettingsClickedButtonOk( void )
 {
-	settingsWindow.dialog->response( Gtk::ResponseType::RESPONSE_OK );
+	settingsWindow.dialog->response( Gtk::RESPONSE_OK );
 	settingsWindow.dialog->hide();
 
 	ProgramSettings	*settings = & Centrala::Settings();
@@ -2027,7 +2032,7 @@ void BurzaDialogs::CreateStatusImages( void )
 
 	for( int i=0; i < ItemStatusCountWithUndefined; ++i ) 
 	{
-		registerColumnStateImages[ i ] = Gdk::Pixbuf::create(Gdk::Colorspace::COLORSPACE_RGB, FALSE, 8, sizex, sizey);
+		registerColumnStateImages[ i ] = Gdk::Pixbuf::create(Gdk::COLORSPACE_RGB, FALSE, 8, sizex, sizey);
 	}
 
 	registerColumnStateImages[ not_in_stock_yet ]->fill( ColorToPixel( 50, 50, 50 ) );
@@ -2055,30 +2060,30 @@ void BurzaDialogs::on_column_checkbox_edited( Glib::ustring rowNumberText )
 
 	switch (seller.status)
 	{
-	case SellerStatus::imported:
+	case imported:
 
 		switch ( item.status )
 		{
-		case ItemStatus::on_stock:
-			item.status = ItemStatus::not_in_stock_yet;
+		case on_stock:
+			item.status = not_in_stock_yet;
 			break;
-		case ItemStatus::not_in_stock_yet:
-			item.status = ItemStatus::on_stock;
+		case not_in_stock_yet:
+			item.status = on_stock;
 			break;
 		default:
 			// any other state can't be flipped by checkbox
 			return;
 		}
 		break;
-	case SellerStatus::receivedSelling:
+	case receivedSelling:
 
 		switch ( item.status )
 		{
-		case ItemStatus::on_stock:
-			item.status = ItemStatus::returned;
+		case on_stock:
+			item.status = returned;
 			break;
-		case ItemStatus::returned:
-			item.status = ItemStatus::on_stock;
+		case returned:
+			item.status = on_stock;
 			break;
 		default:
 			// any other state can't be flipped by checkbox
@@ -2089,7 +2094,8 @@ void BurzaDialogs::on_column_checkbox_edited( Glib::ustring rowNumberText )
 	}
 
 	Centrala::Storage().ModifyItem(item.id, item);
-	RegisterDisplaySeller( RegisterGetSelectedSeller() );
+	
+	RegisterDisplaySeller( seller );
 }
 
 void BurzaDialogs::RegisterButtonReviewOfSellers( void )
@@ -2193,7 +2199,7 @@ ItemDataArray BurzaDialogs::DemoLimitsGetSellerItems( SELLER_ID sellerId )
 			str += "\n";
 			str += Licence::forMoreInformation;
 
-			ItemData item( str, -1, 1.0, 0, ItemStatus::given_as_gift );
+			ItemData item( str, -1, 1.0, 0, given_as_gift );
 			items.push_back( item );
 			*/
 		}
@@ -2204,9 +2210,14 @@ ItemDataArray BurzaDialogs::DemoLimitsGetSellerItems( SELLER_ID sellerId )
 
 bool BurzaDialogs::RegisterAskToFinishAcceptingSellerChanges( void )
 {
+	if (! RegisterAnySelectedSeller())
+	{
+		return true;
+	}
+  
 	// ask only if user is not accepted yet
 	SellerData seller = RegisterGetSelectedSeller();
-	if (seller.status != SellerStatus::imported) 
+	if (seller.status != imported) 
 		return true;
 
 	DisplayOkMessageBox( 
@@ -2230,7 +2241,7 @@ bool BurzaDialogs::RegisterAskToFinishAcceptingSellerChanges( void )
 	try {
 		Centrala::Storage().ModifySellerStart( seller.id );
 		
-		seller.status = SellerStatus::receivedSelling;
+		seller.status = receivedSelling;
 		seller.note += _( " Prijal:" ) + personAcceptingItems;
 
 		Centrala::Storage().ModifySellerEnd( seller.id, seller );
@@ -2251,13 +2262,13 @@ void BurzaDialogs::RegisterSellerStatusRadioChanged( void )
 	SellerStatus newState;
 
 	if ( m_pRegisterRadioSellerStatus1NotImported->get_active() ) {
-		newState = SellerStatus::imported;
+		newState = imported;
 	}
 	else if ( m_pRegisterRadioSellerStatus2ImportedSelling->get_active() ) {
-		newState = SellerStatus::receivedSelling;
+		newState = receivedSelling;
 	}
 	else if ( m_pRegisterRadioSellerStatus3ReturnedBack->get_active() ) {
-		newState = SellerStatus::handedOut;
+		newState = handedOut;
 	}
 	
 	if ( !RegisterAnySelectedSeller() )
@@ -2273,10 +2284,10 @@ void BurzaDialogs::RegisterSellerStatusRadioChanged( void )
 	bool addComment = false;
 
 	switch ( seller.status ) {
-	case SellerStatus::imported:
+	case imported:
 		
 		switch ( newState ) {
-		case SellerStatus::receivedSelling:
+		case receivedSelling:
 			{
 				// changing from 'imported' to 'selling' can be done only
 				// if all items are marked as 'received on stock'.
@@ -2286,10 +2297,10 @@ void BurzaDialogs::RegisterSellerStatusRadioChanged( void )
 				for( int i=0; i < items.size(); ++i ) {
 
 					switch ( items[ i ].status ) {
-					case ItemStatus::on_stock:
-					case ItemStatus::returned:
-					case ItemStatus::given_as_gift:
-					case ItemStatus::lost:
+					case on_stock:
+					case returned:
+					case given_as_gift:
+					case lost:
 						break;
 					default:
 						++itemInvalidStatePcs;
@@ -2308,7 +2319,7 @@ void BurzaDialogs::RegisterSellerStatusRadioChanged( void )
 				addComment = true;
 			}
 			break;
-		case SellerStatus::handedOut:
+		case handedOut:
 			returnStateBack = true;
 			break;
 		default:
@@ -2318,13 +2329,13 @@ void BurzaDialogs::RegisterSellerStatusRadioChanged( void )
 
 		break;
 
-	case SellerStatus::receivedSelling:
+	case receivedSelling:
 
 		switch ( newState ) {
-		case SellerStatus::imported:
+		case imported:
 			break;
 
-		case SellerStatus::handedOut:
+		case handedOut:
 			{
 				// changing from 'selling' to 'handed out' can be done only
 				// if no items are left to sale.
@@ -2334,10 +2345,10 @@ void BurzaDialogs::RegisterSellerStatusRadioChanged( void )
 				for( int i=0; i < items.size(); ++i ) {
 
 					switch ( items[ i ].status ) {
-					case ItemStatus::sold:
-					case ItemStatus::returned:
-					case ItemStatus::given_as_gift:
-					case ItemStatus::lost:
+					case sold:
+					case returned:
+					case given_as_gift:
+					case lost:
 						break;
 					default:
 						++itemInvalidStatePcs;
@@ -2364,13 +2375,13 @@ void BurzaDialogs::RegisterSellerStatusRadioChanged( void )
 
 		break;
 
-	case SellerStatus::handedOut:
+	case handedOut:
 
 		switch ( newState ) {
-		case SellerStatus::imported:
+		case imported:
 			returnStateBack = true;
 			break;
-		case SellerStatus::receivedSelling:
+		case receivedSelling:
 			break;
 		default:
 			assert( false );
@@ -2413,10 +2424,10 @@ void BurzaDialogs::RegisterSellerStatusRadioChanged( void )
 		{
 			string activity = "?";
 			switch ( newState ) {
-				case SellerStatus::receivedSelling:
+				case receivedSelling:
 					activity = _( "Prijal" );
 					break;
-				case SellerStatus::handedOut:
+				case handedOut:
 					activity = _( "Vydal" );
 					break;
 			}

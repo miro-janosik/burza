@@ -4,6 +4,11 @@
 #include <sstream>
 #include "format.h"
 
+#ifdef _UNIX
+#include <stdlib.h>
+#include <string.h>
+#endif
+
 using namespace std;
 
 #define USED_LONGLONG long
@@ -83,8 +88,10 @@ void format::format_string(const string fmt, ...)
 					buf<<arg;
 					break; }
 				case fmtspec::STRING: {
-					string	arg=va_arg(args,string);
-					buf<<arg;
+					// on unix - can't pass std::string through argvs
+					// string	arg=va_arg(args,string);
+					// buf<<arg;
+					// assert( false );
 					break; }
 				case fmtspec::CSTRING: {
 					char	*arg=va_arg(args,char *);

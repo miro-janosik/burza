@@ -20,7 +20,7 @@ string DataAccessInterface::itemStatusString[ ItemStatusCountWithUndefined ] = {
   "Nedefinovane",
 };
 
-string DataAccessInterface::sellerStatusString[ SellerStatus::count ] = {
+string DataAccessInterface::sellerStatusString[ SellerStatusCount ] = {
   "Zatiaæ nepred·va",
   "Pred·va",
   StringEncoding::ISO8859_2ToUTF8ret( "Vydan˝ sp‰ù" ),
@@ -32,7 +32,7 @@ SellerData::SellerData()
 	shortcode = "";
 	note = "";
 	category = -1;
-	status = SellerStatus::imported;
+	status = imported;
   
 	ConvFuncs::GetDateTime();
 	last_update = ConvFuncs::datetime;
@@ -63,7 +63,7 @@ SellerData::SellerData(SELLER_ID _id, string _name, string _shortcode, string _n
 	last_update = ConvFuncs::datetime;
 	
 	id = _id;
-	status = SellerStatus::imported;
+	status = imported;
 }
 
 SellerData::SellerData(string _name, string _shortcode, string _note, int _category)
@@ -77,7 +77,7 @@ SellerData::SellerData(string _name, string _shortcode, string _note, int _categ
 	last_update = ConvFuncs::datetime;
 	
 	id = -1;
-	status = SellerStatus::imported;
+	status = imported;
 }
 
 ItemData::ItemData()
@@ -206,7 +206,7 @@ ItemStatus DataAccessInterface::Char2ItemStatus( char c )
 
 const char* DataAccessInterface::SellerStatus2String( SellerStatus status )
 {
-	if (( status < 0 ) || ( status >= SellerStatus::count ))
+	if (( status < 0 ) || ( status >= SellerStatusCount ))
 		return "?";
 	
 	return sellerStatusString[ status ].c_str();

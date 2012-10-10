@@ -1,5 +1,9 @@
 #include <string>
 #include <vector>
+#ifdef _UNIX
+	#include <stdexcept>
+#endif
+
 #include "licence.h"
 #include "translate.h"
 
@@ -9,7 +13,8 @@ string encCharacters = "123456789ACDEFHJKLMNPRTUVWXYZ";
 const unsigned int encCharactersSize = encCharacters.size();
 std::string Licence::forMoreInformation = _( "Viac informácií o licenciách sa dozviete na http://burza.mypage.sk" );
 
-Licence* Licence::instance = NULL;
+// template<> X* Singleton<X> because of unix g++ compiler
+template<> Licence* Singleton<Licence>::instance = NULL;
 
 Licence::Licence(void)
 {

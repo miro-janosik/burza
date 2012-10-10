@@ -409,13 +409,13 @@ void Recipees::PrintStats( PdfWrapperBase& pdf )
 	for( unsigned int i = 0; i < allSorted.size(); ++i )
 	{
 		switch ( allSorted[ i ]->status ) {
-		case SellerStatus::imported:
+		  case ::imported:
 			imported.push_back( allSorted[ i ] );
 			break;
-		case SellerStatus::receivedSelling:
+		  case ::receivedSelling:
 			received.push_back( allSorted[ i ] );
 			break;
-		case SellerStatus::handedOut:
+		  case ::handedOut:
 			handedOut.push_back( allSorted[ i ] );
 			break;
 		}
@@ -454,7 +454,7 @@ void Recipees::PrintStats( PdfWrapperBase& pdf )
 
 	// received, imported, but items are not taken in
 	cells.Cell( row, 2 ).SetText( ConvFuncs::FormatStdStr(_( " %i ks - %s" ), imported.size(),
-		DataAccessInterface::SellerStatus2String( SellerStatus::imported ) ));
+		DataAccessInterface::SellerStatus2String( ::imported ) ));
 	++row;
 
 	for( unsigned int i = 0; i < imported.size(); ++i ) {
@@ -467,7 +467,7 @@ void Recipees::PrintStats( PdfWrapperBase& pdf )
 
 	// items taken from seller
 	cells.Cell( row, 2 ).SetText( ConvFuncs::FormatStdStr(_( " %i ks - %s" ), received.size(),
-		DataAccessInterface::SellerStatus2String( SellerStatus::receivedSelling ) ));
+		DataAccessInterface::SellerStatus2String( ::receivedSelling ) ));
 	++row;
 
 	SellerCategory sellerCat;
@@ -489,7 +489,7 @@ void Recipees::PrintStats( PdfWrapperBase& pdf )
 
 	// remaining items handed out back
 	cells.Cell( row, 2 ).SetText( ConvFuncs::FormatStdStr(_( " %i ks - %s" ), handedOut.size(),
-		DataAccessInterface::SellerStatus2String( SellerStatus::handedOut ) ));
+		DataAccessInterface::SellerStatus2String( ::handedOut ) ));
 	++row;
 
 	for( unsigned int i = 0; i < handedOut.size(); ++i ) {
@@ -517,12 +517,12 @@ void Recipees::PrintStats( PdfWrapperBase& pdf )
 	// price of items not brought in, items on stock, items handed out, items sold, items lost
 	int numberOfItems = 0;
 	float costOfAllItems = 0.0;
-	int numberOfItemsInStatus[ ItemStatus::ItemStatusCountWithUndefined ];
-	float costOfItemsInStatus[ ItemStatus::ItemStatusCountWithUndefined ];
+	int numberOfItemsInStatus[ ItemStatusCountWithUndefined ];
+	float costOfItemsInStatus[ ItemStatusCountWithUndefined ];
 	float price;
 	ItemStatus status;
 
-	for( int i = 0; i < ItemStatus::ItemStatusCount; ++i ) {
+	for( int i = 0; i < ItemStatusCount; ++i ) {
 		numberOfItemsInStatus[ i ] = 0;
 		costOfItemsInStatus[ i ] = 0.0;
 	}
@@ -571,7 +571,7 @@ void Recipees::PrintStats( PdfWrapperBase& pdf )
 	pdf.WriteSingleText( textPosX, ypos, ConvFuncs::FormatStdStr(_( "Priemerná cena tovaru na predajcu: %0.0f %s" ), 
 		costOfAllItems / sellers.size(), Centrala::Settings().currencyInternationalShort.c_str() ) );
 
-	for( int i = 0; i < ItemStatus::ItemStatusCount; ++i ) {
+	for( int i = 0; i < ItemStatusCount; ++i ) {
 
 		ypos = AdvanceYpos( ypos, lineSpacing );
 		pdf.WriteSingleText( textPosX, ypos, ConvFuncs::FormatStdStr(_( "Kusov v '%s' : %i , cena tovaru : %0.0f %s" ), 

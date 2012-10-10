@@ -76,11 +76,11 @@ string columnNameStrings[ columnNamesCount ] = {
 DataPostgresPqxx::DataPostgresPqxx()
 {
 	ProgramSettings s = Centrala::Settings();
-	format connectionString("user=%S password=%S dbname=%S hostaddr=%S port=%i",
-		s.dbUser, s.dbPassword, s.dbName, s.dbAddress, s.dbPort);
+	format connectionString("user=%s password=%s dbname=%s hostaddr=%s port=%i",
+		s.dbUser.c_str(), s.dbPassword.c_str(), s.dbName.c_str(), s.dbAddress.c_str(), s.dbPort);
 
-	format logString("Connecting to postgresqldb: user=%S password=%s dbname=%S hostaddr=%S port=%i\n",
-		s.dbUser, "xxx", s.dbName, s.dbAddress, s.dbPort);
+	format logString("Connecting to postgresqldb: user=%s password=%s dbname=%s hostaddr=%s port=%i\n",
+		s.dbUser.c_str(), "xxx", s.dbName.c_str(), s.dbAddress.c_str(), s.dbPort);
 	LogS(InfoMajor, logString.str().c_str());
 
 	// Make a connection to the database
@@ -749,7 +749,7 @@ string DataPostgresPqxx::SellerToQueryUpdateValuesString( SellerData& data )
 
 string DataPostgresPqxx::ApostropheToDouble( string str )
 {
-	string::const_iterator it;
+	string::iterator it;
 	for( it = str.begin(); it != str.end(); ++it ) {
 		if ( *it != '\'' )
 			continue;

@@ -17,6 +17,7 @@ OPTION( DOES_NOTHING "This option does nothing, it is as hint." ON )
 AUX_SOURCE_DIRECTORY(${PROJECT_ROOT}/kdev_src KDEV_SRC_FILES)
 AUX_SOURCE_DIRECTORY(${PROJECT_ROOT}/src SRC_FILES)
 AUX_SOURCE_DIRECTORY(${PROJECT_ROOT}/src/irrxml SRC_IRRXML_FILES)
+AUX_SOURCE_DIRECTORY(${PROJECT_ROOT}/src/BasicExcelFormat SRC_BasicExcel_FILES)
 
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_ROOT}/run)
 
@@ -24,11 +25,13 @@ ADD_EXECUTABLE(burza_kdev ${PROJECT_ROOT}/src/burza.cpp
 ${KDEV_SRC_FILES}
 ${SRC_FILES}
 ${SRC_IRRXML_FILES}
+${SRC_BasicExcel_FILES}
 )
 
 include_directories(
   ${PROJECT_ROOT}/src; 
   ${PROJECT_ROOT}/src/irrxml
+  ${PROJECT_ROOT}/src/BasicExcelFormat
   ${PROJECT_ROOT}/kdev_src
  )
 

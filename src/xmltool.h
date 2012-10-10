@@ -15,7 +15,13 @@
 #include "convfile.h"
 
 #ifdef _UNIX
+  
+	#include <stdlib.h>
+	#include <string.h>
+
 	#ifndef stricmp
+	  // for stricmp strcasecmp on linux
+		#include <strings.h>
 		#define stricmp(a, b) strcasecmp((a),(b))
 	#endif
 #endif
