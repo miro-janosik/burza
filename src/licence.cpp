@@ -18,7 +18,7 @@ template<> Licence* Singleton<Licence>::instance = NULL;
 
 Licence::Licence(void)
 {
-	licenceValid = false;
+	licenceValid = true;
 	hddSerialNumber = 0;
 }
 

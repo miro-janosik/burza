@@ -139,10 +139,13 @@ SellerData DataPostgresPqxx::GetSeller(SELLER_ID id)
 	{
 		throw;
 	}
+	/*
+	Do not handle this exception here, it is serious, let it bubble all way to the top.
 	catch(exception& e)
 	{
 		HandlePostgresqlException(e);
 	}
+	*/
 
 	return sellers[ 0 ];
 }
@@ -744,6 +747,10 @@ string DataPostgresPqxx::SellerToQueryUpdateValuesString( SellerData& data )
 		ApostropheToDouble( data.name ).c_str(), 
 		ApostropheToDouble( data.note ).c_str(), 
 		"false", "", data.category, ValidateTimestampToString( data.last_update ).c_str() );
+
+	"\"STATUS\"='%i'
+	data.status !!
+
 	return values;
 }
 

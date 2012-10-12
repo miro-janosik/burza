@@ -1453,11 +1453,19 @@ void ConvFuncs::GetDateTime( void )
 	DWORD timeIncrement;
 	BOOL adjustmentDisabled;
 	GetSystemTimeAdjustment( &timeAdjustment, &timeIncrement, &adjustmentDisabled );
+	int differenceInHours = - timeZoneInformation.Bias / 60 - timeZoneInformation.DaylightBias / 60;
+
+	// this may cause wrapping over the 24 hours or below 0 hours. Have to be careful on that
+	double vtime;
+	double differenceInDays = differenceInHours / 24.0;
+	SystemTimeToVariantTime( &time, &vtime );
+	vtime += differenceInDays;
+	VariantTimeToSystemTime( vtime, &time );
 
 	datetime.year		=	time.wYear;
 	datetime.month		=	time.wMonth;
 	datetime.day		=	time.wDay;
-	datetime.hour		=	time.wHour - timeZoneInformation.Bias / 60 - timeZoneInformation.DaylightBias / 60;
+	datetime.hour		=	time.wHour;
 	datetime.minute		=	time.wMinute;
 	datetime.second		=	time.wSecond;
 	

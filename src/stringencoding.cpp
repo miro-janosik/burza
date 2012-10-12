@@ -68,7 +68,12 @@ std::vector<char> StringEncoding::OneToAnother( const char* src, int sizeinbytes
 		
 		// return code of iconv()
 		// (char**) cast because of g++ strict warning
-		int rc = iconv(cd, (char**) &inBufferPtr, &inleft, &outBufferPtr, &outleft);
+		int rc = iconv(cd, 
+#ifdef _UNIX
+			(char**)
+#endif
+			&inBufferPtr, 
+			&inleft, &outBufferPtr, &outleft);
 		if (rc == -1) {
 			printErrno = errno;
 			iconv_close(cd);

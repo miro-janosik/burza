@@ -58,15 +58,16 @@ static const ITEM_ID ITEM_ID_NONE = -1;
 static const SELLER_CATEGORY_ID SELLER_CATEGORY_ID_NONE = -1;
 static const ITEM_CATEGORY_ID ITEM_CATEGORY_ID_NONE = -1;
 
+// Do not change items order, stored in DB
 enum SellerStatus {
 	// imported into program, items are not taken in
 	imported = 0,
 	// items are taken from seller in, items are being sold
 	// selling
-	receivedSelling,
+	receivedSelling = 1,
 	// items are handed back to the seller
 	// returned
-	handedOut,
+	handedOut = 2,
 
 	SellerStatusCount,
 };
@@ -90,13 +91,14 @@ public:
 	SellerData(const SellerData&);
 } ;
 
+// Do not change items order, stored in DB
 enum ItemStatus {
 	not_in_stock_yet = 0,
-	on_stock,
-	sold,
-	returned,
-	given_as_gift,
-	lost,
+	on_stock = 1,
+	sold = 2,
+	returned = 3,
+	given_as_gift = 4,
+	lost = 5,
 	ItemStatusCount,
 	undefined = ItemStatusCount,
 	ItemStatusCountWithUndefined,

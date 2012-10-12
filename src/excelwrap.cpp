@@ -201,8 +201,7 @@ void ExcelFileWrapper::ReadSeller( string filename, SellerData& seller, ItemData
 
 	itemsOk &= FindCellByText( "!number!", numberRow, numberColumn);
 	itemsOk &= FindCellByText( "!price!", priceRow, priceColumn);
-
-	bool nameCellFound = FindCellByText( "!name!", nameRow, nameColumn);
+	bool nameCellFound = FindCellByText( "!name!", itemNameRow, itemNameColumn);
 
 	bool infoTableFound = FindCellByText( "!infotable!", infotableRow, infotableColumn);
 	if (!infoTableFound) {
@@ -213,11 +212,12 @@ void ExcelFileWrapper::ReadSeller( string filename, SellerData& seller, ItemData
 		
 		// handle 2012/10 problem
 		infoTableFound &= FindCellByText( "!code!", sellerCodeRow, sellerCodeColumn);
-		sellerCodeColumn--;
+		sellerCodeColumn--;\
 		infoTableFound &= FindCellByText( "!note!", sellerNoteRow, sellerNoteColumn);
 		sellerNoteColumn--;
 		sellerNameRow = sellerCodeRow - 1;
 		sellerNameColumn = sellerCodeColumn;
+		itemNameRow = numberRow; itemNameColumn = numberColumn + 1;
 
 		// if it is not file from 2012/10 then maybe it is from 2012/03 ...
 		if (! infoTableFound)
@@ -229,15 +229,10 @@ void ExcelFileWrapper::ReadSeller( string filename, SellerData& seller, ItemData
 			infoTableFound &= m_sheet.Cell( infotableRow + 4, infotableColumn ).GetText().empty();
 
 			// see above - 2012/10 bug
-			itemsOk &= FindCellByText( "!name!", nameRow, nameColumn);
+			itemsOk &= FindCellByText( "!name!", sellerNameRow, sellerNameColumn);
 		}
 	}
 	itemsOk &= infoTableFound;
-
-	if (!nameCellFound)
-	{
-		itemNameRow = numberRow; itemNameColumn = numberColumn + 1;
-	}
 
 	if ((numberRow != itemNameRow) || (numberRow != priceRow)) {
 		itemsOk = false;
