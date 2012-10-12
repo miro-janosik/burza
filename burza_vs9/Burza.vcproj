@@ -143,7 +143,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libxl.lib libpqxx.lib libhpdf.lib"
+				AdditionalDependencies="libxl.lib libpqxx.lib libhpdf.lib Oleaut32.lib"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="&quot;$(ProjectDir)/../lib/libXL&quot;;&quot;$(ProjectDir)/../lib/pqxx&quot;;&quot;$(ProjectDir)/../lib/libharu&quot;"
 				IgnoreDefaultLibraryNames=""
@@ -433,6 +433,10 @@
 		</Filter>
 		<File
 			RelativePath="..\run\data\burza.ico"
+			>
+		</File>
+		<File
+			RelativePath="..\run\burza.xml"
 			>
 		</File>
 		<File

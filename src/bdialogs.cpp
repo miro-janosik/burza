@@ -2215,6 +2215,8 @@ bool BurzaDialogs::RegisterAskToFinishAcceptingSellerChanges( void )
 		return true;
 	}
   
+	return true;
+
 	// ask only if user is not accepted yet
 	SellerData seller = RegisterGetSelectedSeller();
 	if (seller.status != imported) 

@@ -6,7 +6,7 @@
 Name "Burza"
 
 ; The file to write
-OutFile "..\Burza_1_01.exe"
+OutFile "..\Burza_1_02.exe"
 
 ; The default installation directory
 InstallDir $PROGRAMFILES\Burza

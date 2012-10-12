@@ -38,6 +38,7 @@ enum columnIndexes {
 	sellerColumn_changed_by,
 	sellerColumn_seller_category_id,
 	sellerColumn_modified,
+	sellerColumn_status,
   
 	itemColumn_item_id = 0,
 	itemColumn_name,
@@ -528,9 +529,15 @@ void DataPostgresPqxx::DbDataToSellerData( const result::tuple& result, SellerDa
 	GetItemData( sellerColumn_comment, note )
 	GetItemData( sellerColumn_seller_category_id, category )
 
+	// seller status - integer - enum
+	int statusInt;
+	if (!result[ sellerColumn_status ].to( statusInt ))
+		  dataCorrupt = true;
+	data.status = (SellerStatus) statusInt;
+
 	if (!result[ sellerColumn_modified ].to( timeString ))
 		  dataCorrupt = true;
-	
+
 	if ( dataCorrupt ) {
 		HandleException(new runtime_error("Data in DB corrupted!"));
 	}
@@ -742,14 +749,12 @@ string DataPostgresPqxx::ItemToQueryUpdateValuesString( ItemData& item )
 string DataPostgresPqxx::SellerToQueryUpdateValuesString( SellerData& data )
 {
 	string values = ConvFuncs::FormatStdStr( 
-		"\"SHORT_CODE\"='%s', \"NAME\"='%s', \"COMMENT\"='%s', \"CHANGING\"='%s', \"CHANGED_BY\"='%s', \"SELLER_CATEGORY_ID\"=%i, \"MODIFIED\"='%s'",
+		"\"SHORT_CODE\"='%s', \"NAME\"='%s', \"COMMENT\"='%s', \"CHANGING\"='%s', \"CHANGED_BY\"='%s', \"SELLER_CATEGORY_ID\"=%i, \"MODIFIED\"='%s', \"STATUS\"='%i'",
 		ApostropheToDouble( data.shortcode ).c_str(), 
 		ApostropheToDouble( data.name ).c_str(), 
 		ApostropheToDouble( data.note ).c_str(), 
-		"false", "", data.category, ValidateTimestampToString( data.last_update ).c_str() );
-
-	"\"STATUS\"='%i'
-	data.status !!
+		"false", "", data.category, ValidateTimestampToString( data.last_update ).c_str(),
+		data.status );
 
 	return values;
 }
