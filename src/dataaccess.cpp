@@ -252,6 +252,14 @@ SellerCategory DataAccessInterface::GetSellerCategory(SELLER_CATEGORY_ID id)
 	ids.push_back( id );
 	
 	SellerCategoryArray categories = GetSellersCategories( ids );
+
+	int c = categories.size();
+	for( int i=0; i < c; ++i ) {
+		if ( categories[ i ].id == id) {
+			return categories[ i ];
+		}
+	}
+	
 	return categories[ 0 ];
 }
 

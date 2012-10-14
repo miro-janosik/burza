@@ -92,12 +92,13 @@ CREATE TABLE sellers
   "CHANGED_BY" text,
   "SELLER_CATEGORY_ID" integer DEFAULT (-1),
   "MODIFIED" timestamp with time zone NOT NULL DEFAULT '2000-01-01 01:02:03'::timestamp without time zone,
+  "STATUS" integer NOT NULL DEFAULT 0,
   CONSTRAINT "seller id is unique" PRIMARY KEY ("SELLER_ID")
 )
 WITH (
   OIDS=FALSE
 );
 ALTER TABLE sellers OWNER TO postgres;
+GRANT ALL ON TABLE sellers TO postgres;
+GRANT SELECT, UPDATE, INSERT, DELETE, REFERENCES ON TABLE sellers TO public;
 COMMENT ON TABLE sellers IS 'List of sellers.';
-
-
