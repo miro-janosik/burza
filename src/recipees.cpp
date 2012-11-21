@@ -443,9 +443,11 @@ void Recipees::PrintStats( PdfWrapperBase& pdf )
 
 	columns.AddColumn( _("Kód"), 5 );
 	columns.AddColumn( _("Meno"), 20 );
-	columns.AddColumn( _("Poznámka"), 35 );
+	columns.AddColumn( _("Poznámka"), 25 );
 	columns.AddColumn( _("Kategória"), 10 );
 	columns.AddColumn( _("Predané/Zisk"), 10 );
+	columns.AddColumn( _("10% pop"), 5 );
+	columns.AddColumn( _("manip"), 5 );
 
 	unsigned int row = 0;
 	double gainTotal = 0;
@@ -472,6 +474,10 @@ void Recipees::PrintStats( PdfWrapperBase& pdf )
 
 	SellerCategory sellerCat;
 	SellerFees fees;
+	Fee *fee;
+	
+	double feeWholeSoldSumPercentageAllSellersSum = 0.0;
+	double feePerItemAllSellersSum = 0.0;
 	
 	for( unsigned int i = 0; i < received.size(); ++i ) {
 		cells.Cell( row, 0 ).SetText( received[ i ]->shortcode );
@@ -481,9 +487,28 @@ void Recipees::PrintStats( PdfWrapperBase& pdf )
 		sellerCat = GetSellerCategoryById( categories, received[ i ]->category );
 		ItemDataArray items = Centrala::Storage().GetSellerItems( received[ i ]->id );
 		fees = SellerFees::CalculateSellerFees( sellerCat, items );
+		double gainedSum = fees.sumOfSoldItems - fees.finalSumToGiveToSeller;
+		gainTotal += gainedSum;
 		
 		cells.Cell( row, 3 ).SetText( sellerCat.name );
 		cells.Cell( row, 4 ).SetText( ConvFuncs::FormatStdStr( "%0.2f", fees.sumOfSoldItems ) );
+
+		// fees
+		fee = fees.GetFeeOfType( ::FeeWholeSoldSumPercentage );
+		if ( fee != NULL ) {
+			cells.Cell( row, 5 ).SetText( ConvFuncs::FormatStdStr( "%0.2f", fee->price ) );
+			feeWholeSoldSumPercentageAllSellersSum += fee->price;
+		}
+		
+		fee = fees.GetFeeOfType( ::FeePerItem );
+		if ( fee != NULL ) {
+			cells.Cell( row, 6 ).SetText( ConvFuncs::FormatStdStr( "%0.2f", fee->price ) );
+			feePerItemAllSellersSum += fee->price;
+		}
+		
+		LogS( InfoMajor, "After seller %s - WholeSoldSumPercentageAllSellersSum : %0.2f PerItemAllSellersSum: %0.2f\n", 
+			received[ i ]->shortcode.c_str(), feeWholeSoldSumPercentageAllSellersSum, feePerItemAllSellersSum );
+		
 		++row;
 	}
 
@@ -502,9 +527,26 @@ void Recipees::PrintStats( PdfWrapperBase& pdf )
 		fees = SellerFees::CalculateSellerFees( sellerCat, items );
 		double gainedSum = fees.sumOfSoldItems - fees.finalSumToGiveToSeller;
 		gainTotal += gainedSum;
-
+		
 		cells.Cell( row, 3 ).SetText( sellerCat.name );
 		cells.Cell( row, 4 ).SetText( ConvFuncs::FormatStdStr( "%0.2f / %0.2f", fees.sumOfSoldItems, gainedSum ) );
+		
+		// fees
+		fee = fees.GetFeeOfType( ::FeeWholeSoldSumPercentage );
+		if ( fee != NULL ) {
+			cells.Cell( row, 5 ).SetText( ConvFuncs::FormatStdStr( "%0.2f", fee->price ) );
+			feeWholeSoldSumPercentageAllSellersSum += fee->price;
+		}
+		
+		fee = fees.GetFeeOfType( ::FeePerItem );
+		if ( fee != NULL ) {
+			cells.Cell( row, 6 ).SetText( ConvFuncs::FormatStdStr( "%0.2f", fee->price ) );
+			feePerItemAllSellersSum += fee->price;
+		}
+		
+		LogS( InfoMajor, "After seller %s - WholeSoldSumPercentageAllSellersSum : %0.2f PerItemAllSellersSum: %0.2f\n", 
+			handedOut[ i ]->shortcode.c_str(), feeWholeSoldSumPercentageAllSellersSum, feePerItemAllSellersSum );
+		
 		++row;
 	}
 
@@ -521,7 +563,7 @@ void Recipees::PrintStats( PdfWrapperBase& pdf )
 	float costOfItemsInStatus[ ItemStatusCountWithUndefined ];
 	float price;
 	ItemStatus status;
-
+	
 	for( int i = 0; i < ItemStatusCount; ++i ) {
 		numberOfItemsInStatus[ i ] = 0;
 		costOfItemsInStatus[ i ] = 0.0;
@@ -555,12 +597,9 @@ void Recipees::PrintStats( PdfWrapperBase& pdf )
 
 	ypos = AdvanceYpos( ypos, lineSpacing );
 	pdf.WriteSingleText( textPosX, ypos, ConvFuncs::FormatStdStr(_( "Kusov tovaru: %i" ), numberOfItems) );
-
+	
 	ypos = AdvanceYpos( ypos, lineSpacing );
-	pdf.WriteSingleText( textPosX, ypos, ConvFuncs::FormatStdStr(_( "Zisk spolu: %0.2f" ), gainTotal) );
-
-	ypos = AdvanceYpos( ypos, lineSpacing );
-	pdf.WriteSingleText( textPosX, ypos, ConvFuncs::FormatStdStr(_( "Cena tovaru spolu: %0.0f %s" ), 
+	pdf.WriteSingleText( textPosX, ypos, ConvFuncs::FormatStdStr(_( "Cena tovaru spolu: %0.2f %s" ), 
 		costOfAllItems, Centrala::Settings().currencyInternationalShort.c_str() ) );
 
 	ypos = AdvanceYpos( ypos, lineSpacing );
@@ -570,6 +609,17 @@ void Recipees::PrintStats( PdfWrapperBase& pdf )
 	ypos = AdvanceYpos( ypos, lineSpacing );
 	pdf.WriteSingleText( textPosX, ypos, ConvFuncs::FormatStdStr(_( "Priemerná cena tovaru na predajcu: %0.0f %s" ), 
 		costOfAllItems / sellers.size(), Centrala::Settings().currencyInternationalShort.c_str() ) );
+
+	ypos = AdvanceYpos( ypos, lineSpacing );
+	pdf.WriteSingleText( textPosX, ypos, ConvFuncs::FormatStdStr(_( "Suma získaná z %% poplatku za predané veci: %0.2f %s" ), 
+		feeWholeSoldSumPercentageAllSellersSum, Centrala::Settings().currencyInternationalShort.c_str() ) );
+	
+	ypos = AdvanceYpos( ypos, lineSpacing );
+	pdf.WriteSingleText( textPosX, ypos, ConvFuncs::FormatStdStr(_( "Suma získaná za manipulačný poplatok za kusy: %0.2f %s" ), 
+		feePerItemAllSellersSum, Centrala::Settings().currencyInternationalShort.c_str() ) );
+	
+	ypos = AdvanceYpos( ypos, lineSpacing );
+	pdf.WriteSingleText( textPosX, ypos, ConvFuncs::FormatStdStr(_( "Zisk spolu: %0.2f" ), gainTotal) );
 
 	for( int i = 0; i < ItemStatusCount; ++i ) {
 

@@ -60,7 +60,8 @@ SellerFees SellerFees::CalculateSellerFees( SellerCategory& sellerCat, ItemDataA
 				sellerCat.fee_whole_sold_sum_percentage,
 				sellerCat.fee_whole_sold_sum_percentage,
 				sum ).c_str(),
-			billForSold );
+			billForSold,
+			::FeeWholeSoldSumPercentage );
 		output.fees.push_back( fee );
 	}
 
@@ -72,14 +73,26 @@ SellerFees SellerFees::CalculateSellerFees( SellerCategory& sellerCat, ItemDataA
 				sellerCat.fee_item, sellerCat.fee_item, piecesPriceOverPayPerPiece );
 		finalSum -= billForPieces;
 
-		Fee fee( str.c_str(), billForPieces );
+		Fee fee( str.c_str(), billForPieces, ::FeePerItem );
 		output.fees.push_back( fee );
 	}
 
+	/*
 	if ( finalSum < 0 ) {
 		finalSum = 0;
 	}
+	*/
 
 	output.finalSumToGiveToSeller = finalSum;
 	return output;
+}
+
+Fee* SellerFees::GetFeeOfType(FeeType iType)
+{
+	for( int i=0; i<fees.size(); ++i) {
+		if (fees[ i ].type == iType)
+		  return &fees[ i ];
+	}
+	
+	return NULL;
 }

@@ -9,14 +9,22 @@
 using namespace std;
 namespace Burza {
 
+enum FeeType {
+	FeeUndefined,
+	FeeWholeSoldSumPercentage,
+	FeePerItem,  
+} ;
+
 struct Fee {
 	string	name;
 	double	price;
+	FeeType type;
 
-	Fee(const char* iName, double iPrice)
+	Fee(const char* iName, double iPrice, FeeType iType)
 	{
 		name = iName;
 		price = iPrice;
+		type = iType;
 	}
 };
 
@@ -41,6 +49,9 @@ public:
 
 	//! find out all the fees
 	static SellerFees CalculateSellerFees( SellerCategory& sellerCategory, ItemDataArray& items );
+	
+	//! returns seller fee of specified type or null
+	Fee* GetFeeOfType(FeeType iType);
 };
 
 } // namespace Burza
