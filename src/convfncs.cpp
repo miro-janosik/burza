@@ -1086,13 +1086,19 @@ const char *ConvFuncs::FindOniFileById( unsigned long id, char* path )
 	}
 }
 
-bool ConvFuncs::Find_FirstFile( const char* filename )
+bool ConvFuncs::Find_FirstFile( const char* pattern )
 {
 #ifdef _WIN32
+
+	string patternCopy = pattern;
+	char lastChar = *(patternCopy.rbegin());
+	if (( lastChar == '/' ) || ( lastChar == '\\' ))
+		patternCopy += "*";
+
 	if ( FindFileHandle != -1 ) {
 		_findclose( FindFileHandle );
 	}
-	FindFileResult = FindFileHandle = _findfirst( filename, &FindFileData );
+	FindFileResult = FindFileHandle = _findfirst( patternCopy.c_str(), &FindFileData );
 	FindFileFirstFile = 1;
 
 	return ( FindFileHandle != -1 );
@@ -1106,8 +1112,8 @@ bool ConvFuncs::Find_FirstFile( const char* filename )
 
 	// separate filename to directory and filename
 	std::string		str_dir, str_file;
-	str_file = GetFileFromPathFilename( filename );
-	str_dir = GetPathFromPathFilename( filename );
+	str_file = GetFileFromPathFilename( pattern );
+	str_dir = GetPathFromPathFilename( pattern );
 	
 	DirPtr = opendir( str_dir.c_str() );
 	if ( DirPtr == NULL )
@@ -1371,6 +1377,44 @@ int ConvFuncs::DoDeleteFile( const char* src )
 	assert( false );
 	return 0;
 }
+
+#if (defined ( _WIN32 ))
+// Return true if the folder exists, false otherwise
+bool folderExists(const char* folderName) {
+    if (_access(folderName, 0) == -1) {
+        //File not found
+        return false;
+    }
+
+    DWORD attr = GetFileAttributes((LPCSTR)folderName);
+    if (!(attr & FILE_ATTRIBUTE_DIRECTORY)) {
+        // File is not a directory
+        return false;
+    }
+
+    return true;
+}
+#endif
+
+bool ConvFuncs::DoCreateFolder( const char* parentPath, const char* folderName )
+{
+#if (defined ( _WIN32 ))
+	std::string fullPath = parentPath;
+	fullPath += "/";
+	fullPath += folderName;
+	if (folderExists(fullPath.c_str()))
+		return true;
+
+	if (!folderExists(parentPath))
+		return false;
+
+	return CreateDirectory(fullPath.c_str(), NULL) != 0;
+#endif
+
+	assert( false );
+	return 0;
+}
+
 
 #ifdef UNICODE
 const wchar_t*	ConvFuncs::GetExecutableFilePathName( void )

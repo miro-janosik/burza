@@ -35,6 +35,8 @@
 #include "datatextfile.h"
 #include "cacheddatastorage.h"
 #include "datapostgrespqxx.h"
+#include "excelwrap.h"
+
 
 using namespace Burza;
 using namespace XmlWrapperTool;
@@ -116,31 +118,6 @@ int main2( int argc, char **argv )
 // ==============================================
 // ==============================================
 
-/*
-double BurzaRegister::CalculateFee( SellerData& seller, ItemDataArray& items )
-{
-	double fee = 0;
-	ItemCategoryArray	itemCategories;
-	ItemCategoryIterator icit;
-	
-	itemCategories = m_storage->GetItemsCategories( items );
-	for( icit = itemCategories.begin(); icit != itemCategories.end(); ++icit ) {
-		
-		fee += icit->fee_per_item;
-	}
-	
-	SellerCategory scat = m_storage->GetSellerCategory(seller.category);
-	
-	fee += scat.fee_per_sale;
-
-	return -4.0;
-}
-*/
-
-// ==============================================
-// ==============================================
-// ==============================================
-
 BurzaRegister::BurzaRegister()
 {
 	m_storage = NULL;
@@ -161,19 +138,35 @@ void BurzaRegister::PridajNovehoPredajcu( const char* kod, const char* meno, con
 	}
 }
 
-int BurzaRegister::NajdiPredajcuPodlaKoduIndex( const char* kod )
-{
-	// obsolete
-	assert( false );
-	return -1;
-}
-
 SellerData BurzaRegister::NajdiPredajcuPodlaKodu( const char* kod )
 {
 	string codeString(kod);
 	SellerData seller = m_storage->GetSellerByCode(codeString);
 	
 	return seller;
+}
+
+bool BurzaRegister::SellerExists(std::string shortcode)
+{
+	bool sellerExists = true;
+	try {
+		m_storage->GetSellerByCode( shortcode );
+	}
+	catch( WrongSellerException e) {
+		sellerExists = false;
+	}
+	
+	return sellerExists;
+}
+
+
+SELLER_CATEGORY_ID GetDefaultSellerCategoryId( void )
+{
+	for( int i=0; i< categories.size(); ++i )
+		if ( categories[ i ].id == id )
+			return categories[ i ];
+
+	throw WrongSellerCategoryException();
 }
 
 // ==============================================
@@ -257,6 +250,79 @@ int BurzaRegister::DisplayPdf( const char* fileName )
 	return 0;
 }
 
+BurzaRegister::LoadSellerSheetFileResult BurzaRegister::LoadSellerSheetFile(std::string filename)
+{
+	LoadSellerSheetFileResult	result;
+
+	// get extension type
+	string::size_type pos = filename.rfind('.');
+	string ext;
+	bool knownType = false;
+
+	if (pos != string::npos) {
+		ext = filename.substr( pos + 1 );
+		ConvFuncs::StdStringToLower( ext );
+	}
+
+	try {
+		if ( ext == "txt" ) {
+			knownType = true;
+			CachedDataTextfile	textStorage( Centrala::Settings().m_data_dir_path );
+			textStorage.LoadFromTxtFile(filename, result.seller, result.items );
+			result.status = LoadSellerSheetFileStatus::Loaded;
+		}
+		if ( ext == "xls" ) {
+			knownType = true;
+			BurzaExcel::BasicExcelFileWrapper	excelFile;
+			excelFile.ReadSeller( filename, result.seller, result.items );
+			result.status = LoadSellerSheetFileStatus::Loaded;
+		}
+		if ( ext == "ods" ) {
+			result.status = LoadSellerSheetFileStatus::FormatNotSupported;
+		}
+		if ( ext == "xlsx" ) {
+			result.status = LoadSellerSheetFileStatus::FormatNotSupported;
+		}
+
+		if (knownType == false) {
+			result.status = LoadSellerSheetFileStatus::FormatNotKnown;
+		}
+	}
+	catch( runtime_error& e ) {
+
+		result.status = LoadSellerSheetFileStatus::ErrorImporting;
+		result.errorText = e.what();
+	}
+
+	result.itemsWithZeroPrice = 0;
+	result.itemsWithPriceWithoutDecimalPart = 0;
+	result.itemsWithoutName = 0;
+
+	// check for basic errors in filled sheet.
+	if ( result.status == LoadSellerSheetFileStatus::Loaded ) {
+		for( int i=0; i < result.items.size(); ++i ) {
+
+			if ( result.items[ i ].name.empty() )
+				++result.itemsWithoutName;
+
+			double price = result.items[ i ].price;
+			if ( price == 0 )
+				++result.itemsWithZeroPrice;
+
+			if ( price == (int)( price ) )
+				++result.itemsWithPriceWithoutDecimalPart;
+		}
+	}
+
+	return result;
+}
+
+
+void BurzaRegister::CreateFolders( string path, vector<string>& folderNames )
+{
+	for( int i=0; i<folderNames.size(); ++i)
+		ConvFuncs::DoCreateFolder( path.c_str(), folderNames[ i ].c_str() );
+}
 
 // ==============================================
 // ==============================================

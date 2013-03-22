@@ -274,8 +274,10 @@ public:
 	// moves file to different directory and renames file
 	//! comment: changed name of functions because MSVC 9.0 express has some 
 	//! defines which caused conflicts
+	//! returns 0 on failure.
 	static int			DoMoveFile( const char* src, const char* dest );
 	static int			DoDeleteFile( const char* src );
+	static bool	DoCreateFolder( const char* parentPath, const char* folderName );
 
 	//string utils
 #ifdef _UNIX

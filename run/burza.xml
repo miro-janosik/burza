@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <burza>
 	<config
-		salename="Jarna burza 2012"
+		salename="Jarna burza 2013"
 		fontSize="-1"
 		>
 		<server
-			databaseInLocalFiles="True"
-			address="192.168.1.10"
-			user="postgres"
-			password="dlhehony"
-			dbname="burzadb"
-			port="5433"
+			databaseInLocalFiles="False"
+			address="192.168.1.104"
+			user="user"
+			password="trencin"
+			dbname="burza2013"
+			port="5436"
 			 />
 		<License
 			to="Miro Janosik, domace PC"

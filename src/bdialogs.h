@@ -85,10 +85,11 @@ public:
 	static bool OrderSellerByShortCode(const SellerData& a, const SellerData& b);
 
 public:
-	
+
 	// "register" dialog functions
 	void RegisterEditLookupSellerChanged( void );
 	void RegisterButtonImportSeller( void );
+	void RegisterButtonImportMultiSellers( void );
 	void RegisterButtonAddSeller( void );
 	void RegisterButtonUpdateSeller( void );
 	void RegisterButtonFinishAcceptingItems( void );
@@ -167,6 +168,15 @@ public:
 	void RegisterButtonSellerEditCancel( void );
 	bool RegisterButtonSellerEditClose( GdkEventAny* );
 	
+private:
+	// helper methods:
+
+	// Logs message from multi seller importer. Logs to file or to screen
+	void ImportMultiSellersLog(const char* text);
+
+	// Logs message from multi seller importer. Logs to file or to screen
+	void ImportMultiSellersLog(string& text);
+
 public:
 	Burza::BurzaRegister			*mp_register;
 	
@@ -183,6 +193,7 @@ public:
 	ComboBoxTextDer	*m_pComboSeller;
 	Gtk::Entry		*m_pEntryRegistryLookupSeller;
 	Gtk::Button		*m_pButtonImportSeller;
+	Gtk::Button		*m_pButtonImportMultipleSellers;
 	Gtk::Button		*m_pButtonAddSeller;
 	Gtk::Button		*m_pButtonUpdateSeller;
 	Gtk::TreeView	*m_pTreeViewItems;

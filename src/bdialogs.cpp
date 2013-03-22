@@ -9,6 +9,7 @@
 #include <algorithm>
 #include "bdialogs.h"
 #include "convfncs.h"
+#include "log.h"
 
 #include "excelwrap.h"
 #include "pdfwrap.h"
@@ -160,6 +161,7 @@ int BurzaDialogs::SetupDialogs( void )
 	xmlWndRegister->get_widget_derived( "combobox seller", m_pComboSeller );
 	xmlWndRegister->get_widget( "entry_find_seller", m_pEntryRegistryLookupSeller );
 	xmlWndRegister->get_widget( "button import seller", m_pButtonImportSeller );
+	xmlWndRegister->get_widget( "button import multi seller", m_pButtonImportMultipleSellers );
 	xmlWndRegister->get_widget( "button add seller", m_pButtonAddSeller );
 	xmlWndRegister->get_widget( "button update seller", m_pButtonUpdateSeller );
 	xmlWndRegister->get_widget( "treeview items", m_pTreeViewItems );
@@ -187,6 +189,7 @@ int BurzaDialogs::SetupDialogs( void )
 	if (( m_pComboSeller == NULL ) ||
 		( m_pEntryRegistryLookupSeller == NULL ) ||
 		( m_pButtonImportSeller == NULL ) ||
+		( m_pButtonImportMultipleSellers == NULL ) ||
 		( m_pButtonAddSeller == NULL ) ||
 		( m_pButtonUpdateSeller == NULL ) ||
 		( m_pTreeViewItems == NULL ) ||
@@ -223,6 +226,7 @@ int BurzaDialogs::SetupDialogs( void )
 
 	
 	m_pButtonImportSeller->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonImportSeller ) );
+	m_pButtonImportMultipleSellers->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonImportMultiSellers ) );
 	m_pButtonAddSeller->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonAddSeller ) );
 	m_pButtonUpdateSeller->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonUpdateSeller ) );
 	m_pButtonAddItem->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonAddItem ) );
@@ -801,76 +805,240 @@ void BurzaDialogs::RegisterButtonImportSeller( void )
 
 	string filename = dialog.get_filename();
 	// s += "data/harok-burza.xls";
-	string::size_type pos = filename.rfind('.');
-	string ext;
-	bool knownType = false;
 
-	if (pos != string::npos) {
-		ext = filename.substr( pos + 1 );
-		ConvFuncs::StdStringToLower( ext );
-	}
-	
-	SellerData seller;
-	ItemDataArray items;
-	
-	try {
-		if ( ext == "txt" ) {
-			knownType = true;
-			CachedDataTextfile	textStorage( Centrala::Settings().m_data_dir_path );
-			textStorage.LoadFromTxtFile(filename, seller, items );
-		}
-		if ( ext == "xls" ) {
-			knownType = true;
-			BurzaExcel::BasicExcelFileWrapper	excelFile;
-			excelFile.ReadSeller( filename, seller, items );
-		}
-		if ( ext == "ods" ) {
-			DisplayErrorMessageBox( _("Nepodporovany format suboru") );
-		}
-		if ( ext == "xlsx" ) {
-			DisplayErrorMessageBox( _("Nepodporovany format suboru") );
-		}
+	BurzaRegister::LoadSellerSheetFileResult loadedFile = mp_register->LoadSellerSheetFile( filename );
+	switch( loadedFile.status ) {
+		case BurzaRegister::Loaded:
 
-		if (knownType == false) {
+			if ( Centrala::Register().SellerExists( loadedFile.seller.shortcode ) ) {
+				DisplayErrorMessageBox( 
+					ConvFuncs::FormatCstr( _( "Predajca s rovnakým kódom už existuje. Zmažte najskôr predajcu '%s'." ),
+						loadedFile.seller.shortcode.c_str() ) );
+				return;
+			}
+
+			// imported items have to be checked by hand. Take note that these were not.
+			loadedFile.seller.note += _(" za MC prijal: !zatiaľ neprebrané!");
+			loadedFile.seller.category = 
+				'note' empty - warn
+				the same on other place !
+
+			loadedFile.seller.id = Centrala::Storage().AddSeller( loadedFile.seller );
+			Centrala::Storage().AddItems( loadedFile.items, loadedFile.seller.id );
+
+			DisplayOkMessageBox( 
+				_( "Predajca načítaný"),
+				ConvFuncs::FormatStdStr( _("Kód: %s Meno: %s Počet položiek: %i"), 
+					loadedFile.seller.shortcode.c_str(), loadedFile.seller.name.c_str(), loadedFile.items.size() ));
+			break;
+
+		case BurzaRegister::FormatNotKnown:
 			DisplayErrorMessageBox( _("Neznámy typ súboru. Podporované su 'ods', 'xls', 'xlsx', 'txt'") );
 			return;
-		}
+		case BurzaRegister::FormatNotSupported:
+			DisplayErrorMessageBox( _("Nepodporovany format suboru") );
+			return;
+		case BurzaRegister::ErrorImporting:
+		default:
+			DisplayErrorMessageBox( string( "Error importing file." ) + loadedFile.errorText, "Error importing file." );
+			break;
 	}
-	catch( runtime_error& e ) {
-		DisplayErrorMessageBox( string( "Error importing file." ) + e.what(), "Error importing file." );
-		return;
-	}
-
-	DataAccessInterface	&storage = Centrala::Storage();
-	
-	bool sellerExists = true;
-	try {
-		storage.GetSellerByCode( seller.shortcode );
-	}
-	catch( WrongSellerException e) {
-		sellerExists = false;
-	}
-	
-	if ( sellerExists ) {
-		DisplayErrorMessageBox( 
-			ConvFuncs::FormatCstr( _( "Predajca s rovnakým kódom už existuje. Zmažte najskôr predajcu '%s'." ),
-				seller.shortcode.c_str() ) );
-		return;
-	}
-
-	// imported items have to be checked by hand. Take note that these were not.
-	seller.note += _(" za MC prijal: !zatiaľ neprebrané!");
-	
-	seller.id = storage.AddSeller( seller );
-	storage.AddItems( items, seller.id );
-
-	DisplayOkMessageBox( 
-		_( "Predajca načítaný"),
-		ConvFuncs::FormatStdStr( _("Kód: %s Meno: %s Počet položiek: %i"), 
-			seller.shortcode.c_str(), seller.name.c_str(), items.size() ));
 
 	ReloadSellers();
-	RegisterDisplaySeller( seller );
+	RegisterDisplaySeller( loadedFile.seller );
+}
+
+void BurzaDialogs::RegisterButtonImportMultiSellers( void )
+{
+	ImportMultiSellersLog( "Starting" );
+
+	if (DemoLimitsCanAddSeller() == false)
+		return;
+	
+	Gtk::FileChooserDialog dialog("Select folder with sheets", Gtk::FILE_CHOOSER_ACTION_SELECT_FOLDER );
+
+	dialog.set_transient_for( *m_pWndRegister );
+	//Add response buttons the the dialog:
+	dialog.add_button( Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL );
+	dialog.add_button( Gtk::Stock::OK, Gtk::RESPONSE_OK );
+	dialog.set_filename( Centrala::Settings().m_data_dir_path );
+	
+	if ( Centrala::Settings().directoryImport.empty() ) {
+		dialog.set_current_folder( Centrala::Settings().m_data_dir_path );
+	} else {
+		dialog.set_current_folder( Centrala::Settings().directoryImport );
+	}
+
+	int result = dialog.run();
+	//Handle the response:
+	switch(result) {
+	case(Gtk::RESPONSE_OK):
+		break;
+	case(Gtk::RESPONSE_CANCEL):
+	case Gtk::RESPONSE_DELETE_EVENT:
+	default:
+		//DisplayErrorMessageBox( "BiturnDialogsGtkmm::on_clicked_ViewDirs() Unexpected button clicked.\n" );
+		return;
+	}
+	
+	// set back the import directory
+	Centrala::Settings().directoryImport = dialog.get_current_folder();
+	Centrala::Settings().directoryImport += "/";
+	string path = Centrala::Settings().directoryImport;
+	ImportMultiSellersLog( "Selected folder: " + path );
+
+	// create output folders
+	
+	const char folderFinished[] = "finished";
+	const char folderWarning[] = "warning";
+	const char folderError[] = "error";
+	vector<string> folderNames;
+	folderNames.push_back( folderFinished );
+	folderNames.push_back( folderWarning );
+	folderNames.push_back( folderError );
+
+	BurzaRegister::CreateFolders( path, folderNames );
+
+	// == loop through the files ==
+	int finishedCount = 0, problemCount = 0;
+	
+	bool found = ConvFuncsInstance->Find_FirstFile( path.c_str() );
+	while ( found )
+	{
+		// find can find anything in the folder .. skip directories, use only files.
+		if (ConvFuncsInstance->Find_CurrentIsDir()) {
+			// find next file
+			found = ConvFuncsInstance->Find_NextFile();			
+			continue;
+		}
+
+		string filename = path + ConvFuncsInstance->Find_CurrentFileName();
+
+		// true if read (even if there is error then print info about read data).
+		bool readAndValid = false;
+		string error, warning, info;
+
+		BurzaRegister::LoadSellerSheetFileResult loadedFile = mp_register->LoadSellerSheetFile( filename );
+		switch( loadedFile.status ) {
+			case BurzaRegister::Loaded:
+
+				// even if file was loaded there may be some values that invalidate the content. Check these values.
+				if ( Centrala::Register().SellerExists( loadedFile.seller.shortcode ) ) {
+					error += ConvFuncs::FormatCstr( _( " Predajca s rovnakým kódom už existuje. Zmažte najskôr predajcu '%s'." ), loadedFile.seller.shortcode.c_str() );
+					break;
+				}
+
+				if ( loadedFile.itemsWithZeroPrice > 0 )
+					error += ConvFuncs::FormatCstr(_(" Obsahuje %i ks tovaru s nulovou cenou"), loadedFile.itemsWithZeroPrice );
+				
+				if ( loadedFile.itemsWithoutName > 0 )
+					error += ConvFuncs::FormatCstr(_(" Obsahuje %i ks tovaru bez mena"), loadedFile.itemsWithoutName );
+
+				if ( error.empty() )
+				{
+					readAndValid = true;
+
+					if ( loadedFile.itemsWithPriceWithoutDecimalPart > 0 )
+						info += ConvFuncs::FormatCstr(_(" Obsahuje %i ks tovaru s okruhlou cenou"), loadedFile.itemsWithPriceWithoutDecimalPart );
+
+					// imported items have to be checked by hand. Take note that these were not.
+					loadedFile.seller.note += _(" za MC prijal: !zatiaľ neprebrané!");
+
+					loadedFile.seller.id = Centrala::Storage().AddSeller( loadedFile.seller );
+					Centrala::Storage().AddItems( loadedFile.items, loadedFile.seller.id );
+				}
+				break;
+			case BurzaRegister::FormatNotKnown:
+				error = _("Neznámy typ súboru. Podporované su 'ods', 'xls', 'xlsx', 'txt'");
+				break;
+			case BurzaRegister::FormatNotSupported:
+				error = _("Nepodporovany format suboru");
+				break;
+			case BurzaRegister::ErrorImporting:
+			default:
+				error = "Error importing file." + loadedFile.errorText;
+				break;
+		}
+
+		string infoText = _("Spracovaný súbor");
+		infoText += " '";
+		infoText += ConvFuncsInstance->Find_CurrentFileName();
+		infoText += "';";
+
+		if ( readAndValid ) {
+			infoText += 
+				ConvFuncs::FormatCstr(_(" načítaný, kód '%s', %i kusov tovaru;"),
+				loadedFile.seller.shortcode.c_str(),
+				loadedFile.items.size() );
+		}
+
+		if ( !error.empty() )
+		{
+			infoText += _( " Chyba: " ) + error + ";";
+		}
+
+		if ( !warning.empty() )
+		{
+			infoText += _( " Varovanie: " ) + warning + ";";
+		}
+
+		if ( !info.empty() )
+		{
+			infoText += _( " Info: " ) + info + ";";
+		}
+
+		// move file to dedicated folder:
+		string targetFolder;
+		if ( !error.empty() )
+		{
+			targetFolder = folderError;
+		}
+		else if ( !warning.empty() )
+		{
+			targetFolder = folderWarning;
+		}
+		else {
+			targetFolder = folderFinished;
+		}
+
+		string dest = path + targetFolder + "/" + ConvFuncsInstance->Find_CurrentFileName();
+		if ( 0 == ConvFuncsInstance->DoMoveFile( filename.c_str(), dest.c_str() ) ) {
+			infoText += _( " Chyba pri presune na miesto: " ) + dest;
+			warning = "!!";
+		}
+
+		ImportMultiSellersLog( infoText );
+
+		if ( warning.empty() && error.empty() )
+			++finishedCount;
+		else
+			++problemCount;
+
+		// find next file
+		found = ConvFuncsInstance->Find_NextFile();
+	}
+
+	ImportMultiSellersLog( ConvFuncs::FormatCstr(
+		_("Dokončené ... správne načítaných: %i chýb: %i"), finishedCount, problemCount) );
+
+	DisplayOkMessageBox( 
+		_( "Predajcovia načítaný"),
+		ConvFuncs::FormatStdStr( _("Korektne načítaných hárkov: %i Chýb: %i"), 
+			finishedCount, problemCount ));
+
+	ReloadSellers();
+}
+
+void BurzaDialogs::ImportMultiSellersLog(const char* text)
+{
+	LogS( InfoMajor, "ImportMultiSellers: " );
+	LogS( InfoMajor, text );
+	LogS( InfoMajor, "\n" );
+}
+
+void BurzaDialogs::ImportMultiSellersLog(std::string& text)
+{
+	ImportMultiSellersLog(text.c_str());
 }
 
 void BurzaDialogs::RegisterButtonAddSeller( void )
