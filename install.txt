@@ -25,3 +25,14 @@ host	all	all	192.168.1.0	255.255.255.0	trust
 
 restart server:
 /etc/init.d/postgresql-8.4 restart
+
+You can't login afterwards through pgadmin anyhow.
+That's because connect requires password to be filled, and postgres does not have any password filled in.
+Do this:
+sudo -u postgres psql
+alter user postgres PASSWORD 'newPassword';
+ctrl + d
+
+now you can connect to the localhost server with login 'postgres' and new password through admin
+create connection to 'localhost', database postgres, user postgres.
+You can create new database, user, etc.

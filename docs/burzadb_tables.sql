@@ -16,6 +16,11 @@ WITH (
 ALTER TABLE item_category OWNER TO postgres;
 COMMENT ON TABLE item_category IS 'Item categories.';
 
+-- Create default content of the item_category table
+INSERT INTO item_category(
+            "ID", "LETTER", "NAME", "FEE_PER_ITEM")
+    VALUES (0, 'a', 'odev', 0.0);
+
 
 -- Table: items
 
@@ -102,3 +107,24 @@ ALTER TABLE sellers OWNER TO postgres;
 GRANT ALL ON TABLE sellers TO postgres;
 GRANT SELECT, UPDATE, INSERT, DELETE, REFERENCES ON TABLE sellers TO public;
 COMMENT ON TABLE sellers IS 'List of sellers.';
+
+
+-- !! TO BE TESTED !!
+-- Create default usergroup + user, password 'trencin'
+CREATE ROLE usergroup 
+-- line below was not here, copied from user below to set password for group - is necessary at all?
+LOGIN ENCRYPTED PASSWORD 'md59f1e62cb21e6b04c80c95afdbbb471de'
+   VALID UNTIL 'infinity';
+COMMENT ON ROLE usergroup IS 'Default user group';
+
+-- default user with password 'trencin'
+CREATE ROLE user LOGIN ENCRYPTED PASSWORD 'md59f1e62cb21e6b04c80c95afdbbb471de'
+   VALID UNTIL 'infinity';
+GRANT usergroup TO user;
+COMMENT ON ROLE user IS 'default user, with password trencin';
+
+GRANT ALL ON TABLE item_category TO GROUP usergroup;
+GRANT ALL ON TABLE items TO GROUP usergroup;
+GRANT ALL ON TABLE seller_category TO GROUP usergroup;
+GRANT ALL ON TABLE sellers TO GROUP usergroup;
+
