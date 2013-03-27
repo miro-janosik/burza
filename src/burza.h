@@ -42,10 +42,12 @@ public:
 	void PridajNovehoPredajcu( const char* kod, const char* meno, const char* poznamka );
 	
 	//! returns -1 if not found, or index of seller.
-	int NajdiPredajcuPodlaKoduIndex( const char* kod );
 	SellerData NajdiPredajcuPodlaKodu( const char* kod );
 	ItemCategory* FindProductCategory( char product_category );
 	SellerCategory* FindSellerCategory( char seller_category );
+
+	bool SellerExists(string shortcode);
+
 	
 	double CalcPriceOfProducts( ItemDataArray& items );
 	
@@ -65,6 +67,53 @@ public:
 
 	//! displays specified PDF file in system-specific PDF viewer
 	int DisplayPdf( const char* fileName );
+
+	static void CreateFolders( string path, vector<string>& folderNames );
+
+	enum LoadSellerSheetFileStatus {
+		// loaded, seller and items contains data. errorText empty.
+		Loaded,
+
+		// If format is known but not supported yet. For example 'xlsx'
+		FormatNotSupported,
+
+		// Not recognized format, for example "PDF"
+		FormatNotKnown,
+
+		// Other error during importing, errorText contains error text.
+		ErrorImporting
+	};
+
+	// information about loaded sheet
+	struct LoadSellerSheetFileResult
+	{
+		// validity of data
+		LoadSellerSheetFileStatus	status;
+
+		// seller information read from file. May be invalid if status is not 'Loaded'.
+		SellerData seller;
+
+		// seller information read from file. May be invalid if status is not 'Loaded'.
+		ItemDataArray items;
+
+		// Error text, may be empty even on some error states.
+		std::string errorText;
+
+		// Count commonly present errors in the content of the file. These are filled only if status is 'loaded'.
+
+		// probably forgot to fill price / wrong price format / item name on multiple names and price on last one
+		int		itemsWithZeroPrice;
+
+		// possibility that decimal separator is wrong and prices are not read correctly. But maybe its all ok.
+		int		itemsWithPriceWithoutDecimalPart;
+
+		// missing name text
+		int		itemsWithoutName;
+	};
+
+	// Loads single seller sheet from 'excel' or 'open office' format.
+	// Returns status and loaded information in the result structure.
+	LoadSellerSheetFileResult LoadSellerSheetFile(string filename);
 
   private:
 	ItemCategory	temporaryItemCategory;
