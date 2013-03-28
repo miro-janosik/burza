@@ -178,6 +178,16 @@ void HPDFWrapper::ConvertUTF8ToISO8859_2orErrorString( std::string& str )
 	}
 }
 
+void HPDFWrapper::ConvertUTF8ToIAsciiOrErrorString( std::string& str )
+{
+	try {
+		StringEncoding::ISO8859_2ToASCII( str );
+	}
+	catch(std::runtime_error e) {
+		LogS( InfoError, "ToAscii: Error encoding '%s' : %s\n", str.c_str(), e.what() );
+	}
+}
+
 void HPDFWrapper::NewPage( string name )
 {
 	m_current_page = HPDF_AddPage( m_pdf );
@@ -194,7 +204,11 @@ void HPDFWrapper::NewPage( string name )
 
 	currentPageTitle = name;
 	string str = name;
+	
 	ConvertUTF8ToISO8859_2orErrorString( str );
+	// StringEncoding::UTF8RemoveAccents( str );
+	// ConvertUTF8ToIAsciiOrErrorString( str );
+
 	outline = HPDF_CreateOutline( m_pdf, m_outline_root, str.c_str(), NULL);
 	dst = HPDF_Page_CreateDestination( m_current_page );
 	HPDF_Destination_SetXYZ(dst, 0, HPDF_Page_GetHeight( m_current_page ), 1);

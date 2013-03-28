@@ -250,25 +250,25 @@ void Recipees::PrintSellerReturnSheet( PdfWrapperBase& pdf, SELLER_ID id )
 	pdf.SetFontSize(1.2);
 	double ypos = marginTop;
 	
-	pdf.WriteSingleText( 10, ypos, ConvFuncs::FormatStdStr(_("Predávajúci: %s - %s (%s), stav '%s'"), 
+	pdf.WriteSingleText( 10, ypos, ConvFuncs::FormatStdStr(_("Predavajuci: %s - %s (%s), stav '%s'"), 
 		seller.shortcode.c_str(), seller.name.c_str(),
 		sellerCat.name.c_str(),
 		DataAccessInterface::SellerStatus2String( seller.status ) ));
 	ypos += 1.6;
 	pdf.WriteSingleText( 10, ypos, ConvFuncs::FormatStdStr(_("( %s )"), seller.note.c_str() ));
 	ypos += 1.6;
-	pdf.WriteSingleText( 10, ypos, ConvFuncs::FormatStdStr(_("Stav dňa: %s"), ConvFuncsInstance->CurDateTimeString() ));
+	pdf.WriteSingleText( 10, ypos, ConvFuncs::FormatStdStr(_("Stav dna: %s"), ConvFuncsInstance->CurDateTimeString() ));
 	ypos += 1.6;
 
 	TableOfCells	items;
 	TableColumnSpecs	columns;
 	string str;
 
-	columns.AddColumn( _("číslo"), 5 );
-	columns.AddColumn( _("názov"), 40 );
+	columns.AddColumn( _("cislo"), 5 );
+	columns.AddColumn( _("nazov"), 47 );
 	columns.AddColumn( _("cena"), 7 );
 	columns.AddColumn( _("kat"), 4 );
-	columns.AddColumn( _("stav"), 15 );
+	columns.AddColumn( _("stav"), 8 );
 	columns.AddColumn( _("predane"), 7 );
 	
 	ItemDataArray sellerItems = Centrala::Storage().GetSellerItems( id );
@@ -324,7 +324,7 @@ void Recipees::PrintSellerReturnSheet( PdfWrapperBase& pdf, SELLER_ID id )
 
 		finalSum -= fees.fees[ i ].price;
 		++row;
-		sumCells.Cell( row, 1 ) = ConvFuncs::FormatStdStr( "%0.2f", finalSum );
+		sumCells.Cell( row, 1 ) = ConvFuncs::FormatStdStr( "= %0.2f", finalSum );
 	}
 
 	++row;

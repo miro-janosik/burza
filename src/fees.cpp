@@ -69,7 +69,8 @@ SellerFees SellerFees::CalculateSellerFees( SellerCategory& sellerCat, ItemDataA
 	{
 		double billForPieces = SellerFees::RoundTo5Cents( piecesPriceOverPayPerPiece * sellerCat.fee_item );
 		string str = ConvFuncs::FormatStdStr(
-			_( "Manipulaèný poplatok - %0.2f za každý kus drahší ako %0.2f (%i ks)" ), 
+			//_( "Manipulaèný poplatok - %0.2f za každý kus drahší ako %0.2f (%i ks)" ), 
+			_( "Manipulacny poplatok - %0.2f za kazdy kus drahsí ako %0.2f (%i ks)" ), 
 				sellerCat.fee_item, sellerCat.fee_item, piecesPriceOverPayPerPiece );
 		finalSum -= billForPieces;
 

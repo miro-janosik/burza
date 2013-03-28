@@ -115,6 +115,7 @@ public:
 	virtual string GetCurrentPageTitle( void );
 
 	static void ConvertUTF8ToISO8859_2orErrorString( std::string& str );
+	static void ConvertUTF8ToIAsciiOrErrorString( std::string& str );
 
 private:
 

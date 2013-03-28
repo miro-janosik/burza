@@ -43,6 +43,8 @@ public:
 
 	static void UTF8RemoveAccents( std::string& str );
 
+	static void ISO8859_2ToASCII( std::string& str );
+
 private:
 	static std::vector<char> OneToAnother( const char* src, int sizeinbytes, const std::string& from, const std::string& to );
 

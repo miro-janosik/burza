@@ -195,7 +195,7 @@ public:
 class WrongSellerCategoryException : public DataStorageException {
 public:
     virtual const char* what() const throw() {
-        return "Wrong Item category";
+        return "Wrong Seller category";
     }
 };
 

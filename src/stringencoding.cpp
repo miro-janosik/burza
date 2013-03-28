@@ -156,4 +156,13 @@ void StringEncoding::UTF8RemoveAccents( std::string& str )
 	}
 }
 
+void StringEncoding::ISO8859_2ToASCII( std::string& str )
+{
+	std::vector<char> result;
+	result = OneToAnother( str.c_str(), str.size(), "ISO_8859-2", "ASCII" );
+	std::string resultstr( result.begin(), result.end() );
+	str = resultstr;
+}
+
+
 }
