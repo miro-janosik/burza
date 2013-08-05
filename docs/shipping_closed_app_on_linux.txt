@@ -1,0 +1,42 @@
+----
+http://stackoverflow.com/questions/1522990/whats-the-best-way-to-distribute-a-binary-application-for-linux
+
+----
+http://stackoverflow.com/questions/1209674/shipping-closed-source-application-for-linux/
+
+Linux is a tough platform to deploy client software to, if the software isn't open source (though if it is OSS, you can often get the more popular distributions to include it right in their repositories). I suspect that the biggest reason there isn't more commercial software for Linux is that the distributions are so fragmented. They all have different versions of libraries (which I believe is your concern), they install things to different places, they have different package formats, and the most popular distributions release new versions of everything on 6-8 month release cycles.
+
+Skype does something interesting: They offer pre-compiled packages built for specific popular distributions. They also offer a statically-linked bundle (also one that is dynamically linked, but for an app like that, probably not as useful). I imagine that it is a fair amount of work, since they have to at least keep a VM around to do builds for each distribution/version combination, but it does mean that for the more common distributions, things are really easy, and for everyone else, it is still possible to use it. And with a few VMs and some clever scripting, the whole thing can be automated, albeit with a bit of work getting it right the first time around.
+
+---
+
+The additional complexity is that you should not link glibc statically, because if you do, the libnss plugin system won't work properly since the glibc that is statically linked may require a different API or version to communicate with the dynamically loaded nss plugins.
+
+Unfortunately, it is not so straightforward when there are different glibc major versions involved. If you can allow for only a specific glibc major version, then you should link everything static EXCEPT glibc, and you can use the -Wl gcc option to pass options to 'ld' like '-Wl,-Bdynamic' and '-Wl,-Bstatic' for each individual library; see http://linux.sys-con.com/node/48565 for examples.
+
+It is probably best to set up a hudson build server with a bunch of virtual machines running the different linux distributions that you DO want to explicity support and compile the binaries on them.
+
+----
+http://stackoverflow.com/questions/1418965/c-executable-distribution-strategy
+
+
+----
+How to dynamically link libraries from specified path:
+And so the problem remained until one of our devteam discovered a neat little trick that isn’t even documented in the manual for the linker. You can use a special keyword $ORIGIN to say ‘relative to the actual location of the executable’. Suddenly we found we could use -rpath $ORIGIN/lib and it worked. The game was loading the correct libraries, and so was stable and portable, but was also now completely in the spirit of the LGPL as well as the letter!
+
+For those of you a little newer to compiling under Linux, some of you may not even be aware you use the ld linker. It is done automatically by gcc for you. If you are simply using gcc in a Makefile, it is a little more difficult in syntax, but as a hint you would change an example Makefile line that started like this
+
+gcc obj1.o obj2.o -o my_application
+
+to be
+
+gcc -Wl,-rpath,\$$ORIGIN/lib/ obj1.o obj2.o -o my_application
+
+So, that’s the neat little trick I thought I’d like to share with you, maybe it will help some of you out there to organise the way your projects run, as of course it isn’t just useful for closed source, this is useful for any project that has to use a specific library version in order to work properly!
+
+
+http://blog.linuxgamepublishing.com/2009/02/08/our-new-way-to-meet-the-lgpl/
+
+---
+
+http://www.linuxfoundation.org/collaborate/workgroups/lsb/check-your-app
