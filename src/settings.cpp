@@ -16,6 +16,8 @@ using namespace std;
 using namespace Burza;
 using namespace XmlWrapperTool;
 
+PredefinedSettingVariables	ProgramSettings::predefined;
+
 PredefinedSettingVariables::PredefinedSettingVariables()
 {
 	listOfFontSizes.push_back( SettingFontSizeValue( _( "Prednastavený" ), -1 ) );
@@ -23,8 +25,6 @@ PredefinedSettingVariables::PredefinedSettingVariables()
 	for( int i = 4; i < 20; i += 2 )
 		listOfFontSizes.push_back( SettingFontSizeValue( ConvFuncs::FormatStdStr( "%i", i ), i ) );
 }
-
-PredefinedSettingVariables	ProgramSettings::predefined;
 
 ProgramSettings::ProgramSettings()
 {

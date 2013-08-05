@@ -73,6 +73,7 @@ ConvFuncs *ConvFuncs::pSingleton = NULL;
 int ConvFuncs::m_singleton_init_counter = 0;
 const double ConvFuncs::RAD = (180 / 3.14159276);
 	
+// X: using static variables for static methods may cause problems in multithreading
 char ConvFuncs::formater_cstr_buffer[ ConvFuncs::formater_string_buffer_len ];
 std::string	ConvFuncs::formater_stdstring;
 
@@ -1588,9 +1589,13 @@ const std::string& ConvFuncs::FormatStdStr( const char* format, ... )
 	int res = vsnprintf( formater_cstr_buffer, formater_string_buffer_len-1,
 		format, marker );
 
-	formater_stdstring = formater_cstr_buffer;
-
-	return formater_stdstring;
+	// X: this code is commented out becuase it somehow caused segfault on 2013-08-04 on XUbuntu 12.
+	// X: Somehow formater_cstr_buffer was not initialized even though it was static class variable.
+	// formater_stdstring = formater_cstr_buffer;
+	// return formater_stdstring;
+	
+	std::string s = formater_cstr_buffer;
+	return s;
 }
 
 const char* ConvFuncs::strupr_convfncs( char* input )

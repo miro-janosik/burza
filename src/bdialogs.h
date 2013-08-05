@@ -175,8 +175,8 @@ private:
 	void ImportMultiSellersLog(const char* text);
 
 	// Logs message from multi seller importer. Logs to file or to screen
-	void ImportMultiSellersLog(string& text);
-
+	void ImportMultiSellersLog(string text);
+	
 public:
 	Burza::BurzaRegister			*mp_register;
 	

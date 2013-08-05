@@ -809,7 +809,8 @@ void BurzaDialogs::RegisterButtonImportSeller( void )
 	BurzaRegister::LoadSellerSheetFileResult loadedFile = mp_register->LoadSellerSheetFile( filename );
 	switch( loadedFile.status ) {
 		case BurzaRegister::Loaded:
-
+		// nested for the local variable [categories] inside case, error on gcc
+		{
 			if ( Centrala::Register().SellerExists( loadedFile.seller.shortcode ) ) {
 				DisplayErrorMessageBox( 
 					ConvFuncs::FormatCstr( _( "Predajca s rovnakým kódom už existuje. Zmažte najskôr predajcu '%s'." ),
@@ -818,10 +819,10 @@ void BurzaDialogs::RegisterButtonImportSeller( void )
 			}
 
 			// imported items have to be checked by hand. Take note that these were not.
-			loadedFile.seller.note += _(" za MC prijal: !zatiaľ neprebrané!");
-			loadedFile.seller.category = 
-				'note' empty - warn
-				the same on other place !
+			loadedFile.seller.note += _(" za MC prijal: ?");
+			
+			SellerCategoryArray categories = Centrala::Storage().GetSellersCategories();
+			loadedFile.seller.category = categories.empty() ? SELLER_CATEGORY_ID_NONE : categories.begin()->id;
 
 			loadedFile.seller.id = Centrala::Storage().AddSeller( loadedFile.seller );
 			Centrala::Storage().AddItems( loadedFile.items, loadedFile.seller.id );
@@ -830,6 +831,7 @@ void BurzaDialogs::RegisterButtonImportSeller( void )
 				_( "Predajca načítaný"),
 				ConvFuncs::FormatStdStr( _("Kód: %s Meno: %s Počet položiek: %i"), 
 					loadedFile.seller.shortcode.c_str(), loadedFile.seller.name.c_str(), loadedFile.items.size() ));
+		}
 			break;
 
 		case BurzaRegister::FormatNotKnown:
@@ -942,7 +944,7 @@ void BurzaDialogs::RegisterButtonImportMultiSellers( void )
 						info += ConvFuncs::FormatCstr(_(" Obsahuje %i ks tovaru s okruhlou cenou"), loadedFile.itemsWithPriceWithoutDecimalPart );
 
 					// imported items have to be checked by hand. Take note that these were not.
-					loadedFile.seller.note += _(" za MC prijal: !zatiaľ neprebrané!");
+					loadedFile.seller.note += _(" za MC prijal: ?");
 
 					loadedFile.seller.id = Centrala::Storage().AddSeller( loadedFile.seller );
 					Centrala::Storage().AddItems( loadedFile.items, loadedFile.seller.id );
@@ -970,6 +972,9 @@ void BurzaDialogs::RegisterButtonImportMultiSellers( void )
 				ConvFuncs::FormatCstr(_(" načítaný, kód '%s', %i kusov tovaru;"),
 				loadedFile.seller.shortcode.c_str(),
 				loadedFile.items.size() );
+			
+			SellerCategoryArray categories = Centrala::Storage().GetSellersCategories();
+			loadedFile.seller.category = categories.empty() ? SELLER_CATEGORY_ID_NONE : categories.begin()->id;
 		}
 
 		if ( !error.empty() )
@@ -1036,7 +1041,7 @@ void BurzaDialogs::ImportMultiSellersLog(const char* text)
 	LogS( InfoMajor, "\n" );
 }
 
-void BurzaDialogs::ImportMultiSellersLog(std::string& text)
+void BurzaDialogs::ImportMultiSellersLog(std::string text)
 {
 	ImportMultiSellersLog(text.c_str());
 }
@@ -1844,8 +1849,10 @@ void BurzaDialogs::RegisterStartDialogEditSeller( SELLER_ID id )
 		Centrala::Storage().ModifySellerStart( id );
 	} else {
 		seller.name = _( "Nový predajca" );
-		seller.note = _( "za MC prijal: !zatiaľ neprebrané!" );
+		seller.note = _(" za MC prijal: ?");
 		seller.id = SELLER_ID_NONE;
+		
+		SellerCategoryArray categories = Centrala::Storage().GetSellersCategories();
 		seller.category = categories.empty() ? SELLER_CATEGORY_ID_NONE : categories.begin()->id;
 	}
 	

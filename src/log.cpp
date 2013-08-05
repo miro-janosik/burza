@@ -81,38 +81,14 @@ void BiturnLog::ResetLogFile( void )
     if ( flog == NULL )
         LoggingSucces = 0;
     else {
-#ifdef _WIN32
-		SYSTEMTIME		time;
-//        fprintf( flog, "Conv by MireX %i.%iW\n", VerMajor, VerMinor );
-//        fprintf( flog, "Conv by MireX W\n" );
-		GetSystemTime( &time );
-		fprintf( flog, "Log reset on %i.%i.%i %02i:%02i\n",
-			time.wDay, time.wMonth, time.wYear,
-			time.wHour, time.wMinute );
-#endif
-#ifdef _DOS
-//        fprintf( flog, "Conv by MireX %i.%iD\n", VerMajor, VerMinor );
-        getdate( &d );
-        gettime( &t );
-        fprintf( flog, "Log reset on %i.%i.%i %02i:%02i\n",
-                  d.da_day, d.da_mon, d.da_year,
-                  t.ti_hour, t.ti_min );
-#endif
-#ifdef _UNIX
-	time_t	tim;
-	tm		*t;
+		
+		std::string text;
+		text = "Log reset on ";
+		text += GetDateTime();
+		text += "\n";
+		fprintf( flog, text.c_str() );
 
-	tim = time( NULL );
-    t = localtime( &tim );
-
-	fprintf( flog, "Log reset on %i.%i.%i %02i:%02i\n",
-		t->tm_mday,
-		t->tm_mon,
-		t->tm_year + 1900,
-		t->tm_hour, t->tm_min );
-#endif
-
-        fclose( flog );
+		fclose( flog );
     }
 
 }
@@ -124,7 +100,12 @@ void BiturnLog::Log( const char *_text, int type )
 	
 	// fix case when there are % in the text
 	char text[ 1024 ];
-	strncpy( text, _text, 1023 );
+	std::string datetime = GetDateTime();
+	strncpy( text, datetime.c_str(), 1023 );
+	int pos = datetime.size();
+	text[ pos ] = ' ';
+	++pos;
+	strncpy( &text[ pos ], _text, 1023 - pos );
 	text[ 1023 ] = 0;
 	
 	char *t = text;
@@ -490,6 +471,42 @@ char* BiturnLog::GetLastLogLine( void )
 		return LastLogLine[ 0 ];
 	else
 		return LastLogLine[ 1 ];
+}
+
+std::string BiturnLog::GetDateTime( void )
+{
+	char time2[ 1024 ];
+	time2[ 1023 ] = 0;
+	
+#ifdef _WIN32
+	SYSTEMTIME		time;
+	GetSystemTime( &time );
+	
+	snprintf( time2, 1023, "%i/%i/%i %02i:%02i:%02i.%03i",
+		time.wDay, time.wMonth, time.wYear,
+		time.wHour, time.wMinute, time.wSecond, time.wMilisecond );
+#endif
+#ifdef _DOS
+	getdate( &d );
+	gettime( &t );
+	snprintf( time2, 1023, "%i/%i/%i %02i:%02i:%02i.%03i",
+			  d.da_day, d.da_mon, d.da_year,
+			  t.ti_hour, t.ti_min, t.ti_sec, t.ti_msec );
+#endif
+#ifdef _UNIX
+	time_t	tim;
+	tm		*t;
+
+	tim = time( NULL );
+    t = localtime( &tim );
+
+	snprintf( time2, 1023, "%i/%i/%i %02i:%02i:%02i.%03i",
+		t->tm_mday, t->tm_mon, t->tm_year + 1900,
+		t->tm_hour, t->tm_min, t->tm_sec, 0 );
+#endif
+	
+	std::string time = time2;
+	return time;
 }
 
 BiturnLog* BiturnLogInstance( void )

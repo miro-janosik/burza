@@ -116,6 +116,9 @@ public:
 #endif
 	char*			GetLastLogLine( void );
 
+	// returns formatted time 
+	std::string		GetDateTime( void );
+	
 
 	static BiturnLog*	GetSingletonInstance( void );
 	static void DeleteSingletonInstance( void );

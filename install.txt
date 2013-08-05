@@ -13,8 +13,11 @@ Instal packages:
 	=== Linux - development ===
 
 Install packages:
-	* pqxx (or pqxx3 and modify makefiles accordingly)
-
+	* pqxx (or pqxx3 or libpqxx3-dev and modify makefiles accordingly)
+	* libgtkmm-2.4-dev and libglademm-2.4-dev (or 3.0 and make respective changes in CMakeLists.txt; but be sure that both are the same version)
+	* cmake
+	* g++
+	
 	=== PostgreSQL server on Linux ===
 edit /etc/postgresql/8.4/main/postgresql.conf
 change listen_addresses from 'localhost' to '*' (so anyone can connect not only server programs).

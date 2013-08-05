@@ -47,6 +47,7 @@ int main2( int argc, char **argv )
 {
 	BiturnLogInstance()->SetLogFileName( "burza-log.txt" );
 	BiturnLogInstance()->SetLoggingMood( BiturnLog::LoggingMoodHeavy );
+	Log( InfoMajor, "=== Burza starting ===\n" );
 	Log( InfoMajor, "main2 starting\n" );
 
 	Log( InfoMajor, "Call to Glib::init\n" );
@@ -159,8 +160,8 @@ bool BurzaRegister::SellerExists(std::string shortcode)
 	return sellerExists;
 }
 
-
-SELLER_CATEGORY_ID GetDefaultSellerCategoryId( void )
+/*
+SELLER_CATEGORY_ID BurzaRegister::GetDefaultSellerCategoryId( void )
 {
 	for( int i=0; i< categories.size(); ++i )
 		if ( categories[ i ].id == id )
@@ -168,6 +169,7 @@ SELLER_CATEGORY_ID GetDefaultSellerCategoryId( void )
 
 	throw WrongSellerCategoryException();
 }
+*/
 
 // ==============================================
 // ==============================================
@@ -269,28 +271,28 @@ BurzaRegister::LoadSellerSheetFileResult BurzaRegister::LoadSellerSheetFile(std:
 			knownType = true;
 			CachedDataTextfile	textStorage( Centrala::Settings().m_data_dir_path );
 			textStorage.LoadFromTxtFile(filename, result.seller, result.items );
-			result.status = LoadSellerSheetFileStatus::Loaded;
+			result.status = BurzaRegister::Loaded;
 		}
 		if ( ext == "xls" ) {
 			knownType = true;
 			BurzaExcel::BasicExcelFileWrapper	excelFile;
 			excelFile.ReadSeller( filename, result.seller, result.items );
-			result.status = LoadSellerSheetFileStatus::Loaded;
+			result.status = BurzaRegister::Loaded;
 		}
 		if ( ext == "ods" ) {
-			result.status = LoadSellerSheetFileStatus::FormatNotSupported;
+			result.status = BurzaRegister::FormatNotSupported;
 		}
 		if ( ext == "xlsx" ) {
-			result.status = LoadSellerSheetFileStatus::FormatNotSupported;
+			result.status = BurzaRegister::FormatNotSupported;
 		}
 
 		if (knownType == false) {
-			result.status = LoadSellerSheetFileStatus::FormatNotKnown;
+			result.status = BurzaRegister::FormatNotKnown;
 		}
 	}
 	catch( runtime_error& e ) {
 
-		result.status = LoadSellerSheetFileStatus::ErrorImporting;
+		result.status = BurzaRegister::ErrorImporting;
 		result.errorText = e.what();
 	}
 
@@ -299,7 +301,7 @@ BurzaRegister::LoadSellerSheetFileResult BurzaRegister::LoadSellerSheetFile(std:
 	result.itemsWithoutName = 0;
 
 	// check for basic errors in filled sheet.
-	if ( result.status == LoadSellerSheetFileStatus::Loaded ) {
+	if ( result.status == BurzaRegister::Loaded ) {
 		for( int i=0; i < result.items.size(); ++i ) {
 
 			if ( result.items[ i ].name.empty() )
