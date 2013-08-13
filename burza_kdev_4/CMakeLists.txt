@@ -7,8 +7,8 @@ set(PROJECT_ROOT  ${PROJECT_SOURCE_DIR}/..)
 set(CMAKE_MODULE_PATH  ${PROJECT_SOURCE_DIR})
 MESSAGE("CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
 
-set(Burza_VERSION_MAJOR 0)
-set(Burza_VERSION_MINOR 6)
+set(Burza_VERSION_MAJOR 1)
+set(Burza_VERSION_MINOR 02)
 ADD_DEFINITIONS(-D_UNIX)
 
 OPTION( DOES_NOTHING "This option does nothing, it is as hint." ON )
@@ -63,7 +63,7 @@ link_directories(
 #  ${PRJ_LIB_DIR}"/libXL"
   )
 
-target_link_libraries(burza_kdev 
+target_link_libraries(burza
   ${GTKMM_LIBRARIES}
   ${GLADEMM_LIBRARIES}
   ${PQXX_LIBRARIES}
