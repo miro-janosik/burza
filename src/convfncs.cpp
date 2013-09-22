@@ -30,6 +30,7 @@
 	#include <time.h>
 	#include <sys/types.h>
 	#include <sys/time.h>
+	#include <sys/stat.h>	// S_ISDIR
 	#include <unistd.h>
 
 	// for DirChangeNotification functionality
@@ -1379,9 +1380,10 @@ int ConvFuncs::DoDeleteFile( const char* src )
 	return 0;
 }
 
-#if (defined ( _WIN32 ))
 // Return true if the folder exists, false otherwise
 bool folderExists(const char* folderName) {
+
+#if (defined ( _WIN32 ))
     if (_access(folderName, 0) == -1) {
         //File not found
         return false;
@@ -1394,12 +1396,31 @@ bool folderExists(const char* folderName) {
     }
 
     return true;
-}
 #endif
+
+#if ( defined _UNIX )
+	// if folder exists return
+	struct stat	st;
+	if (stat(folderName, &st) == 0)
+    {
+		if (!S_ISDIR(st.st_mode))
+		{
+			// filename exists, but it is not a directory
+			return false;
+		}
+		
+		return true;
+	}
+
+	return false;
+	
+#endif
+
+	return false;
+}
 
 bool ConvFuncs::DoCreateFolder( const char* parentPath, const char* folderName )
 {
-#if (defined ( _WIN32 ))
 	std::string fullPath = parentPath;
 	fullPath += "/";
 	fullPath += folderName;
@@ -1409,9 +1430,14 @@ bool ConvFuncs::DoCreateFolder( const char* parentPath, const char* folderName )
 	if (!folderExists(parentPath))
 		return false;
 
+#if (defined ( _WIN32 ))
 	return CreateDirectory(fullPath.c_str(), NULL) != 0;
 #endif
 
+#if ( defined _UNIX )
+	return ((mkdir(fullPath.c_str(), 0777) == 0) || (errno == EEXIST));
+#endif
+	
 	assert( false );
 	return 0;
 }
@@ -1580,7 +1606,7 @@ const char*	 ConvFuncs::FormatCstr( const char* format, ... )
 	return formater_cstr_buffer;
 }
 
-const std::string& ConvFuncs::FormatStdStr( const char* format, ... )
+const std::string ConvFuncs::FormatStdStr( const char* format, ... )
 {
 	va_list	marker;
 

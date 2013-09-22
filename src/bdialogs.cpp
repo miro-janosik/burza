@@ -901,6 +901,9 @@ void BurzaDialogs::RegisterButtonImportMultiSellers( void )
 
 	BurzaRegister::CreateFolders( path, folderNames );
 
+	SellerCategoryArray categories = Centrala::Storage().GetSellersCategories();
+	SELLER_CATEGORY_ID newSellerCategory = categories.empty() ? SELLER_CATEGORY_ID_NONE : categories.begin()->id;
+	
 	// == loop through the files ==
 	int finishedCount = 0, problemCount = 0;
 	
@@ -946,6 +949,9 @@ void BurzaDialogs::RegisterButtonImportMultiSellers( void )
 					// imported items have to be checked by hand. Take note that these were not.
 					loadedFile.seller.note += _(" za MC prijal: ?");
 
+					loadedFile.seller.category = newSellerCategory;
+					loadedFile.seller.status = Burza::imported;
+					
 					loadedFile.seller.id = Centrala::Storage().AddSeller( loadedFile.seller );
 					Centrala::Storage().AddItems( loadedFile.items, loadedFile.seller.id );
 				}

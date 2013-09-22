@@ -328,7 +328,7 @@ public:
 	// returns pointer to local buffer holding result string.
 	static const char*			FormatCstr( const char* format, ... );
 	// returns reference to local buffer holding result string.
-	static const std::string&	FormatStdStr( const char* format, ... );
+	static const std::string	FormatStdStr( const char* format, ... );
 
 	static const char* strupr_convfncs( char* input );
 

@@ -93,12 +93,24 @@ int main2( int argc, char **argv )
 		Gtk::Main::run();
 	}
 	catch (std::exception& ex) {
-		exceptionMessage = ex.what();
+		exceptionMessage += "std::exception: ";
+		exceptionMessage += ex.what();
 	}
 	catch (DataStorageException& ex){
-		exceptionMessage = ex.what();
+		exceptionMessage += "DataStorageException: ";
+		exceptionMessage += ex.what();
+	}
+	catch(...)
+	{
+		exceptionMessage += "Unknown exception.";
 	}
 
+	if (!exceptionMessage.empty())
+	{
+		std::string str = "Exception - " + exceptionMessage + "\n";
+		Log( InfoError, str.c_str() );
+	}
+	
 	// setup update timer
 	// m_timer_connection = Glib::signal_timeout().connect( sigc::ptr_fun( &on_timer ), 100 );
 

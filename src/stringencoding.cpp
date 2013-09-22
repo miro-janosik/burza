@@ -62,6 +62,10 @@ std::vector<char> StringEncoding::OneToAnother( const char* src, int sizeinbytes
 		
 		if ((cd = iconv_open( to.c_str(), from.c_str() )) == (iconv_t)(-1)) 
 		{
+			if (errno == EINVAL) {
+				throw std::runtime_error( "Cannot open converter - conversion from to is not supported by the implementation." );
+			}
+		  
 			printErrno = errno;
 			throw std::runtime_error( "Cannot open converter" );
 		}
@@ -130,7 +134,14 @@ std::string StringEncoding::WStringToUTF8(std::wstring &str)
 	
 	// changed "UCS-2-INTERNAL" to different because on unix it is not known
 	// str.size() * 2, "WCHAR_T", "UTF-8"
-	result = OneToAnother( cp, str.size() * 2, "UCS-2-INTERNAL", "UTF-8" );
+	std::string sourceEncoding;
+#ifdef _UNIX
+	sourceEncoding = "UCS-2";
+#else
+	sourceEncoding = "UCS-2-INTERNAL";
+#endif
+	
+	result = OneToAnother( cp, str.size() * 2, sourceEncoding, "UTF-8" );
 	std::string resultstr( result.begin(), result.end() );
 	
 	return resultstr;
