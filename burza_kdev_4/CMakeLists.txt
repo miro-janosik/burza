@@ -48,6 +48,10 @@ set(PQXX_LIBRARIES "libpqxx.so")
 
 set(PRJ_LIB_DIR "${PROJECT_SOURCE_DIR}/../lib")
 
+# -Wl,-Bstatic -l/usr/lib/libpqxx.so 
+SET( GCC_LINK_FLAGS_liborigin "-Wl,-rpath=$ORIGIN/lib -Wl,-Bdynamic")
+SET( CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} ${GCC_LINK_FLAGS_liborigin}" )
+
 include_directories(	
   ${GLADEMM_INCLUDE_DIRS}
   ${GTKMM_INCLUDE_DIRS}
@@ -70,4 +74,3 @@ target_link_libraries(burza
   "${PRJ_LIB_DIR}/libharu/lib/libhpdf.a"
 #  "${PRJ_LIB_DIR}/libXL/libxl.so"
   )
-

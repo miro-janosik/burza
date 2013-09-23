@@ -64,7 +64,7 @@ int main2( int argc, char **argv )
 	ConvFuncs::SingletonInstanceCreate();
 	
 	Log( InfoMajor, "Gtk::Main\n" );
-	Gtk::Main	kit( argc, argv );
+	Gtk::Main gtkkit( argc, argv );
 	
 	// do not use local settings, use international. I want '.' as decimal delimiter.
 	setlocale(LC_ALL,"C");
@@ -90,7 +90,7 @@ int main2( int argc, char **argv )
 		Centrala::Dialogs().initializing = false;
 
 		Log( InfoMajor, "Gtk::Main::run()\n" );
-		Gtk::Main::run();
+		Gtk::Main::run( *Centrala::Dialogs().m_pWndRegister );
 	}
 	catch (std::exception& ex) {
 		exceptionMessage += "std::exception: ";
