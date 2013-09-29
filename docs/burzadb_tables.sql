@@ -7,7 +7,14 @@ CREATE TABLE item_category
   "ID" integer NOT NULL DEFAULT (-1),
   "LETTER" character(1),
   "NAME" text,
-  "FEE_PER_ITEM" double precision,
+  "LIMIT_PRICE_MIN" double precision,
+  "LIMIT_PRICE_MAX" double precision,
+  
+  "FEE_ITEM" double precision DEFAULT 0, -- Fee is {value} for every item. Even if not sold.
+  "FEE_ITEM_PERC" double precision DEFAULT 0, -- Fee is {value}% of price for every item. Even if not sold.
+  "FEE_SOLD_ITEM" double precision DEFAULT 0, -- Fee is {value} for every sold item.
+  "FEE_SOLD_PERC" double precision DEFAULT 0, -- Fee is {value}% of the price of every sold item.
+  
   CONSTRAINT "item category id is unique" PRIMARY KEY ("ID")
 )
 WITH (
@@ -15,11 +22,17 @@ WITH (
 );
 ALTER TABLE item_category OWNER TO postgres;
 COMMENT ON TABLE item_category IS 'Item categories.';
-
+COMMENT ON COLUMN seller_category."FEE_ITEM" IS 'Fee is {value} for every item. Even if not sold.';
+COMMENT ON COLUMN seller_category."FEE_ITEM_PERC" IS 'Fee is {value}% of price for every item. Even if not sold.';
+COMMENT ON COLUMN seller_category."FEE_SOLD_ITEM" IS 'Fee is {value} for every sold item.';
+COMMENT ON COLUMN seller_category."FEE_SOLD_PERC" IS 'Fee is {value}% of the price of every sold item.';
 -- Create default content of the item_category table
 INSERT INTO item_category(
-            "ID", "LETTER", "NAME", "FEE_PER_ITEM")
-    VALUES (0, 'a', 'odev', 0.0);
+            "ID", "LETTER", "NAME", "FEE_PER_ITEM", "LIMIT_PRICE_MIN", "LIMIT_PRICE_MAX",
+            "FEE_ITEM", "FEE_ITEM_PERC", "FEE_SOLD_ITEM", "FEE_SOLD_PERC")
+    VALUES 
+    (0, 'a', 'Odevy', NULL, 15.0, 0.10, 0.0, 0.0, 10 ),
+    (0, 'b', 'Hracky',15.0, NULL, 1.00, 0.0, 0.0, 10 );
 
 
 -- Table: items
@@ -56,30 +69,32 @@ CREATE TABLE seller_category
   "ID" integer NOT NULL DEFAULT (-1),
   "LETTER" character(1),
   "NAME" text,
-  "FEE" double precision DEFAULT 0, -- Fee is {value}.
-  "FEE_SOLD_PERC" double precision DEFAULT 0, -- Fee is {value}% of the price of all sold items.
-  "FEE_SOLD_ITEM" double precision DEFAULT 0, -- Fee is {value} for every sold item.
-  "FEE_ITEM" double precision DEFAULT 0, -- Fee is {value} for every item.
-  "FEE_ITEM_PERC" double precision DEFAULT 0, -- Fee is {value}% of price for every item.
+  "FEE" double precision DEFAULT 0, -- Fee is {value} for putting items on sale.
+
+  "MUL_FEE_ITEM" double precision DEFAULT 1, -- Multiplier of item category FEE_ITEM
+  "MUL_FEE_ITEM_PERC" double precision DEFAULT 1, -- Multiplier of item category FEE_ITEM_PERC
+  "MUL_FEE_SOLD_ITEM" double precision DEFAULT 1, -- Multiplier of item category FEE_SOLD_ITEM
+  "MUL_FEE_SOLD_PERC" double precision DEFAULT 1, -- Multiplier of item category FEE_SOLD_PERC
+  
   CONSTRAINT "seller category id is unique" PRIMARY KEY ("ID")
 )
 WITH (OIDS=FALSE);
 ALTER TABLE seller_category OWNER TO postgres;
 COMMENT ON TABLE seller_category IS 'Seller categories.';
-COMMENT ON COLUMN seller_category."FEE" IS 'Fee is {value}.';
-COMMENT ON COLUMN seller_category."FEE_SOLD_PERC" IS 'Fee is {value}% of the price of all sold items.';
-COMMENT ON COLUMN seller_category."FEE_SOLD_ITEM" IS 'Fee is {value} for every sold item.';
-COMMENT ON COLUMN seller_category."FEE_ITEM" IS 'Fee is {value} for every item.';
-COMMENT ON COLUMN seller_category."FEE_ITEM_PERC" IS 'Fee is {value}% of price for every item.';
+COMMENT ON COLUMN seller_category."FEE" IS 'Fee is {value} for putting items on sale.';
+COMMENT ON COLUMN seller_category."MUL_FEE_ITEM" IS 'Multiplier of item category FEE_ITEM';
+COMMENT ON COLUMN seller_category."MUL_FEE_ITEM_PERC" IS 'Multiplier of item category FEE_ITEM_PERC';
+COMMENT ON COLUMN seller_category."MUL_FEE_SOLD_ITEM" IS 'Multiplier of item category FEE_SOLD_ITEM';
+COMMENT ON COLUMN seller_category."MUL_FEE_SOLD_PERC" IS 'Multiplier of item category FEE_SOLD_PERC';
 
 -- Create default content of 'seller category' table
 INSERT INTO seller_category(
 	"ID", "LETTER", "NAME", 
-	"FEE", "FEE_SOLD_PERC", "FEE_SOLD_ITEM", "FEE_ITEM", "FEE_ITEM_PERC")
+	"FEE", "MUL_FEE_ITEM", "MUL_FEE_ITEM_PERC", "MUL_FEE_SOLD_ITEM", "MUL_FEE_SOLD_PERC")
     VALUES 
-    (1, 'p', 'Predajca', 0.0, 10.0, 0.00, 0.10, 0.0),
-    (2, 's', 'Sympatizant', 0.0, 10.0, 0.00, 0.0, 0.0),
-    (3, 'd', 'Organizator', 0.0, 0.0, 0.00, 0.0, 0.0);
+    (1, 'p', 'Predajca', 0.0, 1.0, 1.0, 1.0, 1.0),
+    (2, 's', 'Sympatizant', 0.0, 1.0, 1.0, 0.0, 0.0),
+    (3, 'd', 'Organizator', 0.0, 0.0, 0.0, 0.0, 0.0);
 
 
 
@@ -107,6 +122,24 @@ ALTER TABLE sellers OWNER TO postgres;
 GRANT ALL ON TABLE sellers TO postgres;
 GRANT SELECT, UPDATE, INSERT, DELETE, REFERENCES ON TABLE sellers TO public;
 COMMENT ON TABLE sellers IS 'List of sellers.';
+
+
+-- Table: info
+-- DROP TABLE info;
+
+CREATE TABLE info
+(
+  "VERSION" integer NOT NULL default 2,
+  "TITLE" text,
+  "DATE" timestamp with time zone NOT NULL DEFAULT '2000-01-01 01:02:03'::timestamp without time zone,
+)
+WITH (
+  OIDS=FALSE
+);
+ALTER TABLE info OWNER TO postgres;
+GRANT ALL ON TABLE info TO postgres;
+GRANT SELECT, UPDATE, INSERT, DELETE, REFERENCES ON TABLE info TO public;
+COMMENT ON TABLE info IS 'Instance information.';
 
 
 -- !! TO BE TESTED !!

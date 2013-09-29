@@ -59,6 +59,13 @@ enum columnIndexes {
 	sellerCategoryColumn_fee_sold_item,
 	sellerCategoryColumn_fee_item,
 	sellerCategoryColumn_fee_item_perc,
+	
+	ItemCategoryColumn_id = 0,
+	ItemCategoryColumn_letter,
+	ItemCategoryColumn_name,
+	ItemCategoryColumn_fee_per_item,
+	ItemCategoryColumn_limit_price_min,
+	ItemCategoryColumn_limit_price_max,
 };
 
 /*
@@ -73,6 +80,10 @@ string columnNameStrings[ columnNamesCount ] = {
 	"MODIFIED"
 };
 */
+
+#define GetItemData( column_name_index, target_variable ) \
+	if (!result[ column_name_index ].to( data.target_variable )) \
+		  dataCorrupt = true;
 
 DataPostgresPqxx::DataPostgresPqxx()
 {
@@ -256,7 +267,6 @@ ItemData DataPostgresPqxx::GetItem(ITEM_ID id)
 		throw new WrongItemException();
 	}
 }
-
 	
 ItemCategoryArray DataPostgresPqxx::GetItemsCategories( void )
 {
@@ -514,10 +524,6 @@ ConvFuncs::s_datetime DataPostgresPqxx::StringToTimestamp( string time )
 	return result;
 }
 
-#define GetItemData( column_name_index, target_variable ) \
-	if (!result[ column_name_index ].to( data.target_variable )) \
-		  dataCorrupt = true;
-
 void DataPostgresPqxx::DbDataToSellerData( const result::tuple& result, SellerData& data )
 {
 	bool dataCorrupt = false;
@@ -543,96 +549,6 @@ void DataPostgresPqxx::DbDataToSellerData( const result::tuple& result, SellerDa
 	}
 	
 	data.last_update = StringToTimestamp( timeString );
-}
-
-void DataPostgresPqxx::DbDataToSellerCategoryData( const result::tuple& result, SellerCategory& data ) 
-{
-	bool dataCorrupt = false;
-	
-	GetItemData( sellerCategoryColumn_id, id )
-	GetItemData( sellerCategoryColumn_name, name )
-	GetItemData( sellerCategoryColumn_fee, fee_per_sale )
-	GetItemData( sellerCategoryColumn_fee_sold_perc, fee_whole_sold_sum_percentage )
-	GetItemData( sellerCategoryColumn_fee_sold_item, fee_sold_item )
-	GetItemData( sellerCategoryColumn_fee_item, fee_item )
-	GetItemData( sellerCategoryColumn_fee_item_perc, fee_item_perc )
-
-	// 'char' type is not supported
-	const char* letterValue = result[ sellerCategoryColumn_letter ].c_str();
-	if ((letterValue == NULL) || (strlen(letterValue) != 1)) {
-		dataCorrupt = true;
-	}
-	else
-		data.letter = letterValue[0];
-
-	if ( dataCorrupt ) {
-		HandleException(new runtime_error("Data in DB corrupted!"));
-	}
-}
-
-void DataPostgresPqxx::DbDataToItemData( const result::tuple& result, ItemData& data )
-{
-	bool dataCorrupt = false;
-	string timeString;
-	
-	GetItemData( itemColumn_item_id, id )
-	GetItemData( itemColumn_name, name )
-	GetItemData( itemColumn_seller_id, seller_id )
-	GetItemData( itemColumn_price, price )
-	GetItemData( itemColumn_item_category_id, category )
-	GetItemData( itemColumn_number, number )
-	
-	int statusInt;
-	if (!result[ itemColumn_status ].to( statusInt ))
-		  dataCorrupt = true;
-	data.status = (ItemStatus) statusInt;
-
-	if (!result[ itemColumn_modified ].to( timeString ))
-		  dataCorrupt = true;
-	
-	if ( dataCorrupt ) {
-		HandleException( new runtime_error("Data in DB corrupted!"));
-	}
-	
-	data.last_update = StringToTimestamp( timeString );
-}
-
-ItemDataArray DataPostgresPqxx::QueryForItems( string query, string queryName, bool singleItem )
-{
-	// LogS( InfoMajor, "Query name: %s single: %s\n", queryName.c_str(), singleItem ? "yes" : "no" );
-	// LogS( InfoMajor, "Query: %s\n", query.c_str() );
-
-	ItemDataArray items;
-	result itemResult;
-	
-	try {
-		work work1(*dbConnection, queryName);
-		itemResult = work1.exec( query );
-		work1.commit();
-	}
-	catch(exception& ex) {
-		HandlePostgresqlException( ex );
-		return items;
-	}
-
-	int i = 0, c = itemResult.size();
-	if (( singleItem ) && ( c != 1 )) {
-		HandleException(new runtime_error( 
-			ConvFuncs::FormatStdStr( 
-			"DataPostgresPqxx::QueryForItems no single item: '%s' => '%s'.", queryName.c_str(), query.c_str() )));
-		return items;
-	}
-	
-	i = 0;
-	c = itemResult.size();
-	ItemData item;
-	
-	for( ; i < c; ++i ) {
-		DbDataToItemData( itemResult[ i ], item );
-		items.push_back( item );
-	}
-	
-	return items;
 }
 
 SellerDataArray DataPostgresPqxx::QueryForSellers( string query, string queryName, bool singleSellers )
@@ -677,6 +593,31 @@ SellerDataArray DataPostgresPqxx::QueryForSellers( string query, string queryNam
 	}
 	
 	return sellers;
+}
+
+void DataPostgresPqxx::DbDataToSellerCategoryData( const result::tuple& result, SellerCategory& data ) 
+{
+	bool dataCorrupt = false;
+	
+	GetItemData( sellerCategoryColumn_id, id )
+	GetItemData( sellerCategoryColumn_name, name )
+	GetItemData( sellerCategoryColumn_fee, fee_per_sale )
+	GetItemData( sellerCategoryColumn_fee_sold_perc, fee_whole_sold_sum_percentage )
+	GetItemData( sellerCategoryColumn_fee_sold_item, fee_sold_item )
+	GetItemData( sellerCategoryColumn_fee_item, fee_item )
+	GetItemData( sellerCategoryColumn_fee_item_perc, fee_item_perc )
+
+	// 'char' type is not supported
+	const char* letterValue = result[ sellerCategoryColumn_letter ].c_str();
+	if ((letterValue == NULL) || (strlen(letterValue) != 1)) {
+		dataCorrupt = true;
+	}
+	else
+		data.letter = letterValue[0];
+
+	if ( dataCorrupt ) {
+		HandleException(new runtime_error("Data in DB corrupted!"));
+	}
 }
 
 SellerCategoryArray DataPostgresPqxx::QueryForSellerCategories( string query, string queryName )
@@ -758,6 +699,80 @@ string DataPostgresPqxx::SellerToQueryUpdateValuesString( SellerData& data )
 
 	return values;
 }
+
+void DataPostgresPqxx::DbDataToItemCategoryData( const result::tuple& result, SellerCategory& data )
+{
+	bool dataCorrupt = false;
+	
+	data.fee_item
+	
+	GetItemData( ItemCategoryColumn_id, id )
+	GetItemData( ItemCategoryColumn_letter, letter )
+	GetItemData( ItemCategoryColumn_name, name )
+	GetItemData( ItemCategoryColumn_fee_per_item, fee_item )
+	GetItemData( ItemCategoryColumn_limit_price_min, limit_price_min )
+	GetItemData( ItemCategoryColumn_limit_price_max, limit_price_max )
+
+	if ( dataCorrupt ) {
+		HandleException(new runtime_error("Data in DB corrupted!"));
+	}
+}
+
+ItemCategoryArray DataPostgresPqxx::QueryForItemCategories( string query, string queryName, bool singleCategory )
+{
+	// LogS( InfoMajor, "Query name: %s single: %s\n", queryName.c_str(), singleSellers ? "yes" : "no" );
+	// LogS( InfoMajor, "Query: %s\n", query.c_str() );
+
+	ItemCategoryArray categories;
+	result categoryResult;
+	
+	try {
+		work dbGetItemCategories( *dbConnection, queryName );
+		categoryResult = dbGetItemCategories.exec( query );
+		dbGetItemCategories.commit();
+	}
+	catch(exception& ex) {
+		HandlePostgresqlException( ex );
+		return categoryResult;
+	}
+
+	ItemCategory category;
+	
+	int i = 0, c = categoryResult.size();
+	
+	if (( singleCategory ) && ( c != 1 )) {
+
+		if ( c == 0 ) {
+			throw WrongItemCategoryException();
+		}
+		
+		HandleException(new runtime_error( 
+			ConvFuncs::FormatStdStr( 
+			"DataPostgresPqxx::QueryForItemCategories no single item: '%s' => '%s'.", queryName.c_str(), query.c_str() )));
+	}
+	
+	for( ; i < c; ++i ) {
+		const result::tuple oneRow = categoryResult[ i ];
+		DbDataToSellerCategoryData( oneRow, category );
+		
+		categories.push_back( category );
+	}
+	
+	return categories;
+}
+
+string DataPostgresPqxx::ItemCategoriesToQueryNewValuesString( ItemCategory& category )
+{
+	string values = ConvFuncs::FormatStdStr( 
+		"( %i, '%s', '%s', %0.4f, %0.4f, %0.4f )",
+		category.id, ApostropheToDouble( category.letter ).c_str(), ApostropheToDouble( category.name ).c_str(), 
+		category.fee_per_item, category.limit_price_min, category.limit_price_max );
+	return values;
+}
+
+// void DataPostgresPqxx::DbDataToItemCategoryData( const result::tuple& result, SellerCategory& data )
+// ItemCategoryArray DataPostgresPqxx::QueryForItemCategories( string query, string queryName, bool singleCategory )
+// string DataPostgresPqxx::ItemCategoriesToQueryNewValuesString( ItemData& item )
 
 string DataPostgresPqxx::ApostropheToDouble( string str )
 {

@@ -130,6 +130,8 @@ struct SellerCategory {
 	double				fee_sold_item;
 	double				fee_item;
 	double				fee_item_perc;
+	double				limit_price_min;
+	double				limit_price_max;
 
 	void Reset()
 	{
@@ -141,6 +143,8 @@ struct SellerCategory {
 		fee_sold_item = 0.0;
 		fee_item = 0.0;
 		fee_item_perc = 0.0;
+		limit_price_min = 0.0;
+		limit_price_max = 0.0;
 	}
 };
 

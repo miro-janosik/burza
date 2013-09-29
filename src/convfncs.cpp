@@ -32,6 +32,7 @@
 	#include <sys/time.h>
 	#include <sys/stat.h>	// S_ISDIR
 	#include <unistd.h>
+	#include <ctime>
 
 	// for DirChangeNotification functionality
 	// commented on 30.5.2011 #define _GNU_SOURCE	// needed to get the defines
@@ -1491,17 +1492,33 @@ Solaris:
 
 char* ConvFuncs::CurDateTimeString( void )
 {
+	GetDateTime();
+	
+	/*
 	char	DaysOfWeek[7][4] =
 	{ "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
 	char	MonthsOfYear[12][4] =
 	{ "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 
-	GetDateTime();
+	const char* dayText = DaysOfWeek[ datetime.dayofweek ];
+	const char* monthText = MonthsOfYear[ datetime.month ];
+	*/
 	
+	// Get localized texts by system calls
+	struct tm date;
+	date.tm_mon = datetime.month;
+	date.tm_wday = datetime.dayofweek;
+	
+	char dayText[ 512 ];
+	char monthText[ 512 ];
+	strftime( dayText, 511, "%a", &date );
+	strftime( monthText, 511, "%b", &date );
+	
+	// format all together
 	snprintf( DateTimeString, DateTimeString_len, "%s %i %s %i %02i:%02i",
-		( datetime.dayofweek == -1 ) ? "-" : DaysOfWeek[ datetime.dayofweek ],
+		( datetime.dayofweek == -1 ) ? "-" : dayText,
 		datetime.day,
-		MonthsOfYear[ datetime.month ],
+		monthText,
 		datetime.year,
 		datetime.hour, datetime.minute );
 
@@ -1562,7 +1579,7 @@ void ConvFuncs::GetDateTime( void )
 	time_t	time_integer = time( NULL );
 	struct tm*	time_struct;
 	
-	time_struct = gmtime( &time_integer );
+	time_struct = localtime( &time_integer );
 	
 	datetime.year		=	1900 + time_struct->tm_year;
 	datetime.month		=	time_struct->tm_mon;

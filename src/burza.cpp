@@ -67,7 +67,8 @@ int main2( int argc, char **argv )
 	Gtk::Main gtkkit( argc, argv );
 	
 	// do not use local settings, use international. I want '.' as decimal delimiter.
-	setlocale(LC_ALL,"C");
+	// setlocale(LC_ALL,"C");
+	setlocale(LC_NUMERIC,"C");
 	
 	// ============
 
