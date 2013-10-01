@@ -250,14 +250,14 @@ void Recipees::PrintSellerReturnSheet( PdfWrapperBase& pdf, SELLER_ID id )
 	pdf.SetFontSize(1.2);
 	double ypos = marginTop;
 	
-	pdf.WriteSingleText( 5, ypos, ConvFuncs::FormatStdStr(_("Predavajuci: %s - %s (%s), stav '%s'"), 
+	pdf.WriteSingleText( 7, ypos, ConvFuncs::FormatStdStr(_("Predavajuci: %s - %s (%s), stav '%s'"), 
 		seller.shortcode.c_str(), seller.name.c_str(),
 		sellerCat.name.c_str(),
 		DataAccessInterface::SellerStatus2String( seller.status ) ));
 	ypos += 1.6;
-	pdf.WriteSingleText( 5, ypos, ConvFuncs::FormatStdStr(_("( %s )"), seller.note.c_str() ));
+	pdf.WriteSingleText( 7, ypos, ConvFuncs::FormatStdStr(_("( %s )"), seller.note.c_str() ));
 	ypos += 1.6;
-	pdf.WriteSingleText( 5, ypos, ConvFuncs::FormatStdStr(_("Stav dna: %s"), ConvFuncsInstance->CurDateTimeString() ));
+	pdf.WriteSingleText( 7, ypos, ConvFuncs::FormatStdStr(_("Stav dna: %s"), ConvFuncsInstance->CurDateTimeString() ));
 	ypos += 1.6;
 
 	TableOfCells	items;
