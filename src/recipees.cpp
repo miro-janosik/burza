@@ -96,11 +96,11 @@ void Recipees::AddProgramPageHeaderAndFooter( PdfWrapperBase& pdf )
 	// center free area is in vertical range "2% - 98%"
 	
 	//footer
-	pdf.WriteSingleText( 2, 94, 
+	pdf.WriteSingleText( 2, 96, 
 		ConvFuncs::FormatStdStr(_("Dokument vytvorený '%s' na počítači '%s'."), 
 		ConvFuncsInstance->CurDateTimeString(),
 		Centrala::Settings().m_computer_name.c_str()));
-	pdf.WriteSingleText( 2, 96, 
+	pdf.WriteSingleText( 2, 97, 
 		ConvFuncs::FormatStdStr(_("Program má licenciu '%s'."), 
 		"Demo - zdarma"));
 	pdf.WriteSingleText( 2, 98, 
