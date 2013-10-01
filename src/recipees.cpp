@@ -303,7 +303,7 @@ void Recipees::PrintSellerReturnSheet( PdfWrapperBase& pdf, SELLER_ID id )
 	TableOfCells	sumCells;
 	TableColumnSpecs	sumColumns;
 	
-	sumColumns.AddColumn( "", 64 );
+	sumColumns.AddColumn( "", 71 );
 	sumColumns.AddColumn( "", 7 );
 
 	// add sum of the items that were sold
