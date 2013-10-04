@@ -27,7 +27,7 @@ string BurzaDialogsFileHelper::FormatDateTimeFileName( string prefix, string ext
 
 	return offeredName;
 }
-
+ 
 string BurzaDialogsFileHelper::AskToSaveDocumentFile( string fileName )
 {
 	Gtk::FileChooserDialog dlg( _("Cielovy subor"), Gtk::FILE_CHOOSER_ACTION_SAVE );
