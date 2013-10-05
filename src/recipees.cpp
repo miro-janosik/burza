@@ -282,14 +282,14 @@ void Recipees::PrintSellerReturnSheet( PdfWrapperBase& pdf, SELLER_ID id )
 		
 		items.Cell( i, 1 ) = sellerItems[ i ].name;
 		
-		items.Cell( i, 2 ) = ConvFuncs::FormatStdStr( "%6.2f", sellerItems[ i ].price );
+		items.Cell( i, 2 ) = ConvFuncs::FormatStdStr( "%8.2f", sellerItems[ i ].price );
 
 		items.Cell( i, 3 ) = ConvFuncs::FormatStdStr( "%c",
 			Centrala::Storage().GetSellerCategory( sellerItems[ i ].category ).letter );
 		items.Cell( i, 4 ) = DataAccessInterface::ItemStatus2String( sellerItems[ i ].status );
 
 		if ( sellerItems[ i ].status == sold ) {
-			items.Cell( i, 5 ) = ConvFuncs::FormatStdStr( "%6.2f", sellerItems[ i ].price );
+			items.Cell( i, 5 ) = ConvFuncs::FormatStdStr( "%8.2f", sellerItems[ i ].price );
 			sum += sellerItems[ i ].price;
 		}
 	}
@@ -313,24 +313,24 @@ void Recipees::PrintSellerReturnSheet( PdfWrapperBase& pdf, SELLER_ID id )
 
 	int row = 0;
 	sumCells.Cell( row, 0 ) = _( "Súčet predaných vecí" );
-	sumCells.Cell( row, 1 ) = ConvFuncs::FormatStdStr( "%6.2f", sum );
+	sumCells.Cell( row, 1 ) = ConvFuncs::FormatStdStr( "%8.2f", sum );
 	double finalSum = fees.sumOfSoldItems;
 
 	for( int i = 0; i < fees.fees.size(); ++i )
 	{
 		++row;
 		sumCells.Cell( row, 0 ) = fees.fees[ i ].name;
-		sumCells.Cell( row, 1 ) = ConvFuncs::FormatStdStr( "- %6.2f", fees.fees[ i ].price );
+		sumCells.Cell( row, 1 ) = ConvFuncs::FormatStdStr( "- %8.2f", fees.fees[ i ].price );
 
 		finalSum -= fees.fees[ i ].price;
 		++row;
-		sumCells.Cell( row, 1 ) = ConvFuncs::FormatStdStr( "= %6.2f", finalSum );
+		sumCells.Cell( row, 1 ) = ConvFuncs::FormatStdStr( "= %8.2f", finalSum );
 	}
 
 	++row;
 	++row;
 	sumCells.Cell( row, 0 ) = _( "Celkom vyplatené (eur) :" );
-	sumCells.Cell( row, 1 ) = ConvFuncs::FormatStdStr( "%6.2f", finalSum );
+	sumCells.Cell( row, 1 ) = ConvFuncs::FormatStdStr( "%8.2f", finalSum );
 	
 	++row;
 	++row;
