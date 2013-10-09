@@ -151,13 +151,6 @@ SellerData DataPostgresPqxx::GetSeller(SELLER_ID id)
 	{
 		throw;
 	}
-	/*
-	Do not handle this exception here, it is serious, let it bubble all way to the top.
-	catch(exception& e)
-	{
-		HandlePostgresqlException(e);
-	}
-	*/
 
 	return sellers[ 0 ];
 }
@@ -653,6 +646,71 @@ SellerCategoryArray DataPostgresPqxx::QueryForSellerCategories( string query, st
 	return categories;
 }
 
+ItemDataArray DataPostgresPqxx::QueryForItems( string query, string queryName, bool singleItem )
+{
+	// LogS( InfoMajor, "Query name: %s single: %s\n", queryName.c_str(), singleItem ? "yes" : "no" );
+	// LogS( InfoMajor, "Query: %s\n", query.c_str() );
+
+	ItemDataArray items;
+	result itemResult;
+	
+	try {
+		work work1(*dbConnection, queryName);
+		itemResult = work1.exec( query );
+		work1.commit();
+	}
+	catch(exception& ex) {
+		HandlePostgresqlException( ex );
+		return items;
+	}
+
+	int i = 0, c = itemResult.size();
+	if (( singleItem ) && ( c != 1 )) {
+		HandleException(new runtime_error( 
+			ConvFuncs::FormatStdStr( 
+			"DataPostgresPqxx::QueryForItems no single item: '%s' => '%s'.", queryName.c_str(), query.c_str() )));
+		return items;
+	}
+	
+	i = 0;
+	c = itemResult.size();
+	ItemData item;
+	
+	for( ; i < c; ++i ) {
+		DbDataToItemData( itemResult[ i ], item );
+		items.push_back( item );
+	}
+	
+	return items;
+}
+
+void DataPostgresPqxx::DbDataToItemData( const result::tuple& result, ItemData& data )
+{
+	bool dataCorrupt = false;
+	string timeString;
+	
+	GetItemData( itemColumn_item_id, id )
+	GetItemData( itemColumn_name, name )
+	GetItemData( itemColumn_seller_id, seller_id )
+	GetItemData( itemColumn_price, price )
+	GetItemData( itemColumn_item_category_id, category )
+	GetItemData( itemColumn_number, number )
+	
+	int statusInt;
+	if (!result[ itemColumn_status ].to( statusInt ))
+		  dataCorrupt = true;
+	data.status = (ItemStatus) statusInt;
+
+	if (!result[ itemColumn_modified ].to( timeString ))
+		  dataCorrupt = true;
+	
+	if ( dataCorrupt ) {
+		HandleException( new runtime_error("Data in DB corrupted!"));
+	}
+	
+	data.last_update = StringToTimestamp( timeString );
+}
+
 string DataPostgresPqxx::SellerToQueryValuesString( SellerData& seller )
 {
 	string values = ConvFuncs::FormatStdStr( 
@@ -700,19 +758,27 @@ string DataPostgresPqxx::SellerToQueryUpdateValuesString( SellerData& data )
 	return values;
 }
 
-void DataPostgresPqxx::DbDataToItemCategoryData( const result::tuple& result, SellerCategory& data )
+void DataPostgresPqxx::DbDataToItemCategoryData( const result::tuple& result, ItemCategory& data )
 {
 	bool dataCorrupt = false;
 	
-	data.fee_item
-	
 	GetItemData( ItemCategoryColumn_id, id )
-	GetItemData( ItemCategoryColumn_letter, letter )
+	
+	std::string text;
+	if (!result[ ItemCategoryColumn_letter ].to( text ))
+		dataCorrupt = true;
+	else
+		data.letter = !text.empty() ? text[0] : 0;
+		
 	GetItemData( ItemCategoryColumn_name, name )
-	GetItemData( ItemCategoryColumn_fee_per_item, fee_item )
 	GetItemData( ItemCategoryColumn_limit_price_min, limit_price_min )
 	GetItemData( ItemCategoryColumn_limit_price_max, limit_price_max )
 
+	GetItemData( ItemCategoryColumn_fee_per_item, fee_per_item )
+	GetItemData( ItemCategoryColumn_fee_per_item, fee_item_perc )
+	GetItemData( ItemCategoryColumn_fee_per_item, fee_per_sold_item )
+	GetItemData( ItemCategoryColumn_fee_per_item, fee_sold_perc )
+	
 	if ( dataCorrupt ) {
 		HandleException(new runtime_error("Data in DB corrupted!"));
 	}
@@ -733,7 +799,7 @@ ItemCategoryArray DataPostgresPqxx::QueryForItemCategories( string query, string
 	}
 	catch(exception& ex) {
 		HandlePostgresqlException( ex );
-		return categoryResult;
+		return categories;
 	}
 
 	ItemCategory category;
@@ -753,7 +819,7 @@ ItemCategoryArray DataPostgresPqxx::QueryForItemCategories( string query, string
 	
 	for( ; i < c; ++i ) {
 		const result::tuple oneRow = categoryResult[ i ];
-		DbDataToSellerCategoryData( oneRow, category );
+		DbDataToItemCategoryData( oneRow, category );
 		
 		categories.push_back( category );
 	}
@@ -763,16 +829,17 @@ ItemCategoryArray DataPostgresPqxx::QueryForItemCategories( string query, string
 
 string DataPostgresPqxx::ItemCategoriesToQueryNewValuesString( ItemCategory& category )
 {
+	string letter;
+	letter += category.letter;
+	
 	string values = ConvFuncs::FormatStdStr( 
 		"( %i, '%s', '%s', %0.4f, %0.4f, %0.4f )",
-		category.id, ApostropheToDouble( category.letter ).c_str(), ApostropheToDouble( category.name ).c_str(), 
-		category.fee_per_item, category.limit_price_min, category.limit_price_max );
+		category.id, ApostropheToDouble( letter ).c_str(), ApostropheToDouble( category.name ).c_str(), 
+		category.limit_price_min, category.limit_price_max,
+		category.fee_per_item, category.fee_item_perc, category.fee_per_sold_item, category.fee_sold_perc
+		);
 	return values;
 }
-
-// void DataPostgresPqxx::DbDataToItemCategoryData( const result::tuple& result, SellerCategory& data )
-// ItemCategoryArray DataPostgresPqxx::QueryForItemCategories( string query, string queryName, bool singleCategory )
-// string DataPostgresPqxx::ItemCategoriesToQueryNewValuesString( ItemData& item )
 
 string DataPostgresPqxx::ApostropheToDouble( string str )
 {

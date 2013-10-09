@@ -328,13 +328,14 @@ int BurzaDialogs::SetupDialogs( void )
 	}
 	pColumn = m_pTreeViewItems->get_column( 4 );
 	if( pColumn ) {
-		//pColumn->set_sort_column( m_ItemsColumn.m_nazov );
+		pColumn->set_sort_column( m_ItemsColumn.m_price );
 		pColumn->set_min_width( 80 );
 	}
 	pColumn = m_pTreeViewItems->get_column( 5 );
 	if( pColumn ) {
 		pColumn->set_sort_column( m_ItemsColumn.m_category );
 		pColumn->set_min_width( 50 );
+		pColumn->set_max_width( 200 );
 	}
 
 	// === --- === cash-out === --- ===
@@ -457,7 +458,8 @@ int BurzaDialogs::SetupDialogs( void )
 	xmlWndModifyItem->get_widget( "itemName", m_pItemeditName );
 	xmlWndModifyItem->get_widget( "itemNumber", m_pItemeditNumber );
 	xmlWndModifyItem->get_widget( "itemPrice", m_pItemeditPrice );
-	xmlWndModifyItem->get_widget( "itemCategory", m_pItemeditCategory );
+	// xmlWndModifyItem->get_widget( "itemCategory", m_pItemeditCategory );
+	xmlWndModifyItem->get_widget_derived( "itemCategoryCombo", m_pItemeditCategoryCombo );
 	xmlWndModifyItem->get_widget_derived( "itemStatus_combobox", m_pItemeditStatusCombo );
 	xmlWndModifyItem->get_widget( "itemButton_ok", m_pItemeditOk );
 	xmlWndModifyItem->get_widget( "itemButton_cancel", m_pItemeditCancel );
@@ -465,7 +467,7 @@ int BurzaDialogs::SetupDialogs( void )
 	if (( m_pItemeditName == NULL ) ||
 		( m_pItemeditNumber == NULL ) ||
 		( m_pItemeditPrice == NULL ) ||
-		( m_pItemeditCategory == NULL ) ||
+		( m_pItemeditCategoryCombo == NULL ) ||
 		( m_pItemeditStatusCombo == NULL ) ||
 		( m_pItemeditOk == NULL ) ||
 		( m_pItemeditCancel == NULL )) {
@@ -825,6 +827,12 @@ void BurzaDialogs::RegisterButtonImportSeller( void )
 			loadedFile.seller.category = categories.empty() ? SELLER_CATEGORY_ID_NONE : categories.begin()->id;
 
 			loadedFile.seller.id = Centrala::Storage().AddSeller( loadedFile.seller );
+			
+			// set correct category to items
+			ItemCategoryArray itemCategories = Centrala::Register().GetItemCategoriesForMatching();
+			for( int i=0; i<loadedFile.items.size(); ++i)
+				Centrala::Register().SetItemBestMatchingProductCategory( loadedFile.items[i], itemCategories );
+			
 			Centrala::Storage().AddItems( loadedFile.items, loadedFile.seller.id );
 
 			DisplayOkMessageBox( 
@@ -903,6 +911,7 @@ void BurzaDialogs::RegisterButtonImportMultiSellers( void )
 
 	SellerCategoryArray categories = Centrala::Storage().GetSellersCategories();
 	SELLER_CATEGORY_ID newSellerCategory = categories.empty() ? SELLER_CATEGORY_ID_NONE : categories.begin()->id;
+	ItemCategoryArray itemCategories = Centrala::Register().GetItemCategoriesForMatching();
 	
 	// == loop through the files ==
 	int finishedCount = 0, problemCount = 0;
@@ -953,6 +962,11 @@ void BurzaDialogs::RegisterButtonImportMultiSellers( void )
 					loadedFile.seller.status = Burza::imported;
 					
 					loadedFile.seller.id = Centrala::Storage().AddSeller( loadedFile.seller );
+					
+					// set correct category to items
+					for( int i=0; i<loadedFile.items.size(); ++i)
+						Centrala::Register().SetItemBestMatchingProductCategory( loadedFile.items[i], itemCategories );
+					
 					Centrala::Storage().AddItems( loadedFile.items, loadedFile.seller.id );
 				}
 				break;
@@ -1285,7 +1299,7 @@ void BurzaDialogs::RegisterButtonSwitchToCashout( void )
 
 	initializing = true;
 
-	m_pWndRegister->hide();
+	// m_pWndRegister->hide();
 	m_pWndCashOut->show();
 	m_pWndCashOut->maximize();
 	
@@ -1335,13 +1349,15 @@ bool BurzaDialogs::OrderSellerByShortCode(const SellerData& a, const SellerData&
 
 void BurzaDialogs::CashoutButtonSwitchToRegister( void )
 {
-	m_pWndRegister->show();
+	// m_pWndRegister->show();
 	m_pWndCashOut->hide();
 	
+	/*
 	m_pWndRegister->unfullscreen();
 	m_pWndRegister->maximize();
 	m_pWndRegister->reset_shapes();
-
+	*/
+	
 	initializing = true;
 
 	ReloadSellers();
@@ -1657,12 +1673,9 @@ void BurzaDialogs::RegisterStartDialogEditProduct( ITEM_ID itemid )
 		item.status = on_stock;
 	}
 
-	ItemCategory cat = Centrala::Storage().GetItemCategory( item.category );
-	
 	m_pItemeditName->set_text( item.name );
 	m_pItemeditNumber->set_text( ConvFuncs::FormatCstr( "%i", item.number ) );
 	m_pItemeditPrice->set_text( ConvFuncs::FormatCstr( "%0.2f", item.price ) );
-	m_pItemeditCategory->set_text( ConvFuncs::FormatCstr( "%c", cat.letter ) );
 	
 	m_pItemeditStatusCombo->clear();
 	for( int i = not_in_stock_yet; i < ItemStatusCount; ++i ) {
@@ -1670,6 +1683,21 @@ void BurzaDialogs::RegisterStartDialogEditProduct( ITEM_ID itemid )
 			DataAccessInterface::ItemStatus2String( (ItemStatus)i ) );
 	}
 	m_pItemeditStatusCombo->set_active( item.status );
+
+	// fill 'category' combo
+	ItemCategoryArray categories = Centrala::Storage().GetItemsCategories();
+
+	int selectedCategoryIndex = -1;
+	m_pItemeditCategoryCombo->clear();
+	for( int i = 0; i < categories.size(); ++i ) {
+		m_pItemeditCategoryCombo->append_text( categories[i].name );
+		
+		if ( categories[i].id == item.category )
+			selectedCategoryIndex = i;
+	}
+	
+	if ( selectedCategoryIndex != -1 )
+		m_pItemeditCategoryCombo->set_active( selectedCategoryIndex );
 	
 	m_EditedItem = item;
 	try {
@@ -1769,17 +1797,31 @@ void BurzaDialogs::RegisterButtonItemEditOk( void )
 	m_EditedItem.number =  atoi( m_pItemeditNumber->get_text().c_str() );
 	m_EditedItem.price = atof(  m_pItemeditPrice->get_text().c_str() );
 	
-	
+	/*
 	if ( m_pItemeditCategory->get_text().empty() )
 		m_EditedItem.category = 0;
 	else
 		m_EditedItem.category = 0;
+	*/
 
 	int i = m_pItemeditStatusCombo->get_active_row_number();
 	if ( i != -1 ) {
 		m_EditedItem.status = (ItemStatus) i;
 	}
 
+	// item category
+	int itemCategoryIndex = m_pItemeditCategoryCombo->get_active_row_number();
+	ItemCategoryArray itemCategories = Centrala::Storage().GetItemsCategories();
+	int itemCategoryId = -1;
+	if (itemCategories.size() > itemCategoryIndex)
+	{
+		itemCategoryId = itemCategories[ itemCategoryIndex ].id;
+	}
+	
+	if ( itemCategoryId != -1 ) {
+		m_EditedItem.category = itemCategoryId;
+	}
+	
 	// add new item, or modify edited item
 	int action = ( m_EditedItem.id == ITEM_ID_NONE ) ? ea_add : ea_modify;
 	

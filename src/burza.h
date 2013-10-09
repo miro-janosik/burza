@@ -45,7 +45,16 @@ public:
 	SellerData NajdiPredajcuPodlaKodu( const char* kod );
 	ItemCategory* FindProductCategory( char product_category );
 	SellerCategory* FindSellerCategory( char seller_category );
+	
+	// Try to find a category for item that is a best match for it according category criteria
+	ItemCategory& BestMatchingProductCategory( ItemData& item, ItemCategoryArray& categories );
 
+	// Try to find and set a category for item that is a best match for it according category criteria
+	void SetItemBestMatchingProductCategory( ItemData& item, ItemCategoryArray& categories );
+	
+	// Retrieves item categories and prepares values for matching them to items.
+	ItemCategoryArray GetItemCategoriesForMatching( void );
+	
 	bool SellerExists(string shortcode);
 
 	

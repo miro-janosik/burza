@@ -1,72 +1,52 @@
-﻿-- Table: item_category
+﻿CREATE DATABASE burza
+  WITH OWNER = postgres
+       ENCODING = 'UTF8'
+       LC_COLLATE = 'en_US.UTF-8'
+       LC_CTYPE = 'en_US.UTF-8'
+       CONNECTION LIMIT = -1;
 
+
+-- Table: item_category
 -- DROP TABLE item_category;
 
 CREATE TABLE item_category
 (
-  "ID" integer NOT NULL DEFAULT (-1),
-  "LETTER" character(1),
-  "NAME" text,
+  "ID" integer NOT NULL PRIMARY KEY DEFAULT (-1),
+  "LETTER" character(1) not null,
+  "NAME" text not null,
   "LIMIT_PRICE_MIN" double precision,
   "LIMIT_PRICE_MAX" double precision,
   
   "FEE_ITEM" double precision DEFAULT 0, -- Fee is {value} for every item. Even if not sold.
   "FEE_ITEM_PERC" double precision DEFAULT 0, -- Fee is {value}% of price for every item. Even if not sold.
   "FEE_SOLD_ITEM" double precision DEFAULT 0, -- Fee is {value} for every sold item.
-  "FEE_SOLD_PERC" double precision DEFAULT 0, -- Fee is {value}% of the price of every sold item.
+  "FEE_SOLD_PERC" double precision DEFAULT 0 -- Fee is {value}% of the price of every sold item.
   
-  CONSTRAINT "item category id is unique" PRIMARY KEY ("ID")
+  -- CONSTRAINT "item category id is unique" PRIMARY KEY ("ID")
 )
 WITH (
   OIDS=FALSE
 );
 ALTER TABLE item_category OWNER TO postgres;
 COMMENT ON TABLE item_category IS 'Item categories.';
-COMMENT ON COLUMN seller_category."FEE_ITEM" IS 'Fee is {value} for every item. Even if not sold.';
-COMMENT ON COLUMN seller_category."FEE_ITEM_PERC" IS 'Fee is {value}% of price for every item. Even if not sold.';
-COMMENT ON COLUMN seller_category."FEE_SOLD_ITEM" IS 'Fee is {value} for every sold item.';
-COMMENT ON COLUMN seller_category."FEE_SOLD_PERC" IS 'Fee is {value}% of the price of every sold item.';
+COMMENT ON COLUMN item_category."FEE_ITEM" IS 'Fee is {value} for every item. Even if not sold.';
+COMMENT ON COLUMN item_category."FEE_ITEM_PERC" IS 'Fee is {value}% of price for every item. Even if not sold.';
+COMMENT ON COLUMN item_category."FEE_SOLD_ITEM" IS 'Fee is {value} for every sold item.';
+COMMENT ON COLUMN item_category."FEE_SOLD_PERC" IS 'Fee is {value}% of the price of every sold item.';
 -- Create default content of the item_category table
 INSERT INTO item_category(
-            "ID", "LETTER", "NAME", "FEE_PER_ITEM", "LIMIT_PRICE_MIN", "LIMIT_PRICE_MAX",
+            "ID", "LETTER", "NAME", "LIMIT_PRICE_MIN", "LIMIT_PRICE_MAX",
             "FEE_ITEM", "FEE_ITEM_PERC", "FEE_SOLD_ITEM", "FEE_SOLD_PERC")
     VALUES 
-    (0, 'a', 'Odevy', NULL, 15.0, 0.10, 0.0, 0.0, 10 ),
-    (0, 'b', 'Hracky',15.0, NULL, 1.00, 0.0, 0.0, 10 );
-
-
--- Table: items
-
--- DROP TABLE items;
-
-CREATE TABLE items
-(
-  "ITEM_ID" integer NOT NULL DEFAULT (-1),
-  "NAME" text,
-  "SELLER_ID" integer NOT NULL DEFAULT (-1),
-  "PRICE" double precision NOT NULL DEFAULT 0.0,
-  "CHANGING" boolean NOT NULL DEFAULT false,
-  "CHANGED_BY" text,
-  "ITEM_CATEGORY_ID" integer DEFAULT (-1),
-  "NUMBER" integer,
-  "STATUS" integer NOT NULL DEFAULT 0,
-  "MODIFIED" timestamp with time zone NOT NULL DEFAULT '2000-01-01 01:02:03'::timestamp without time zone,
-  CONSTRAINT "item id is unique" PRIMARY KEY ("ITEM_ID")
-)
-WITH (
-  OIDS=FALSE
-);
-ALTER TABLE items OWNER TO postgres;
-COMMENT ON TABLE items IS 'List of all items of all sellers.';
-
-
+    (1, 'a', 'Odevy', NULL, 15.0, 0.10, 0.0, 0.0, 10 ),
+    (2, 'b', 'Hracky',15.0, NULL, 1.00, 0.0, 0.0, 10 );
 
 -- Table: seller_category
 -- DROP TABLE seller_category;
 
 CREATE TABLE seller_category
 (
-  "ID" integer NOT NULL DEFAULT (-1),
+  "ID" integer NOT NULL PRIMARY KEY DEFAULT (-1),
   "LETTER" character(1),
   "NAME" text,
   "FEE" double precision DEFAULT 0, -- Fee is {value} for putting items on sale.
@@ -74,9 +54,8 @@ CREATE TABLE seller_category
   "MUL_FEE_ITEM" double precision DEFAULT 1, -- Multiplier of item category FEE_ITEM
   "MUL_FEE_ITEM_PERC" double precision DEFAULT 1, -- Multiplier of item category FEE_ITEM_PERC
   "MUL_FEE_SOLD_ITEM" double precision DEFAULT 1, -- Multiplier of item category FEE_SOLD_ITEM
-  "MUL_FEE_SOLD_PERC" double precision DEFAULT 1, -- Multiplier of item category FEE_SOLD_PERC
-  
-  CONSTRAINT "seller category id is unique" PRIMARY KEY ("ID")
+  "MUL_FEE_SOLD_PERC" double precision DEFAULT 1 -- Multiplier of item category FEE_SOLD_PERC
+  -- CONSTRAINT "seller category id is unique" PRIMARY KEY ("ID")
 )
 WITH (OIDS=FALSE);
 ALTER TABLE seller_category OWNER TO postgres;
@@ -99,21 +78,20 @@ INSERT INTO seller_category(
 
 
 -- Table: sellers
-
 -- DROP TABLE sellers;
 
 CREATE TABLE sellers
 (
-  "SELLER_ID" integer NOT NULL,
-  "SHORT_CODE" text,
-  "NAME" text,
+  "ID" integer PRIMARY KEY NOT NULL,
+  "SHORT_CODE" text NOT NULL,
+  "NAME" text NOT NULL,
   "COMMENT" text,
   "CHANGING" boolean NOT NULL DEFAULT false,
   "CHANGED_BY" text,
-  "SELLER_CATEGORY_ID" integer DEFAULT (-1),
+  "SELLER_CATEGORY_ID" integer DEFAULT (-1) CONSTRAINT "sellers_seller_category_id" references seller_category("ID"),
   "MODIFIED" timestamp with time zone NOT NULL DEFAULT '2000-01-01 01:02:03'::timestamp without time zone,
-  "STATUS" integer NOT NULL DEFAULT 0,
-  CONSTRAINT "seller id is unique" PRIMARY KEY ("SELLER_ID")
+  "STATUS" integer NOT NULL DEFAULT 0
+  -- CONSTRAINT "seller id is unique" PRIMARY KEY ("SELLER_ID")
 )
 WITH (
   OIDS=FALSE
@@ -123,6 +101,29 @@ GRANT ALL ON TABLE sellers TO postgres;
 GRANT SELECT, UPDATE, INSERT, DELETE, REFERENCES ON TABLE sellers TO public;
 COMMENT ON TABLE sellers IS 'List of sellers.';
 
+-- Table: items
+-- DROP TABLE items;
+
+CREATE TABLE items
+(
+  "ID" integer NOT NULL DEFAULT (-1) CONSTRAINT "item id is unique" PRIMARY KEY,
+  "NAME" text,
+  "SELLER_ID" integer NOT NULL DEFAULT (-1) references sellers("ID"),
+  "PRICE" double precision NOT NULL DEFAULT 0.0,
+  "CHANGING" boolean NOT NULL DEFAULT false,
+  "CHANGED_BY" text,
+  "ITEM_CATEGORY_ID" integer NOT NULL DEFAULT (-1) references item_category("ID"),
+  "NUMBER" integer NOT NULL DEFAULT (-1),
+  "STATUS" integer NOT NULL DEFAULT 0,
+  "MODIFIED" timestamp with time zone NOT NULL DEFAULT '2000-01-01 01:02:03'::timestamp without time zone
+  -- CONSTRAINT "item id is unique" PRIMARY KEY ("ITEM_ID")
+)
+WITH (
+  OIDS=FALSE
+);
+ALTER TABLE items OWNER TO postgres;
+COMMENT ON TABLE items IS 'List of all items of all sellers.';
+
 
 -- Table: info
 -- DROP TABLE info;
@@ -131,7 +132,7 @@ CREATE TABLE info
 (
   "VERSION" integer NOT NULL default 2,
   "TITLE" text,
-  "DATE" timestamp with time zone NOT NULL DEFAULT '2000-01-01 01:02:03'::timestamp without time zone,
+  "DATE" timestamp with time zone NOT NULL DEFAULT '2000-01-01 01:02:03'::timestamp without time zone
 )
 WITH (
   OIDS=FALSE
@@ -140,6 +141,15 @@ ALTER TABLE info OWNER TO postgres;
 GRANT ALL ON TABLE info TO postgres;
 GRANT SELECT, UPDATE, INSERT, DELETE, REFERENCES ON TABLE info TO public;
 COMMENT ON TABLE info IS 'Instance information.';
+
+-- Create default content of 'info' table
+INSERT INTO info(
+	"VERSION", "TITLE")
+    VALUES 
+    (2, 'Burza');
+
+
+
 
 
 -- !! TO BE TESTED !!
@@ -151,13 +161,15 @@ LOGIN ENCRYPTED PASSWORD 'md59f1e62cb21e6b04c80c95afdbbb471de'
 COMMENT ON ROLE usergroup IS 'Default user group';
 
 -- default user with password 'trencin'
-CREATE ROLE user LOGIN ENCRYPTED PASSWORD 'md59f1e62cb21e6b04c80c95afdbbb471de'
+CREATE ROLE "user" LOGIN ENCRYPTED PASSWORD 'md59f1e62cb21e6b04c80c95afdbbb471de'
    VALID UNTIL 'infinity';
-GRANT usergroup TO user;
-COMMENT ON ROLE user IS 'default user, with password trencin';
+GRANT usergroup TO "user";
+COMMENT ON ROLE "user" IS 'default user, with password trencin';
 
 GRANT ALL ON TABLE item_category TO GROUP usergroup;
 GRANT ALL ON TABLE items TO GROUP usergroup;
 GRANT ALL ON TABLE seller_category TO GROUP usergroup;
 GRANT ALL ON TABLE sellers TO GROUP usergroup;
+GRANT ALL ON TABLE info TO GROUP usergroup;
+
 

@@ -151,8 +151,17 @@ struct SellerCategory {
 struct ItemCategory {
 	ITEM_CATEGORY_ID	id;
 	char				letter;
+	string				name;
+	
+	double				limit_price_min;
+	double				limit_price_max;
+	
 	double				fee_per_item;
+	double				fee_item_perc;
+	double				fee_per_sold_item;
+	double				fee_sold_perc;
 };
+
 
 typedef vector<SellerData> SellerDataArray;
 typedef SellerDataArray::iterator SellerDataIterator;

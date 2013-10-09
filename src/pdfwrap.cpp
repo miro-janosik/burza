@@ -377,6 +377,8 @@ void HPDFWrapper::DrawTable( float fx, float fy, TableStyle& style, TableOfCells
 			ty += style.rowHeight;
 		}
 	}
+
+	LogS( InfoDebug, "DrawTable() : first row: %i last row: %i , finished at Y: %0.1f\n", firstRow, lastRow, ty );
 }
 
 void HPDFWrapper::WriteSingleText( float x, float y, string text )

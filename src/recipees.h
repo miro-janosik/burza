@@ -38,6 +38,9 @@ private:
 	static float marginBottom;
 	static float marginRight;
 
+	// where page content ends and footer starts
+	static float contentBottom;
+	
 	static PdfWrapperBase *currentPdf;
 };
 

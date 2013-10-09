@@ -240,7 +240,8 @@ public:
 	Gtk::Entry			*m_pItemeditName;
 	Gtk::Entry			*m_pItemeditNumber;
 	Gtk::Entry			*m_pItemeditPrice;
-	Gtk::Entry			*m_pItemeditCategory;
+	// Gtk::Entry			*m_pItemeditCategory;
+	ComboBoxTextDer	*m_pItemeditCategoryCombo;
 	ComboBoxTextDer	*m_pItemeditStatusCombo;
 	Gtk::Button		*m_pItemeditOk;
 	Gtk::Button		*m_pItemeditCancel;

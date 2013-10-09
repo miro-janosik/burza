@@ -339,6 +339,43 @@ void BurzaRegister::CreateFolders( string path, vector<string>& folderNames )
 		ConvFuncs::DoCreateFolder( path.c_str(), folderNames[ i ].c_str() );
 }
 
+ItemCategory& BurzaRegister::BestMatchingProductCategory( ItemData& item, ItemCategoryArray& categories )
+{
+	assert( ! categories.empty() );
+	
+	// try to find price match
+	double price = item.price;
+	for (int i=0; i<categories.size(); ++i)
+	{
+		if ((categories[i].limit_price_min <= price) && (price <= categories[i].limit_price_max))
+			return categories[i];
+	}
+	
+	return categories[0];
+}
+
+void BurzaRegister::SetItemBestMatchingProductCategory( ItemData& item, ItemCategoryArray& categories )
+{
+	ItemCategory category = BestMatchingProductCategory( item, categories );
+	item.category = category.id;
+}
+
+ItemCategoryArray BurzaRegister::GetItemCategoriesForMatching( void )
+{
+	ItemCategoryArray categories = Centrala::Storage().GetItemsCategories();
+	
+	for (int i=0; i<categories.size(); ++i)
+	{
+		if (categories[i].limit_price_min < 0)
+			categories[i].limit_price_min = 0;
+		if (categories[i].limit_price_max > 0)
+			categories[i].limit_price_max = 10e6;
+	}
+	
+	return categories;
+}
+
+
 // ==============================================
 // ==============================================
 

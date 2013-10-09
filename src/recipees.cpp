@@ -20,6 +20,7 @@ float Recipees::marginTop = 2;
 float Recipees::marginBottom = 98;
 float Recipees::marginLeft = 2;
 float Recipees::marginRight = 98;
+float Recipees::contentBottom = 95;
 PdfWrapperBase *Recipees::currentPdf = NULL;
 
 void Recipees::PrintSellerStatus( PdfWrapperBase& pdf, SELLER_ID id )
@@ -124,8 +125,17 @@ float Recipees::DrawTableSplitOnPages( PdfWrapperBase& pdf, float fx, float fy, 
 	float yEndOfTable = -1;
 
 	do {
-		rowsToPrint = ( marginBottom - fy ) / style.rowHeight;
+		double spaceLeft = contentBottom - fy;
+		if (firstRowToPrint == 0)
+		  spaceLeft -= style.headerRowHeight;
+		rowsToPrint = spaceLeft / style.rowHeight;
+		
 		lastRowToPrint = firstRowToPrint + rowsToPrint;
+		if (rowsToPrint == 0)
+		{
+			rowsToPrint = 1;
+		}
+		
 		if ( lastRowToPrint >= table.Rows() ) {
 			lastRowToPrint = table.Rows() - 1;
 		}
@@ -289,7 +299,7 @@ void Recipees::PrintSellerReturnSheet( PdfWrapperBase& pdf, SELLER_ID id )
 		items.Cell( i, 4 ) = DataAccessInterface::ItemStatus2String( sellerItems[ i ].status );
 
 		if ( sellerItems[ i ].status == sold ) {
-			items.Cell( i, 5 ) = ConvFuncs::FormatStdStr( "%8.2f", sellerItems[ i ].price );
+			items.Cell( i, 5 ) = ConvFuncs::FormatStdStr( "%10.2f", sellerItems[ i ].price );
 			sum += sellerItems[ i ].price;
 		}
 	}
@@ -313,24 +323,27 @@ void Recipees::PrintSellerReturnSheet( PdfWrapperBase& pdf, SELLER_ID id )
 
 	int row = 0;
 	sumCells.Cell( row, 0 ) = _( "Súčet predaných vecí" );
-	sumCells.Cell( row, 1 ) = ConvFuncs::FormatStdStr( "%8.2f", sum );
+	sumCells.Cell( row, 1 ) = ConvFuncs::FormatStdStr( "%10.2f", sum );
 	double finalSum = fees.sumOfSoldItems;
 
 	for( int i = 0; i < fees.fees.size(); ++i )
 	{
 		++row;
 		sumCells.Cell( row, 0 ) = fees.fees[ i ].name;
-		sumCells.Cell( row, 1 ) = ConvFuncs::FormatStdStr( "- %8.2f", fees.fees[ i ].price );
+		string fee1 = ConvFuncs::FormatStdStr( "- %6.2f", fees.fees[ i ].price );
+		sumCells.Cell( row, 1 ) = ConvFuncs::FormatStdStr( "%10s", fee1.c_str() );
 
 		finalSum -= fees.fees[ i ].price;
 		++row;
-		sumCells.Cell( row, 1 ) = ConvFuncs::FormatStdStr( "= %8.2f", finalSum );
+		string feeSum = ConvFuncs::FormatStdStr( "= %6.2f", finalSum );
+		sumCells.Cell( row, 1 ) = ConvFuncs::FormatStdStr( "%10s", feeSum.c_str() );
 	}
 
 	++row;
 	++row;
 	sumCells.Cell( row, 0 ) = _( "Celkom vyplatené (eur) :" );
-	sumCells.Cell( row, 1 ) = ConvFuncs::FormatStdStr( "%8.2f", finalSum );
+	string finalSumText = ConvFuncs::FormatStdStr( "%6.2f", finalSum );
+	sumCells.Cell( row, 1 ) = ConvFuncs::FormatStdStr( "%10s", finalSumText.c_str() );
 	
 	++row;
 	++row;

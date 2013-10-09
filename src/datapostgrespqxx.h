@@ -89,6 +89,16 @@ class DataPostgresPqxx : public DataAccessInterface
 	string ItemToQueryNewValuesString( ItemData& item );
 	string ItemToQueryUpdateValuesString( ItemData& item );
 
+	// convert database result data into structore of ItemCategory
+	void DbDataToItemCategoryData( const result::tuple& result, ItemCategory& data );
+	
+	//requests single or multiple item category data and retrieve them
+	ItemCategoryArray QueryForItemCategories( string query, string queryName, bool singleCategory );
+	
+	// query string with values for the ItemCategory
+	string ItemCategoriesToQueryNewValuesString( ItemCategory& item );
+
+	
 	string ApostropheToDouble( string str );
 
 	void HandlePostgresqlException( exception& e );

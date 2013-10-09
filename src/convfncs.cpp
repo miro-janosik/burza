@@ -1582,7 +1582,7 @@ void ConvFuncs::GetDateTime( void )
 	time_struct = localtime( &time_integer );
 	
 	datetime.year		=	1900 + time_struct->tm_year;
-	datetime.month		=	time_struct->tm_mon;
+	datetime.month		=	time_struct->tm_mon + 1;
 	datetime.day		=	time_struct->tm_mday;
 	datetime.hour		=	time_struct->tm_hour;
 	datetime.minute		=	time_struct->tm_min;
