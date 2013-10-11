@@ -298,8 +298,8 @@ class DataAccessInterface {
   //! Get all item categories
   virtual ItemCategoryArray GetItemsCategories( void ) = 0;
 
-  virtual ItemCategory GetItemCategory(ITEM_CATEGORY_ID id);
-  virtual ItemCategoryArray GetItemsCategories(vector<ITEM_CATEGORY_ID>& ids) { throw NotImplementedException(); }
+  virtual ItemCategory GetItemCategory(ITEM_CATEGORY_ID itemCategoryId);
+  virtual ItemCategoryArray GetItemsCategories(vector<ITEM_CATEGORY_ID>& itemCategoryIds) { throw NotImplementedException(); }
 
   virtual ItemCategory GetItemCategoryByLetter(char letter);
   virtual ItemCategoryArray GetItemsCategoriesByLetter(vector<char>& letters) { throw NotImplementedException(); }
@@ -386,6 +386,10 @@ public:
 
   //! Returns string representing 'seller status'
   static const char* SellerStatus2String( SellerStatus status );
+  
+  // from list of categories returns instance with specified ID
+  // Throws exception if not found.
+  ItemCategory& GetItemCategory( ITEM_CATEGORY_ID itemCategoryId, ItemCategoryArray& categories );
   
 private:
   static char	m_status_character_in_file[ ItemStatusCountWithUndefined + 1 ];

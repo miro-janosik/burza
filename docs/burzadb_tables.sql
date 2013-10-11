@@ -28,6 +28,8 @@ WITH (
   OIDS=FALSE
 );
 ALTER TABLE item_category OWNER TO postgres;
+GRANT ALL ON TABLE item_category TO postgres;
+GRANT SELECT, UPDATE, INSERT, DELETE, REFERENCES ON TABLE item_category TO public;
 COMMENT ON TABLE item_category IS 'Item categories.';
 COMMENT ON COLUMN item_category."FEE_ITEM" IS 'Fee is {value} for every item. Even if not sold.';
 COMMENT ON COLUMN item_category."FEE_ITEM_PERC" IS 'Fee is {value}% of price for every item. Even if not sold.';
@@ -59,6 +61,8 @@ CREATE TABLE seller_category
 )
 WITH (OIDS=FALSE);
 ALTER TABLE seller_category OWNER TO postgres;
+GRANT ALL ON TABLE seller_category TO postgres;
+GRANT SELECT, UPDATE, INSERT, DELETE, REFERENCES ON TABLE seller_category TO public;
 COMMENT ON TABLE seller_category IS 'Seller categories.';
 COMMENT ON COLUMN seller_category."FEE" IS 'Fee is {value} for putting items on sale.';
 COMMENT ON COLUMN seller_category."MUL_FEE_ITEM" IS 'Multiplier of item category FEE_ITEM';
@@ -122,6 +126,8 @@ WITH (
   OIDS=FALSE
 );
 ALTER TABLE items OWNER TO postgres;
+GRANT ALL ON TABLE items TO postgres;
+GRANT SELECT, UPDATE, INSERT, DELETE, REFERENCES ON TABLE items TO public;
 COMMENT ON TABLE items IS 'List of all items of all sellers.';
 
 

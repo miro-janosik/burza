@@ -1,8 +1,9 @@
 ﻿#include "dataaccess.h"
 
-using namespace Burza;
-
+#include <algorithm>
 #include "stringencoding.h"
+
+using namespace Burza;
 
 const SELLER_ID SELLER_ID_NONE = -1;
 const ITEM_ID ITEM_ID_NONE = -1;
@@ -220,12 +221,43 @@ ConvFuncs::s_datetime DataAccessInterface::GetCurrentTime( void )
 
 ItemCategoryArray DataAccessInterface::GetItemsCategories( ItemDataArray& items )
 {
+	ItemCategoryArray itemCategories;
+
+	if ( items.empty() )
+		return itemCategories;	  
+  
 	vector<ITEM_CATEGORY_ID> ids;
 	
 	for( int i = 0; i < items.size(); ++i )
 		ids.push_back( items[ i ].category );
 	
-	return GetItemsCategories( ids );
+	// create list of category id's that do not contain duplicates
+	std::sort( ids.begin(), ids.end() );
+	std::vector<int>::iterator it;
+	it = std::unique( ids.begin(), ids.end() );
+	ids.resize( std::distance( ids.begin(), it ));
+	
+	// get category data.
+	ItemCategoryArray categoryInstances = GetItemsCategories( ids );
+	
+	// create array of categories for each item
+	for( int i = 0; i < items.size(); ++i )
+	{
+		itemCategories.push_back( GetItemCategory( items[ i ].category, categoryInstances ) );
+	}
+	
+	return itemCategories;
+}
+
+ItemCategory& DataAccessInterface::GetItemCategory( ITEM_CATEGORY_ID itemCategoryId, ItemCategoryArray& categories )
+{
+	for( int i=0; i < categories.size(); ++i )
+	{
+		if ( itemCategoryId == categories[ i ].id )
+			return categories[ i ];
+	}
+	
+	throw WrongItemCategoryException();
 }
 
 ItemCategory DataAccessInterface::GetItemCategory(ITEM_CATEGORY_ID id)

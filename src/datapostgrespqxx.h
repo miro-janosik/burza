@@ -98,8 +98,10 @@ class DataPostgresPqxx : public DataAccessInterface
 	// query string with values for the ItemCategory
 	string ItemCategoriesToQueryNewValuesString( ItemCategory& item );
 
-	
 	string ApostropheToDouble( string str );
+	
+	// converts list of ints into string. { 0, 1, 2 } => "0, 1, 2"
+	string ListOfIntsToStringCommaDelimited(vector<int>& ints);
 
 	void HandlePostgresqlException( exception& e );
 	void HandlePostgresqlException( exception* e ) { HandlePostgresqlException( *e ); }

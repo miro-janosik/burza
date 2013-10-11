@@ -2,6 +2,9 @@
 
 #include <exception>
 
+// for snprintf
+#include <stdio.h> 
+
 #include "pqxx/pqxx"
 #include "log.h"
 #include "convfncs.h"
@@ -63,9 +66,12 @@ enum columnIndexes {
 	ItemCategoryColumn_id = 0,
 	ItemCategoryColumn_letter,
 	ItemCategoryColumn_name,
-	ItemCategoryColumn_fee_per_item,
 	ItemCategoryColumn_limit_price_min,
 	ItemCategoryColumn_limit_price_max,
+	ItemCategoryColumn_fee_item,
+	ItemCategoryColumn_fee_item_perc,
+	ItemCategoryColumn_fee_sold_item,
+	ItemCategoryColumn_fee_sold_perc,
 };
 
 /*
@@ -85,6 +91,10 @@ string columnNameStrings[ columnNamesCount ] = {
 	if (!result[ column_name_index ].to( data.target_variable )) \
 		  dataCorrupt = true;
 
+#define GetItemDataNullable( column_name_index, target_variable, default_value ) \
+	if (result[ column_name_index ].is_null()) data.target_variable = default_value; else\
+	{ if (!result[ column_name_index ].to( data.target_variable )) dataCorrupt = true; }
+	
 DataPostgresPqxx::DataPostgresPqxx()
 {
 	ProgramSettings s = Centrala::Settings();
@@ -143,7 +153,7 @@ SellerDataArray DataPostgresPqxx::GetSellers( void )
 SellerData DataPostgresPqxx::GetSeller(SELLER_ID id)
 {
 	SellerDataArray sellers;
-	string query = ConvFuncs::FormatStdStr( "SELECT * FROM sellers WHERE \"SELLER_ID\" = %i", id );
+	string query = ConvFuncs::FormatStdStr( "SELECT * FROM sellers WHERE \"ID\" = %i", id );
 	try {
 	  sellers = QueryForSellers( query, "getting sellers", true );
 	}
@@ -183,9 +193,9 @@ void DataPostgresPqxx::ModifySellerEnd(SELLER_ID id, SellerData& seller)
 	seller.id = id;
   
 	try {
-	  work work1(*dbConnection, "update seller" );
+	  pqxx::work work1(*dbConnection, "update seller" );
 	  string query = ConvFuncs::FormatStdStr( 
-		  "UPDATE sellers SET %s WHERE \"SELLER_ID\" = %i", SellerToQueryUpdateValuesString( seller ).c_str(), id );
+		  "UPDATE sellers SET %s WHERE \"ID\" = %i", SellerToQueryUpdateValuesString( seller ).c_str(), id );
 	  
 	  result sellersResult = work1.exec( query );
 	  work1.commit();
@@ -222,7 +232,7 @@ ItemData* DataPostgresPqxx::GetItemIfModified(ITEM_ID id)
 ItemData DataPostgresPqxx::GetSellerItem(SELLER_ID id, int item_number)
 {
 	ItemDataArray items;
-	string query = ConvFuncs::FormatStdStr( "SELECT * FROM items WHERE \"SELLER_ID\" = %i AND \"ITEM_ID\" = %i", id, item_number );
+	string query = ConvFuncs::FormatStdStr( "SELECT * FROM items WHERE \"SELLER_ID\" = %i AND \"ID\" = %i", id, item_number );
 	try {
 		items = QueryForItems( query, "getting seller item by numer", true );
 	}
@@ -243,7 +253,7 @@ ItemData DataPostgresPqxx::GetSellerItem(SELLER_ID id, int item_number)
 ItemData DataPostgresPqxx::GetItem(ITEM_ID id)
 {
 	ItemDataArray items;
-	string query = ConvFuncs::FormatStdStr( "SELECT * FROM items WHERE \"ITEM_ID\" = %i", id );
+	string query = ConvFuncs::FormatStdStr( "SELECT * FROM items WHERE \"ID\" = %i", id );
 	
 	try {
 		items = QueryForItems( query, "getting item by id", true );
@@ -263,39 +273,52 @@ ItemData DataPostgresPqxx::GetItem(ITEM_ID id)
 	
 ItemCategoryArray DataPostgresPqxx::GetItemsCategories( void )
 {
-	ItemCategoryArray cats;
-	ItemCategory cat;
-	cats.push_back(cat);
-	return cats;
+	string query = ConvFuncs::FormatStdStr( "SELECT * FROM item_category" );
+	
+	try {
+		ItemCategoryArray categories = QueryForItemCategories( query, "getting item categories", false );
+		
+		return categories;
+	}
+	catch(exception& e)
+	{
+		HandlePostgresqlException( e );
+		throw new WrongItemException();
+	}
 }
 
-ItemCategoryArray DataPostgresPqxx::GetItemsCategories(vector<ITEM_CATEGORY_ID>& ids)
+ItemCategoryArray DataPostgresPqxx::GetItemsCategories(vector<ITEM_CATEGORY_ID>& itemCategoryIds)
 {
-	ItemCategoryArray cats;
-	ItemCategory cat;
-	vector<ITEM_CATEGORY_ID>::iterator it;
-	
-	cat.fee_per_item = 0.0;
-	cat.letter = 'i';
+	string idsText = ListOfIntsToStringCommaDelimited( itemCategoryIds );
+	string query = string("SELECT * FROM item_category WHERE \"ID\" IN (") + idsText + ")";
 
-	for( it = ids.begin(); it != ids.end(); ++it ) {
-		cat.id = *it;
-		cats.push_back(cat);
+	try {
+		ItemCategoryArray categories = QueryForItemCategories( query, "getting item categories", false );
+		
+		return categories;
 	}
-	return cats;
+	catch(exception& e)
+	{
+		HandlePostgresqlException( e );
+		throw new WrongItemException();
+	}
 }
 
 
 ItemCategoryArray DataPostgresPqxx::GetItemsCategoriesByLetter(vector<char>& letters)
 {
-	ItemCategoryArray cats;
-	ItemCategory cat;
-	int i = 0, c = letters.size();
+	string query = ConvFuncs::FormatStdStr( "SELECT * FROM item_category" );
 	
-	for( ; i < c; ++i ) {
-		cats.push_back(cat);
+	try {
+		ItemCategoryArray categories = QueryForItemCategories( query, "getting item categories", false );
+		
+		return categories;
 	}
-	return cats;
+	catch(exception& e)
+	{
+		HandlePostgresqlException( e );
+		throw new WrongItemException();
+	}
 }
 
 SellerCategoryArray DataPostgresPqxx::GetSellersCategories( void )
@@ -361,8 +384,8 @@ SellerData DataPostgresPqxx::GetSellerByCode(string& code)
 void DataPostgresPqxx::RemoveSeller(SELLER_ID id)
 {
 	try {
-	  work dbGetSellers(*dbConnection, "remove seller by id" );
-	  string query = ConvFuncs::FormatStdStr( "DELETE FROM sellers WHERE \"SELLER_ID\" = %i", id );
+	  pqxx::work dbGetSellers(*dbConnection, "remove seller by id" );
+	  string query = ConvFuncs::FormatStdStr( "DELETE FROM sellers WHERE \"ID\" = %i", id );
 	  result sellersResult = dbGetSellers.exec( query );
 	  dbGetSellers.commit();
 	}
@@ -378,7 +401,7 @@ SELLER_ID DataPostgresPqxx::AddSeller(SellerData& seller)
 	seller.last_update = ConvFuncs::datetime;
   
 	try {
-		work dbGetSellers(*dbConnection, "add seller" );
+		pqxx::work dbGetSellers(*dbConnection, "add seller" );
 		string query = ConvFuncs::FormatStdStr( 
 			"INSERT INTO sellers VALUES %s", SellerToQueryValuesString( seller ).c_str() );
 		
@@ -401,7 +424,7 @@ ITEM_ID DataPostgresPqxx::AddItem(ItemData& item, SELLER_ID id)
 		item.id = GetNewItemId();
 		item.seller_id = id;
 		
-		work dbGetSellers(*dbConnection, "add item" );
+		pqxx::work dbGetSellers(*dbConnection, "add item" );
 		string query = ConvFuncs::FormatStdStr( 
 			"INSERT INTO items VALUES %s", ItemToQueryNewValuesString( item ).c_str() );
 		
@@ -418,9 +441,9 @@ ITEM_ID DataPostgresPqxx::AddItem(ItemData& item, SELLER_ID id)
 void DataPostgresPqxx::ModifyItem(ITEM_ID item_id, ItemData& item)
 {
 	try {
-		work dbGetSellers(*dbConnection, "modify item" );
+		pqxx::work dbGetSellers(*dbConnection, "modify item" );
 		string query = ConvFuncs::FormatStdStr( 
-			"UPDATE items SET %s WHERE \"ITEM_ID\" = %i", ItemToQueryUpdateValuesString( item ).c_str(), item_id );
+			"UPDATE items SET %s WHERE \"ID\" = %i", ItemToQueryUpdateValuesString( item ).c_str(), item_id );
 		
 		result sellersResult = dbGetSellers.exec( query );
 		dbGetSellers.commit();
@@ -433,7 +456,7 @@ void DataPostgresPqxx::ModifyItem(ITEM_ID item_id, ItemData& item)
 void DataPostgresPqxx::RemoveItem(ITEM_ID id)
 {
 	try {
-		work dbGetSellers(*dbConnection, "remove item" );
+		pqxx::work dbGetSellers(*dbConnection, "remove item" );
 		string query = ConvFuncs::FormatStdStr( 
 		  "DELETE FROM items WHERE \"ITEM_ID\" = %i", id );
 
@@ -449,7 +472,7 @@ void DataPostgresPqxx::RemoveItem(ITEM_ID id)
 ITEM_ID DataPostgresPqxx::GetNewItemId( void )
 {
 	ItemDataArray items;
-	string query = ConvFuncs::FormatStdStr( "SELECT * FROM items ORDER BY \"ITEM_ID\" DESC LIMIT 1" );
+	string query = ConvFuncs::FormatStdStr( "SELECT * FROM items ORDER BY \"ID\" DESC LIMIT 1" );
 
 	try {
 		items = QueryForItems( query, "getting item with greatest ID", false);
@@ -553,9 +576,9 @@ SellerDataArray DataPostgresPqxx::QueryForSellers( string query, string queryNam
 	result sellersResult;
 	
 	try {
-		work dbGetSellers(*dbConnection, queryName );
+		pqxx::read_transaction dbGetSellers(*dbConnection, queryName );
 		sellersResult = dbGetSellers.exec( query );
-		dbGetSellers.commit();
+		// dbGetSellers.commit();
 	}
 	catch(exception& ex) {
 		HandlePostgresqlException( ex );
@@ -622,9 +645,9 @@ SellerCategoryArray DataPostgresPqxx::QueryForSellerCategories( string query, st
 	SellerCategoryArray categories;
 	
 	try {
-		work dbGetSellers(*dbConnection, queryName );
+		pqxx::read_transaction dbGetSellers(*dbConnection, queryName );
 		queryResult = dbGetSellers.exec( query );
-		dbGetSellers.commit();
+		// dbGetSellers.commit();
 	}
 	catch(exception& ex) {
 		HandlePostgresqlException( ex );
@@ -655,9 +678,9 @@ ItemDataArray DataPostgresPqxx::QueryForItems( string query, string queryName, b
 	result itemResult;
 	
 	try {
-		work work1(*dbConnection, queryName);
+		pqxx::read_transaction work1(*dbConnection, queryName);
 		itemResult = work1.exec( query );
-		work1.commit();
+		// work1.commit();
 	}
 	catch(exception& ex) {
 		HandlePostgresqlException( ex );
@@ -771,14 +794,14 @@ void DataPostgresPqxx::DbDataToItemCategoryData( const result::tuple& result, It
 		data.letter = !text.empty() ? text[0] : 0;
 		
 	GetItemData( ItemCategoryColumn_name, name )
-	GetItemData( ItemCategoryColumn_limit_price_min, limit_price_min )
-	GetItemData( ItemCategoryColumn_limit_price_max, limit_price_max )
-
-	GetItemData( ItemCategoryColumn_fee_per_item, fee_per_item )
-	GetItemData( ItemCategoryColumn_fee_per_item, fee_item_perc )
-	GetItemData( ItemCategoryColumn_fee_per_item, fee_per_sold_item )
-	GetItemData( ItemCategoryColumn_fee_per_item, fee_sold_perc )
+	GetItemDataNullable( ItemCategoryColumn_limit_price_min, limit_price_min, 0 )
+	GetItemDataNullable( ItemCategoryColumn_limit_price_max, limit_price_max, 10e6 )
 	
+	GetItemDataNullable( ItemCategoryColumn_fee_item, fee_per_item, 0 )
+	GetItemDataNullable( ItemCategoryColumn_fee_item_perc, fee_item_perc, 0 )
+	GetItemDataNullable( ItemCategoryColumn_fee_sold_item, fee_per_sold_item, 0 )
+	GetItemDataNullable( ItemCategoryColumn_fee_sold_perc, fee_sold_perc, 0 )
+
 	if ( dataCorrupt ) {
 		HandleException(new runtime_error("Data in DB corrupted!"));
 	}
@@ -793,9 +816,9 @@ ItemCategoryArray DataPostgresPqxx::QueryForItemCategories( string query, string
 	result categoryResult;
 	
 	try {
-		work dbGetItemCategories( *dbConnection, queryName );
+		pqxx::read_transaction dbGetItemCategories( *dbConnection, queryName );
 		categoryResult = dbGetItemCategories.exec( query );
-		dbGetItemCategories.commit();
+		// dbGetItemCategories.commit();
 	}
 	catch(exception& ex) {
 		HandlePostgresqlException( ex );
@@ -863,4 +886,24 @@ void DataPostgresPqxx::HandlePostgresqlException( exception& e )
 void DataPostgresPqxx::HandleException( exception& e )
 {
 	ErrorHandling::HandleException(e);
+}
+
+std::string DataPostgresPqxx::ListOfIntsToStringCommaDelimited(std::vector<int>& ints)
+{
+	std::string result;
+	char text[ 32 ];
+	
+	for (int i=0; i<ints.size(); ++i )
+	{
+		if ( i > 0 )
+		{
+			result += ", ";
+		}
+		
+		// result += std::to_string( ints[ i ] ); - g++ current version does not support it. Enable after compiling on newer compilers
+		snprintf( text, 31, "%i", ints[ i ] );
+		result += text;
+	}
+	
+	return result;
 }

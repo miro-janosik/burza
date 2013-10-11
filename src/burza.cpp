@@ -364,17 +364,18 @@ ItemCategoryArray BurzaRegister::GetItemCategoriesForMatching( void )
 {
 	ItemCategoryArray categories = Centrala::Storage().GetItemsCategories();
 	
+	/* This is already done in the the GetItemsCategories
 	for (int i=0; i<categories.size(); ++i)
 	{
 		if (categories[i].limit_price_min < 0)
 			categories[i].limit_price_min = 0;
-		if (categories[i].limit_price_max > 0)
+		if (categories[i].limit_price_max < 0)
 			categories[i].limit_price_max = 10e6;
 	}
+	*/
 	
 	return categories;
 }
-
 
 // ==============================================
 // ==============================================

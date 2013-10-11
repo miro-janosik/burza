@@ -235,6 +235,7 @@ public:
 	Gtk::Button		*m_pCashoutButtonFinish;
 	ComboBoxTextDer	*m_pCashoutComboSearch;
 	Gtk::Entry			*m_pCashoutComboSearchEntry;
+	Gtk::Label			*m_pCashoutSearchFoundText;
 	
 	// item details edit dialog
 	Gtk::Entry			*m_pItemeditName;

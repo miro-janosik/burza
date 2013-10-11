@@ -131,17 +131,22 @@ std::string StringEncoding::WStringToUTF8(std::wstring &str)
 {
 	std::vector<char> result;
 	const char* cp = (const char*)str.c_str();
+	int length;
 	
-	// changed "UCS-2-INTERNAL" to different because on unix it is not known
-	// str.size() * 2, "WCHAR_T", "UTF-8"
 	std::string sourceEncoding;
 #ifdef _UNIX
-	sourceEncoding = "UCS-2";
+	// changed "UCS-2-INTERNAL" to different because on unix it is not known
+	// str.size() * 2, "WCHAR_T", "UTF-8"
+	// Tried to use UCS-2 but it causes nice wstring to be converted to "S\0000v\000e\000t..."
+	// sourceEncoding = "UTF-32";
+	sourceEncoding = "WCHAR_T";
+	length = str.size() * 4;
 #else
 	sourceEncoding = "UCS-2-INTERNAL";
+	legth = str.size() * 2;
 #endif
 	
-	result = OneToAnother( cp, str.size() * 2, sourceEncoding, "UTF-8" );
+	result = OneToAnother( cp, length, sourceEncoding, "UTF-8" );
 	std::string resultstr( result.begin(), result.end() );
 	
 	return resultstr;

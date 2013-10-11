@@ -360,6 +360,7 @@ int BurzaDialogs::SetupDialogs( void )
 	xmlWndCashOut->get_widget( "button register", m_pButtonRegister );
 	xmlWndCashOut->get_widget_derived( "comboboxentry_search", m_pCashoutComboSearch );
 	m_pCashoutComboSearchEntry = dynamic_cast<Gtk::Entry*>( m_pCashoutComboSearch->get_child() );
+	xmlWndCashOut->get_widget( "search_found_text", m_pCashoutSearchFoundText );
 	
 	if (( m_pButtonRegister == NULL ) ||
 		( m_pCashoutTreeViewList == NULL ) ||
@@ -373,7 +374,8 @@ int BurzaDialogs::SetupDialogs( void )
 		( m_pCashoutLabelSum == NULL ) ||
 		( m_pCashoutButtonFinish == NULL ) ||
 	   ( m_pCashoutComboSearch == NULL ) ||
-	   ( m_pCashoutComboSearchEntry == NULL )) {
+	   ( m_pCashoutComboSearchEntry == NULL ) ||
+	   ( m_pCashoutSearchFoundText == NULL )) {
 		error = "Dialog file is corrupt [4].";
 		throw;
 	}
@@ -394,6 +396,8 @@ int BurzaDialogs::SetupDialogs( void )
 	
 	m_pCashoutComboSearch->signal_changed().connect( sigc::mem_fun( this, &BurzaDialogs::CashoutEditSearchChanged ) );
 	m_pCashoutComboSearchEntry->signal_changed().connect( sigc::mem_fun( this, &BurzaDialogs::CashoutEditSearchEntryChanged ) );
+	
+	// m_pCashoutComboSearch->set(); xalign = left;
 
 	// setup item list
 	m_CashoutItemsListModel = Gtk::ListStore::create( m_ItemsColumn );
@@ -665,9 +669,11 @@ void BurzaDialogs::RegisterDisplaySeller(SellerData& seller)
 	
 	// fill items
 	ItemDataArray	items = DemoLimitsGetSellerItems(seller.id);
-	ItemCategoryArray	categories = Centrala::Storage().GetItemsCategories(items);
-	Gtk::TreeModel::Row row;
 	
+	ItemCategoryArray	categories = Centrala::Storage().GetItemsCategories( items );
+	ItemCategory itemCategory;
+	
+	Gtk::TreeModel::Row row;
 	m_RegisterItemsListModel->clear();
 	
 	/* remove also properties: registerItemCheckBoxes.clear();
@@ -685,7 +691,8 @@ void BurzaDialogs::RegisterDisplaySeller(SellerData& seller)
 		row[ m_ItemsColumn.m_number ] = ConvFuncsInstance->FormatCstr( "%i", items[i].number );
 		row[ m_ItemsColumn.m_name ] = items[i].name;
 		row[ m_ItemsColumn.m_price ] = ConvFuncsInstance->FormatCstr( "%0.2f", items[i].price );
-		row[ m_ItemsColumn.m_category ] = ConvFuncsInstance->FormatCstr( "%c", categories[i].letter );
+
+		row[ m_ItemsColumn.m_category ] = ConvFuncsInstance->FormatCstr( "%s", categories[i].name.c_str() );
 
 		row[ m_ItemsColumn.m_state ] = ConvFuncsInstance->FormatCstr( "%s", 
 			DataAccessInterface::ItemStatus2String( items[i].status ) );
@@ -821,7 +828,7 @@ void BurzaDialogs::RegisterButtonImportSeller( void )
 			}
 
 			// imported items have to be checked by hand. Take note that these were not.
-			loadedFile.seller.note += _(" za MC prijal: ?");
+			loadedFile.seller.note += ""; // _(" za MC prijal: ?");
 			
 			SellerCategoryArray categories = Centrala::Storage().GetSellersCategories();
 			loadedFile.seller.category = categories.empty() ? SELLER_CATEGORY_ID_NONE : categories.begin()->id;
@@ -956,7 +963,7 @@ void BurzaDialogs::RegisterButtonImportMultiSellers( void )
 						info += ConvFuncs::FormatCstr(_(" Obsahuje %i ks tovaru s okruhlou cenou"), loadedFile.itemsWithPriceWithoutDecimalPart );
 
 					// imported items have to be checked by hand. Take note that these were not.
-					loadedFile.seller.note += _(" za MC prijal: ?");
+					loadedFile.seller.note += ""; // _(" za MC prijal: ?");
 
 					loadedFile.seller.category = newSellerCategory;
 					loadedFile.seller.status = Burza::imported;
@@ -1044,11 +1051,11 @@ void BurzaDialogs::RegisterButtonImportMultiSellers( void )
 	}
 
 	ImportMultiSellersLog( ConvFuncs::FormatCstr(
-		_("Dokončené ... správne načítaných: %i chýb: %i"), finishedCount, problemCount) );
+		_("Dokončené ... správne načítaných: %i chýb: %i."), finishedCount, problemCount) );
 
 	DisplayOkMessageBox( 
 		_( "Predajcovia načítaný"),
-		ConvFuncs::FormatStdStr( _("Korektne načítaných hárkov: %i Chýb: %i"), 
+		ConvFuncs::FormatStdStr( _("Korektne načítaných hárkov: %i Chýb: %i."), 
 			finishedCount, problemCount ));
 
 	ReloadSellers();
@@ -1897,7 +1904,7 @@ void BurzaDialogs::RegisterStartDialogEditSeller( SELLER_ID id )
 		Centrala::Storage().ModifySellerStart( id );
 	} else {
 		seller.name = _( "Nový predajca" );
-		seller.note = _(" za MC prijal: ?");
+		seller.note = ""; // _(" za MC prijal: ?");
 		seller.id = SELLER_ID_NONE;
 		
 		SellerCategoryArray categories = Centrala::Storage().GetSellersCategories();
@@ -2079,10 +2086,13 @@ void BurzaDialogs::CashoutEditSearchEntryChanged( void )
 
 	m_pCashoutComboSearch->clear();
 	cashoutComboSearchItemDatas.clear();
+	m_pCashoutSearchFoundText->set_text("");
 
 	string text = m_pCashoutComboSearchEntry->get_text();
 	foundItems = search.LookForItemsContainingWords( text );
 
+	m_pCashoutSearchFoundText->set_text(ConvFuncs::FormatCstr(_("Nájdených: %i"), foundItems.size()));
+	
 	for( int i=0; i<foundItems.size(); ++i ) {
 
 		sellerOfItem = search.GetSeller( foundItems[ i ].seller_id );
