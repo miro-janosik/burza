@@ -11,8 +11,9 @@ namespace Burza {
 
 enum FeeType {
 	FeeUndefined,
-	FeeWholeSoldSumPercentage,
-	FeePerItem,  
+	FeePerSale,
+	FeePerItemOnSale,	// fee for each item on sale
+	FeePerSold,
 } ;
 
 struct Fee {
@@ -28,6 +29,8 @@ struct Fee {
 	}
 };
 
+typedef std::vector< Fee > Fees;
+
 class SellerFees
 {
 public:
@@ -37,7 +40,7 @@ public:
 		finalSumToGiveToSeller = 0.0;
 	}
 
-	std::vector< Fee > fees;
+	Fees fees;
 
 	double sumOfSoldItems;
 
@@ -48,10 +51,10 @@ public:
 	static double RoundTo5Cents( double price );
 
 	//! find out all the fees
-	static SellerFees CalculateSellerFees( SellerCategory& sellerCategory, ItemDataArray& items );
+	static SellerFees CalculateSellerFees( SellerCategory& sellerCategory, ItemCategoryArray& itemCategories, ItemDataArray& items );
 	
 	//! returns seller fee of specified type or null
-	Fee* GetFeeOfType(FeeType iType);
+	Fees GetFeeOfType(FeeType iType);
 };
 
 } // namespace Burza

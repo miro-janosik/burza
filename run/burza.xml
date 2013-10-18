@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <burza>
 	<config
-		salename="Jarna burza 2013"
+		salename="Jarna burza 2012"
 		fontSize="-1"
 		>
 		<server
-			databaseInLocalFiles="True"
-			address="192.168.1.104"
+			databaseInLocalFiles="False"
+			address="192.168.1.100"
 			user="user"
 			password="trencin"
-			dbname="burza2013"
+			dbname="burza"
 			port="5436"
-			 />
+			/>
 		<License
-			to="Miro Janosik, domace PC"
-			key="ASDFASDFAWFAWEFAEFAEFAWFEW"
+			to=""
+			key=""
 			 />
 	</config>
 </burza>

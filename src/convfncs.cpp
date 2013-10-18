@@ -1511,9 +1511,15 @@ char* ConvFuncs::CurDateTimeString( void )
 	
 	char dayText[ 512 ];
 	char monthText[ 512 ];
+
+#ifdef _UNIX
 	strftime( dayText, 511, "%a", &date );
 	strftime( monthText, 511, "%b", &date );
-	
+#else
+	snprintf( dayText, 511, "" );
+	snprintf( monthText, 511, "%i", date.tm_mon + 1 );
+#endif
+
 	// format all together
 	snprintf( DateTimeString, DateTimeString_len, "%s %i %s %i %02i:%02i",
 		( datetime.dayofweek == -1 ) ? "-" : dayText,

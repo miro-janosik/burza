@@ -15,6 +15,8 @@
 using namespace Burza;
 using namespace pqxx;
 
+#define read_transaction work
+
 /*
   broken_connection is an exception class that is thrown if libpqxx™ loses its connection to the back-end. 
   It is derived from the standard C++ exception std::runtime_error, and can generally be treated as such.
@@ -58,10 +60,10 @@ enum columnIndexes {
 	sellerCategoryColumn_letter,
 	sellerCategoryColumn_name,
 	sellerCategoryColumn_fee,
-	sellerCategoryColumn_fee_sold_perc,
-	sellerCategoryColumn_fee_sold_item,
-	sellerCategoryColumn_fee_item,
-	sellerCategoryColumn_fee_item_perc,
+	sellerCategoryColumn_multiplier_fee_item,
+	sellerCategoryColumn_multiplier_fee_item_perc,
+	sellerCategoryColumn_multiplier_fee_sold_item,
+	sellerCategoryColumn_multiplier_fee_sold_perc,
 	
 	ItemCategoryColumn_id = 0,
 	ItemCategoryColumn_letter,
@@ -458,7 +460,7 @@ void DataPostgresPqxx::RemoveItem(ITEM_ID id)
 	try {
 		pqxx::work dbGetSellers(*dbConnection, "remove item" );
 		string query = ConvFuncs::FormatStdStr( 
-		  "DELETE FROM items WHERE \"ITEM_ID\" = %i", id );
+		  "DELETE FROM items WHERE \"ID\" = %i", id );
 
 		result sellersResult = dbGetSellers.exec( query );
 		dbGetSellers.commit();
@@ -618,10 +620,10 @@ void DataPostgresPqxx::DbDataToSellerCategoryData( const result::tuple& result, 
 	GetItemData( sellerCategoryColumn_id, id )
 	GetItemData( sellerCategoryColumn_name, name )
 	GetItemData( sellerCategoryColumn_fee, fee_per_sale )
-	GetItemData( sellerCategoryColumn_fee_sold_perc, fee_whole_sold_sum_percentage )
-	GetItemData( sellerCategoryColumn_fee_sold_item, fee_sold_item )
-	GetItemData( sellerCategoryColumn_fee_item, fee_item )
-	GetItemData( sellerCategoryColumn_fee_item_perc, fee_item_perc )
+	GetItemData( sellerCategoryColumn_multiplier_fee_item, multiplier_fee_item )
+	GetItemData( sellerCategoryColumn_multiplier_fee_item_perc, multiplier_fee_item_perc )
+	GetItemData( sellerCategoryColumn_multiplier_fee_sold_item, multiplier_fee_sold_item )
+	GetItemData( sellerCategoryColumn_multiplier_fee_sold_perc, multiplier_fee_sold_item_perc )
 
 	// 'char' type is not supported
 	const char* letterValue = result[ sellerCategoryColumn_letter ].c_str();

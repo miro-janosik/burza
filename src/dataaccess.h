@@ -6,46 +6,6 @@
 
 using namespace std;
 
-/*
-Not actual, to be updated from DB init script:
-
-TABLES:
-ITEMS
-	primary key int ITEM_ID
-	string NAME
-	int SELLER_ID
-	int NUMBER
-	float PRICE
-	datetime MODIFIED
-	bool	CHANGING
-	string CHANGED_BY
-	int	ITEM_CATEGORY_ID
-	int STATUS
-SELLERS
-	primary key int SELLER_ID
-	string SHORT_CODE
-	string NAME
-	string COMMENT
-	datetime MODIFIED
-	bool	CHANGING
-	string CHANGED_BY
-	int	SELLER_CATEGORY_ID
-LOGS
-	primary key int LOG_ID
-	int ITEM_ID
-	int SELLER_ID
-	string message
-
-SELLER_CATEGORY
-	primary key int ID
-	char	LETTER
-	double FEE_PER_SALE
-ITEM_CATEGORY
-	primary key int ID
-	char LETTER
-	double FEE_PER_ITEM
-*/
-
 namespace Burza {
 
 typedef int SELLER_ID;
@@ -125,11 +85,17 @@ struct SellerCategory {
 	SELLER_CATEGORY_ID	id;
 	char				letter;
 	string				name;
+	
 	double				fee_per_sale;
-	double				fee_whole_sold_sum_percentage;
-	double				fee_sold_item;
-	double				fee_item;
-	double				fee_item_perc;
+	double				multiplier_fee_item;
+	double				multiplier_fee_item_perc;
+	double				multiplier_fee_sold_item;
+	double				multiplier_fee_sold_item_perc;
+	
+	//double				fee_whole_sold_sum_percentage;
+	//double				fee_sold_item;
+	//double				fee_item;
+	//double				fee_item_perc;
 	double				limit_price_min;
 	double				limit_price_max;
 
@@ -139,10 +105,16 @@ struct SellerCategory {
 		letter = ' ';
 		name = "";
 		fee_per_sale = 0.0;
-		fee_whole_sold_sum_percentage = 0.0;
-		fee_sold_item = 0.0;
-		fee_item = 0.0;
-		fee_item_perc = 0.0;
+//		fee_whole_sold_sum_percentage = 0.0;
+//		fee_sold_item = 0.0;
+//		fee_item = 0.0;
+//		fee_item_perc = 0.0;
+		
+		multiplier_fee_item = 0.0;
+		multiplier_fee_item_perc = 0.0;
+		multiplier_fee_sold_item = 0.0;
+		multiplier_fee_sold_item_perc = 0.0;
+		
 		limit_price_min = 0.0;
 		limit_price_max = 0.0;
 	}
@@ -389,7 +361,7 @@ public:
   
   // from list of categories returns instance with specified ID
   // Throws exception if not found.
-  ItemCategory& GetItemCategory( ITEM_CATEGORY_ID itemCategoryId, ItemCategoryArray& categories );
+  static ItemCategory& GetItemCategory( ITEM_CATEGORY_ID itemCategoryId, ItemCategoryArray& categories );
   
 private:
   static char	m_status_character_in_file[ ItemStatusCountWithUndefined + 1 ];

@@ -25,7 +25,7 @@ namespace Burza {
 	
 	class PdfWrapperBase;
 	class ItemSearch;
-	class Fees;
+	// class Fees;
 	
 class BurzaRegister {
 	friend class ProgramSettings;
@@ -72,7 +72,7 @@ public:
 	int VerifyItemNumber( ItemData& item, int newNumber );
 
 	//! Returns list of fees that user has to pay
-	Fees& CalculateSellerFees( SellerData& seller, ItemDataArray& items );
+	// Fees& CalculateSellerFees( SellerData& seller, ItemDataArray& items );
 
 	//! displays specified PDF file in system-specific PDF viewer
 	int DisplayPdf( const char* fileName );

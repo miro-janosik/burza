@@ -20,7 +20,9 @@ float Recipees::marginTop = 2;
 float Recipees::marginBottom = 98;
 float Recipees::marginLeft = 2;
 float Recipees::marginRight = 98;
+float Recipees::contentTop = marginTop + 1.5;
 float Recipees::contentBottom = 95;
+float Recipees::footerTop = contentBottom + 1;
 PdfWrapperBase *Recipees::currentPdf = NULL;
 
 void Recipees::PrintSellerStatus( PdfWrapperBase& pdf, SELLER_ID id )
@@ -41,7 +43,7 @@ void Recipees::PrintSellerStatus( PdfWrapperBase& pdf, SELLER_ID id )
 	AddProgramPageHeaderAndFooter( pdf );
 
 	pdf.SetFontSize(1.2);
-	double ypos = marginTop;
+	double ypos = contentTop;
 	
 	pdf.WriteSingleText( 5, ypos, ConvFuncs::FormatStdStr(_("Predávajúci: %s - %s (%s)"), 
 		seller.shortcode.c_str(), seller.name.c_str(),
@@ -76,8 +78,7 @@ void Recipees::PrintSellerStatus( PdfWrapperBase& pdf, SELLER_ID id )
 		
 		items.Cell( i, 3 ) = ConvFuncs::FormatStdStr( "%0.2f", sellerItems[ i ].price );
 
-		items.Cell( i, 4 ) = ConvFuncs::FormatStdStr( "%c",
-			Centrala::Storage().GetSellerCategory( sellerItems[ i ].category ).letter );
+		items.Cell( i, 4 ) = ConvFuncs::FormatStdStr( "%s", Centrala::Storage().GetSellerCategory( sellerItems[ i ].category ).name.c_str() );
 		items.Cell( i, 5 ) = DataAccessInterface::ItemStatus2String( sellerItems[ i ].status );
 	}
 
@@ -97,14 +98,14 @@ void Recipees::AddProgramPageHeaderAndFooter( PdfWrapperBase& pdf )
 	// center free area is in vertical range "2% - 98%"
 	
 	//footer
-	pdf.WriteSingleText( 2, 96, 
+	pdf.WriteSingleText( 2, footerTop, 
 		ConvFuncs::FormatStdStr(_("Dokument vytvorený '%s' na počítači '%s'."), 
 		ConvFuncsInstance->CurDateTimeString(),
 		Centrala::Settings().m_computer_name.c_str()));
-	pdf.WriteSingleText( 2, 97, 
+	pdf.WriteSingleText( 2, footerTop + 1, 
 		ConvFuncs::FormatStdStr(_("Program má licenciu '%s'."), 
 		"Demo - zdarma"));
-	pdf.WriteSingleText( 2, 98, 
+	pdf.WriteSingleText( 2, footerTop + 2, 
 		ConvFuncs::FormatStdStr(_("Program %s, verzia z dňa %s. Autor %s v spolupráci s Materským Centrom %s"), 
 		"Burza",
 		__DATE__,
@@ -130,12 +131,13 @@ float Recipees::DrawTableSplitOnPages( PdfWrapperBase& pdf, float fx, float fy, 
 		  spaceLeft -= style.headerRowHeight;
 		rowsToPrint = spaceLeft / style.rowHeight;
 		
-		lastRowToPrint = firstRowToPrint + rowsToPrint;
 		if (rowsToPrint == 0)
 		{
 			rowsToPrint = 1;
 		}
 		
+		lastRowToPrint = firstRowToPrint + rowsToPrint - 1;
+
 		if ( lastRowToPrint >= table.Rows() ) {
 			lastRowToPrint = table.Rows() - 1;
 		}
@@ -154,7 +156,7 @@ float Recipees::DrawTableSplitOnPages( PdfWrapperBase& pdf, float fx, float fy, 
 
 		pdf.NewPage( pdf.GetCurrentPageTitle() );
 		AddProgramPageHeaderAndFooter( pdf );
-		fy = marginTop;
+		fy = contentTop;
 		firstRowToPrint = lastRowToPrint + 1;
 	} while( true );
 
@@ -258,7 +260,7 @@ void Recipees::PrintSellerReturnSheet( PdfWrapperBase& pdf, SELLER_ID id )
 	AddProgramPageHeaderAndFooter( pdf );
 	
 	pdf.SetFontSize(1.2);
-	double ypos = marginTop + 2;
+	double ypos = contentTop;
 	
 	pdf.WriteSingleText( 5, ypos, ConvFuncs::FormatStdStr(_("Predavajuci: %s - %s (%s), stav '%s'"), 
 		seller.shortcode.c_str(), seller.name.c_str(),
@@ -286,16 +288,15 @@ void Recipees::PrintSellerReturnSheet( PdfWrapperBase& pdf, SELLER_ID id )
 	items.Resize(sellerItems.size(), columns.m_columns.size());
 	double sum = 0;
 
+	ItemCategoryArray itemCategories = Centrala::Storage().GetItemsCategories();
+	
 	for(int i=0; i<sellerItems.size(); ++i ) {
 		
 		items.Cell( i, 0 ) = ConvFuncs::FormatStdStr( "%i", sellerItems[ i ].number );
-		
 		items.Cell( i, 1 ) = sellerItems[ i ].name;
-		
 		items.Cell( i, 2 ) = ConvFuncs::FormatStdStr( "%8.2f", sellerItems[ i ].price );
-
-		items.Cell( i, 3 ) = ConvFuncs::FormatStdStr( "%c",
-			Centrala::Storage().GetSellerCategory( sellerItems[ i ].category ).letter );
+		ItemCategory cat =  DataAccessInterface::GetItemCategory( sellerItems[ i ].category, itemCategories );
+		items.Cell( i, 3 ) = cat.name;
 		items.Cell( i, 4 ) = DataAccessInterface::ItemStatus2String( sellerItems[ i ].status );
 
 		if ( sellerItems[ i ].status == sold ) {
@@ -317,12 +318,12 @@ void Recipees::PrintSellerReturnSheet( PdfWrapperBase& pdf, SELLER_ID id )
 	sumColumns.AddColumn( "", 7 );
 
 	// add sum of the items that were sold
-	SellerFees fees = SellerFees::CalculateSellerFees( sellerCat, sellerItems );
+	SellerFees fees = SellerFees::CalculateSellerFees( sellerCat, itemCategories, sellerItems );
 
 	sumCells.Resize( 6 + fees.fees.size() * 2, sumColumns.m_columns.size() );
 
 	int row = 0;
-	sumCells.Cell( row, 0 ) = _( "Súčet predaných vecí" );
+	sumCells.Cell( row, 0 ) = _( "Sucet predanych veci" );
 	sumCells.Cell( row, 1 ) = ConvFuncs::FormatStdStr( "%10.2f", sum );
 	double finalSum = fees.sumOfSoldItems;
 
@@ -331,19 +332,19 @@ void Recipees::PrintSellerReturnSheet( PdfWrapperBase& pdf, SELLER_ID id )
 		++row;
 		sumCells.Cell( row, 0 ) = fees.fees[ i ].name;
 		string fee1 = ConvFuncs::FormatStdStr( "- %6.2f", fees.fees[ i ].price );
-		sumCells.Cell( row, 1 ) = ConvFuncs::FormatStdStr( "%10s", fee1.c_str() );
+		sumCells.Cell( row, 1 ) = ConvFuncs::FormatStdStr( "%9s", fee1.c_str() );
 
 		finalSum -= fees.fees[ i ].price;
 		++row;
 		string feeSum = ConvFuncs::FormatStdStr( "= %6.2f", finalSum );
-		sumCells.Cell( row, 1 ) = ConvFuncs::FormatStdStr( "%10s", feeSum.c_str() );
+		sumCells.Cell( row, 1 ) = feeSum; // ConvFuncs::FormatStdStr( "%9s", feeSum.c_str() );
 	}
 
 	++row;
 	++row;
 	sumCells.Cell( row, 0 ) = _( "Celkom vyplatené (eur) :" );
 	string finalSumText = ConvFuncs::FormatStdStr( "%6.2f", finalSum );
-	sumCells.Cell( row, 1 ) = ConvFuncs::FormatStdStr( "%10s", finalSumText.c_str() );
+	sumCells.Cell( row, 1 ) = ConvFuncs::FormatStdStr( "%9s", finalSumText.c_str() );
 	
 	++row;
 	++row;
@@ -362,7 +363,7 @@ float Recipees::AdvanceYpos( float ypos, float percent )
 		currentPdf->NewPage( currentPdf->GetCurrentPageTitle() );
 		AddProgramPageHeaderAndFooter( *currentPdf );
 
-		ypos = marginTop;
+		ypos = contentTop;
 	}
 
 	return ypos;
@@ -438,7 +439,7 @@ void Recipees::PrintStats( PdfWrapperBase& pdf )
 	pdf.NewPage( _( "Zhrnutie predajcov" ) );
 	AddProgramPageHeaderAndFooter( pdf );
 
-	double ypos = marginTop;
+	double ypos = contentTop;
 	double fontSize = 1.2;
 	double lineSpacing = fontSize + 0.4;
 	float textPosX = 8;
@@ -459,7 +460,7 @@ void Recipees::PrintStats( PdfWrapperBase& pdf )
 	columns.AddColumn( _("Poznámka"), 25 );
 	columns.AddColumn( _("Kategória"), 10 );
 	columns.AddColumn( _("Predané/Zisk"), 10 );
-	columns.AddColumn( _("10% pop"), 5 );
+	columns.AddColumn( _("popl"), 5 );
 	columns.AddColumn( _("manip"), 5 );
 
 	unsigned int row = 0;
@@ -491,6 +492,7 @@ void Recipees::PrintStats( PdfWrapperBase& pdf )
 	
 	double feeWholeSoldSumPercentageAllSellersSum = 0.0;
 	double feePerItemAllSellersSum = 0.0;
+	ItemCategoryArray itemCategories = Centrala::Storage().GetItemsCategories();
 	
 	for( unsigned int i = 0; i < received.size(); ++i ) {
 		cells.Cell( row, 0 ).SetText( received[ i ]->shortcode );
@@ -499,7 +501,7 @@ void Recipees::PrintStats( PdfWrapperBase& pdf )
 		
 		sellerCat = GetSellerCategoryById( categories, received[ i ]->category );
 		ItemDataArray items = Centrala::Storage().GetSellerItems( received[ i ]->id );
-		fees = SellerFees::CalculateSellerFees( sellerCat, items );
+		fees = SellerFees::CalculateSellerFees( sellerCat, itemCategories, items );
 		double gainedSum = fees.sumOfSoldItems - fees.finalSumToGiveToSeller;
 		gainTotal += gainedSum;
 		
@@ -507,16 +509,24 @@ void Recipees::PrintStats( PdfWrapperBase& pdf )
 		cells.Cell( row, 4 ).SetText( ConvFuncs::FormatStdStr( "%0.2f", fees.sumOfSoldItems ) );
 
 		// fees
-		fee = fees.GetFeeOfType( ::FeeWholeSoldSumPercentage );
-		if ( fee != NULL ) {
-			cells.Cell( row, 5 ).SetText( ConvFuncs::FormatStdStr( "%0.2f", fee->price ) );
-			feeWholeSoldSumPercentageAllSellersSum += fee->price;
+		Fees feesPerSold = fees.GetFeeOfType( ::FeePerSold );
+		if ( !feesPerSold.empty() ) {
+			float feeSum = 0.0;
+			for( int i = 0; i < feesPerSold.size(); ++i )
+				feeSum += feesPerSold[ i ].price;
+			
+			cells.Cell( row, 5 ).SetText( ConvFuncs::FormatStdStr( "%0.2f", feeSum ) );
+			feeWholeSoldSumPercentageAllSellersSum += feeSum;
 		}
 		
-		fee = fees.GetFeeOfType( ::FeePerItem );
-		if ( fee != NULL ) {
-			cells.Cell( row, 6 ).SetText( ConvFuncs::FormatStdStr( "%0.2f", fee->price ) );
-			feePerItemAllSellersSum += fee->price;
+		Fees feesPerItemOnSale = fees.GetFeeOfType( ::FeePerItemOnSale );
+		if ( !feesPerItemOnSale.empty() ) {
+			float feeSum = 0.0;
+			for( int i = 0; i < feesPerItemOnSale.size(); ++i )
+				feeSum += feesPerItemOnSale[ i ].price;
+			
+			cells.Cell( row, 6 ).SetText( ConvFuncs::FormatStdStr( "%0.2f", feeSum ) );
+			feePerItemAllSellersSum += feeSum;
 		}
 		
 		LogS( InfoMajor, "After seller %s - WholeSoldSumPercentageAllSellersSum : %0.2f PerItemAllSellersSum: %0.2f\n", 
@@ -537,7 +547,7 @@ void Recipees::PrintStats( PdfWrapperBase& pdf )
 
 		sellerCat = GetSellerCategoryById( categories, handedOut[ i ]->category );
 		ItemDataArray items = Centrala::Storage().GetSellerItems( handedOut[ i ]->id );
-		fees = SellerFees::CalculateSellerFees( sellerCat, items );
+		fees = SellerFees::CalculateSellerFees( sellerCat, itemCategories, items );
 		double gainedSum = fees.sumOfSoldItems - fees.finalSumToGiveToSeller;
 		gainTotal += gainedSum;
 		
@@ -545,16 +555,24 @@ void Recipees::PrintStats( PdfWrapperBase& pdf )
 		cells.Cell( row, 4 ).SetText( ConvFuncs::FormatStdStr( "%0.2f / %0.2f", fees.sumOfSoldItems, gainedSum ) );
 		
 		// fees
-		fee = fees.GetFeeOfType( ::FeeWholeSoldSumPercentage );
-		if ( fee != NULL ) {
-			cells.Cell( row, 5 ).SetText( ConvFuncs::FormatStdStr( "%0.2f", fee->price ) );
-			feeWholeSoldSumPercentageAllSellersSum += fee->price;
+		Fees feesPerSold = fees.GetFeeOfType( ::FeePerSold );
+		if ( !feesPerSold.empty() ) {
+			float feeSum = 0.0;
+			for( int i = 0; i < feesPerSold.size(); ++i )
+				feeSum += feesPerSold[ i ].price;
+			
+			cells.Cell( row, 5 ).SetText( ConvFuncs::FormatStdStr( "%0.2f", feeSum ) );
+			feeWholeSoldSumPercentageAllSellersSum += feeSum;
 		}
 		
-		fee = fees.GetFeeOfType( ::FeePerItem );
-		if ( fee != NULL ) {
-			cells.Cell( row, 6 ).SetText( ConvFuncs::FormatStdStr( "%0.2f", fee->price ) );
-			feePerItemAllSellersSum += fee->price;
+		Fees feesPerItemOnSale = fees.GetFeeOfType( ::FeePerItemOnSale );
+		if ( !feesPerItemOnSale.empty() ) {
+			float feeSum = 0.0;
+			for( int i = 0; i < feesPerItemOnSale.size(); ++i )
+				feeSum += feesPerItemOnSale[ i ].price;
+			
+			cells.Cell( row, 6 ).SetText( ConvFuncs::FormatStdStr( "%0.2f", feeSum ) );
+			feePerItemAllSellersSum += feeSum;
 		}
 		
 		LogS( InfoMajor, "After seller %s - WholeSoldSumPercentageAllSellersSum : %0.2f PerItemAllSellersSum: %0.2f\n", 

@@ -479,12 +479,12 @@ std::string BiturnLog::GetDateTime( void )
 	time2[ 1023 ] = 0;
 	
 #ifdef _WIN32
-	SYSTEMTIME		time;
-	GetSystemTime( &time );
+	SYSTEMTIME		stime;
+	GetSystemTime( &stime );
 	
-	snprintf( time2, 1023, "%i/%i/%i %02i:%02i:%02i.%03i",
-		time.wDay, time.wMonth, time.wYear,
-		time.wHour, time.wMinute, time.wSecond, time.wMilisecond );
+	_snprintf( time2, 1023, "%i/%i/%i %02i:%02i:%02i.%03i",
+		stime.wDay, stime.wMonth, stime.wYear,
+		stime.wHour, stime.wMinute, stime.wSecond, stime.wMilliseconds );
 #endif
 #ifdef _DOS
 	getdate( &d );

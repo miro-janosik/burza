@@ -40,8 +40,9 @@ INSERT INTO item_category(
             "ID", "LETTER", "NAME", "LIMIT_PRICE_MIN", "LIMIT_PRICE_MAX",
             "FEE_ITEM", "FEE_ITEM_PERC", "FEE_SOLD_ITEM", "FEE_SOLD_PERC")
     VALUES 
-    (1, 'a', 'Odevy', NULL, 15.0, 0.10, 0.0, 0.0, 10 ),
-    (2, 'b', 'Hracky',15.0, NULL, 1.00, 0.0, 0.0, 10 );
+    (3, 'z', 'Do 0.1',NULL, 0.1, 0.0, 0.0, 0.0, 0 );
+    (1, 'a', 'Do 15', 0.1, 15.0, 0.10, 0.0, 0.0, 10 ),
+    (2, 'b', 'Nad 15',15.0, NULL, 1.00, 0.0, 0.0, 10 );
 
 -- Table: seller_category
 -- DROP TABLE seller_category;

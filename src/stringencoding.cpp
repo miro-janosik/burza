@@ -143,7 +143,7 @@ std::string StringEncoding::WStringToUTF8(std::wstring &str)
 	length = str.size() * 4;
 #else
 	sourceEncoding = "UCS-2-INTERNAL";
-	legth = str.size() * 2;
+	length = str.size() * 2;
 #endif
 	
 	result = OneToAnother( cp, length, sourceEncoding, "UTF-8" );
