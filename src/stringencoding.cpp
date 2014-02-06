@@ -11,13 +11,36 @@
 #include <errno.h>
 #include <vector>
 
-#include "convfncs.h"
-
 #ifdef _UNIX
 #include <string.h>
 #endif
 
+// ICU
+#include <unicode/utypes.h>
+#include <unicode/unistr.h>
+#include <unicode/translit.h>
+
+#include "convfncs.h"
+
 using namespace std;
+
+std::string desaxUTF8(const std::string& str) 
+{
+    // UTF-8 std::string -> UTF-16 UnicodeString
+    UnicodeString source = UnicodeString::fromUTF8(StringPiece(str));
+
+    // Transliterate UTF-16 UnicodeString
+    UErrorCode status = U_ZERO_ERROR;
+    Transliterator *accentsConverter = Transliterator::createInstance("NFD; [:M:] Remove; NFC", UTRANS_FORWARD, status);
+    accentsConverter->transliterate(source);
+    // TODO: handle errors with status
+
+    // UTF-16 UnicodeString -> UTF-8 std::string
+    std::string result;
+    source.toUTF8String(result);
+
+    return result;
+}
 
 namespace Burza {
 
@@ -159,6 +182,7 @@ std::wstring StringEncoding::StringToWString(std::string &str)
 
 void StringEncoding::UTF8RemoveAccents( std::string& str )
 {
+	/*
 	// plans - using library ICU
 	string from =	"·¡‰ƒË»ÔœÈ…ÌÕÂ≈æºÚ“Û”Ù‘‡¿¯ÿöäùç˙⁄˝›ûé";
 	string to =		"aAaAcCdDeEiIlLlLnNoOoOrRrRsStTuUyYzZ";
@@ -170,6 +194,9 @@ void StringEncoding::UTF8RemoveAccents( std::string& str )
 			*it = to[ pos ];
 		}
 	}
+	*/
+	
+	str = desaxUTF8( str );
 }
 
 void StringEncoding::ISO8859_2ToASCII( std::string& str )
@@ -180,5 +207,18 @@ void StringEncoding::ISO8859_2ToASCII( std::string& str )
 	str = resultstr;
 }
 
+bool StringEncoding::StringContains( string& longText, string& smallerText )
+{
+	return longText.find( smallerText ) != std::string::npos;
+}
+
+string StringEncoding::ToComparable( string& text )
+{
+	string out( text );
+	
+	UTF8RemoveAccents( out );
+	ConvFuncs::StdStringToLower( out );
+	return out;
+}
 
 }

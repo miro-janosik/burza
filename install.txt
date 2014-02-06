@@ -39,3 +39,5 @@ ctrl + d
 now you can connect to the localhost server with login 'postgres' and new password through admin
 create connection to 'localhost', database postgres, user postgres.
 You can create new database, user, etc.
+
+Now you can fill the database by script docs/burzadb_tables.sql

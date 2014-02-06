@@ -614,14 +614,14 @@ void BurzaDialogs::RegisterDisplaySeller( const char* kod )
 
 void BurzaDialogs::RegisterDisplaySellerByIndex( unsigned int idx )
 {
-	if ( idx >= m_DisplayedSellers.size() ) {
+	if ( idx >= SellersOrdered.size() ) {
 		m_RegisterSelectedSellerId = SELLER_ID_NONE;
 
 		DisplayOkMessageBox( _("Neexistuje žiaden predajca"), "" );
 		return;
 	}
 
-	RegisterDisplaySeller(m_DisplayedSellers[ idx ]);
+	RegisterDisplaySeller(SellersOrdered[ idx ]);
 }
 
 
@@ -702,13 +702,13 @@ void BurzaDialogs::RegisterDisplaySeller(SellerData& seller)
 	
 	int idx;
 	
-	for( idx = 0; idx < m_DisplayedSellers.size(); idx++ ) {
-		if ( m_DisplayedSellers[ idx ].id == seller.id ) {
+	for( idx = 0; idx < SellersOrdered.size(); idx++ ) {
+		if ( SellersOrdered[ idx ].id == seller.id ) {
 			break;
 		}
 	}
 	
-	if ( idx >= m_DisplayedSellers.size() ) {
+	if ( idx >= SellersOrdered.size() ) {
 		idx = -1;
 	}
 	m_pComboSeller->set_active( idx );
@@ -718,6 +718,64 @@ void BurzaDialogs::RegisterDisplaySeller(SellerData& seller)
 
 	SellerCategory sellerCat = Centrala::Storage().GetSellerCategory( seller.category );
 	m_pLabelSellerType->set_text( sellerCat.name );
+}
+
+void BurzaDialogs::RegisterSortSellersByName(string& partOfName)
+{
+	sort( SellersOrdered.begin(), SellersOrdered.end(), OrderSellerByShortCode );
+	
+	for( int i=0; i<SellersOrdered.size(); ++i )
+	{
+		SellersOrdered[ i ].mark = "";
+	}
+	
+	if (partOfName.size() <= 1 )
+	{
+	}
+	else
+	{
+		string key = StringEncoding::ToComparable( partOfName );
+		
+		vector<SellerDataWithFilterMark> orderedSellers, otherSellers;
+		
+		// find sellers matching the key
+		string text;
+		for( int i=0; i<SellersOrdered.size(); ++i )
+		{
+			text = StringEncoding::ToComparable( SellersOrdered[ i ].name );
+			if ( StringEncoding::StringContains( text, key ) )
+			{
+				SellersOrdered[ i ].mark = ">>  ";
+				orderedSellers.push_back( SellersOrdered[ i ] );
+				continue;
+			}
+
+			text = StringEncoding::ToComparable( SellersOrdered[ i ].shortcode );
+			if ( StringEncoding::StringContains( text, key ) )
+			{
+				SellersOrdered[ i ].mark = ">>>  ";
+				orderedSellers.push_back( SellersOrdered[ i ] );
+				continue;
+			}
+			
+			otherSellers.push_back( SellersOrdered[ i ] );
+		}
+
+		// Now get them together, add ordered first
+		SellersOrdered.clear();
+		for( int i=0; i<orderedSellers.size(); ++i )
+		{
+			SellersOrdered.push_back( orderedSellers[ i ] );
+		}
+		
+		// Add rest of sellers at the end.
+		for( int i=0; i<otherSellers.size(); ++i )
+		{
+			SellersOrdered.push_back( otherSellers[ i ] );
+		}
+	}
+	
+	FillSellerCombos();
 }
 
 void BurzaDialogs::RegisterDisplaySellerUpdateSellerStatus( Burza::SellerStatus status )
@@ -737,23 +795,31 @@ void BurzaDialogs::RegisterDisplaySellerUpdateSellerStatus( Burza::SellerStatus 
 
 void BurzaDialogs::ReloadSellers( void )
 {
+	LoadedSellers = DemoLimitsGetSellers();
+	
+	// transform Seller to SellerDataWithFilterMark
+	SellersOrdered.clear();
+	for( int i=0; i<LoadedSellers.size(); ++i )
+		SellersOrdered.push_back( LoadedSellers[i] );
+	
+	// order sellers without criteria => by short code
+	string nothing;
+	RegisterSortSellersByName( nothing );
+	
 	FillSellerCombos();
 }
 
 void BurzaDialogs::FillSellerCombos( void )
 {
-	m_DisplayedSellers = DemoLimitsGetSellers();
-	std::string		str;
-
-	sort( m_DisplayedSellers.begin(), m_DisplayedSellers.end(), OrderSellerByShortCode );
-	
 	m_pComboSeller->clear();
 	m_pCashoutComboLookupSeller->clear();
 	
-	for( int i=0; i<m_DisplayedSellers.size(); ++i ) {
-		str = m_DisplayedSellers[ i ].shortcode;
+	std::string		str;
+	for( int i=0; i<SellersOrdered.size(); ++i ) {
+		str = SellersOrdered[ i ].mark;
+		str += SellersOrdered[ i ].shortcode;
 		str += " - ";
-		str += m_DisplayedSellers[ i ].name;
+		str += SellersOrdered[ i ].name;
 
 		m_pComboSeller->append_text( str );
 		m_pCashoutComboLookupSeller->append_text( str );
@@ -762,10 +828,23 @@ void BurzaDialogs::FillSellerCombos( void )
 
 void BurzaDialogs::RegisterEditLookupSellerChanged( void )
 {
+	if ( SellersOrdered.empty() )
+		return;
+	
 	string str = m_pEntryRegistryLookupSeller->get_text();
-	int idx = DataAccessInterface::FindSellerIndexByCode( m_DisplayedSellers, str );
+	
+	SellerDataArray sellersBase;
+	for( int i=0; i<SellersOrdered.size(); ++i )
+		sellersBase.push_back(SellersOrdered[i]);
+	
+	int idx = DataAccessInterface::FindSellerIndexByCode( sellersBase, str );
 	if ( idx != -1 ) {
-		RegisterDisplaySeller( m_DisplayedSellers[ idx ] );
+		RegisterDisplaySeller( SellersOrdered[ idx ] );
+	}
+	else 
+	{
+		RegisterSortSellersByName( str );
+		RegisterDisplaySeller( SellersOrdered[ 0 ] );
 	}
 }
 
@@ -1379,7 +1458,7 @@ void BurzaDialogs::RegisterComboChangedSeller( void )
 	if ( i == -1 )
 		return;
 	
-	if ( i >= m_DisplayedSellers.size() ) {
+	if ( i >= SellersOrdered.size() ) {
 		ReloadSellers();
 		return;
 	}
@@ -1542,12 +1621,12 @@ void BurzaDialogs::CashoutComboLookupSellerChanged( void )
 		return;
 	}
 	
-	if ( i >= m_DisplayedSellers.size() ) {
+	if ( i >= SellersOrdered.size() ) {
 		assert( false );
 		return;
 	}
 	
-	m_CashoutSelectedSellerId = m_DisplayedSellers[ i ].id;
+	m_CashoutSelectedSellerId = SellersOrdered[ i ].id;
 	CashoutSellerChanged();
 }
 
@@ -2011,7 +2090,11 @@ void BurzaDialogs::CashoutEditLookupSellerChanged( void )
 
 void BurzaDialogs::CashoutDisplaySeller( const char* shortcode )
 {
-	int idx = DataAccessInterface::FindSellerIndexByCode( m_DisplayedSellers, shortcode );
+	SellerDataArray SellersSearchable;
+	for( int i=0; i<SellersOrdered.size(); ++i )
+		SellersSearchable.push_back( SellersOrdered[ i ] );
+		
+	int idx = DataAccessInterface::FindSellerIndexByCode( SellersSearchable, shortcode );
 	
 	m_pCashoutComboLookupItem->clear();
 	m_CashoutDisplayedItems.clear();
@@ -2021,7 +2104,7 @@ void BurzaDialogs::CashoutDisplaySeller( const char* shortcode )
 		m_CashoutSelectedSellerId = SELLER_ID_NONE;
 	} else {
 		m_pCashoutComboLookupSeller->set_active( idx );
-		m_CashoutSelectedSellerId = m_DisplayedSellers[ idx ].id;
+		m_CashoutSelectedSellerId = SellersOrdered[ idx ].id;
 	}
 	
 	CashoutSellerChanged();
@@ -2346,8 +2429,8 @@ void BurzaDialogs::RegisterButtonReviewOfSellers( void )
 		HPDFWrapper	pdf;
 		pdf.CreatePDF( name );
 		
-		for( unsigned int i=0; i<m_DisplayedSellers.size(); i++ ) {
-			recipees.PrintSellerReturnSheet( pdf, m_DisplayedSellers[ i ].id );
+		for( unsigned int i=0; i<SellersOrdered.size(); i++ ) {
+			recipees.PrintSellerReturnSheet( pdf, SellersOrdered[ i ].id );
 		}
 		
 		pdf.ClosePDF();

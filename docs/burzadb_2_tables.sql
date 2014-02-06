@@ -1,10 +1,4 @@
-﻿CREATE DATABASE burza
-  WITH OWNER = postgres
-       ENCODING = 'UTF8'
-       LC_COLLATE = 'en_US.UTF-8'
-       LC_CTYPE = 'en_US.UTF-8'
-       CONNECTION LIMIT = -1;
-
+﻿
 
 -- Table: item_category
 -- DROP TABLE item_category;
@@ -40,7 +34,7 @@ INSERT INTO item_category(
             "ID", "LETTER", "NAME", "LIMIT_PRICE_MIN", "LIMIT_PRICE_MAX",
             "FEE_ITEM", "FEE_ITEM_PERC", "FEE_SOLD_ITEM", "FEE_SOLD_PERC")
     VALUES 
-    (3, 'z', 'Do 0.1',NULL, 0.1, 0.0, 0.0, 0.0, 0 );
+    (3, 'z', 'Do 0.1',NULL, 0.1, 0.0, 0.0, 0.0, 0 ),
     (1, 'a', 'Do 15', 0.1, 15.0, 0.10, 0.0, 0.0, 10 ),
     (2, 'b', 'Nad 15',15.0, NULL, 1.00, 0.0, 0.0, 10 );
 
@@ -168,7 +162,7 @@ LOGIN ENCRYPTED PASSWORD 'md59f1e62cb21e6b04c80c95afdbbb471de'
 COMMENT ON ROLE usergroup IS 'Default user group';
 
 -- default user with password 'trencin'
-CREATE ROLE "user" LOGIN ENCRYPTED PASSWORD 'md59f1e62cb21e6b04c80c95afdbbb471de'
+CREATE ROLE "user" LOGIN ENCRYPTED PASSWORD 'md53bc8db570e3bf0acd065d983b4fd7333'
    VALID UNTIL 'infinity';
 GRANT usergroup TO "user";
 COMMENT ON ROLE "user" IS 'default user, with password trencin';

@@ -52,6 +52,14 @@ public:
 	// vyplni komba v Registri aj Pokladni
 	void FillSellerCombos( void );
 	void ReloadSellers( void );
+
+	// Changes the seller combo-box for filtering by name.
+	// Sellers matching the name will be first in the list
+	// Also jumps to first seller
+	// Behavior depends on length of partOfName. 
+	// * length <= 0, 1 then no filtering is done
+	// * length >= 2 then filter is applied
+	void RegisterSortSellersByName( string& partOfName );
 	
 	void RegisterDisplaySeller( SellerData& seller );
 	void RegisterDisplaySeller( const char* kod );
@@ -320,11 +328,17 @@ public:
 	Gtk::TreeView::Column*	registerItemsStatusColumn;
 	
 	// === register + cashout ===
+private:	
+	class SellerDataWithFilterMark;
+public:
 	
-	//! sellers displayed in the program, in combo boxes:
+	//! All sellers. Loaded for further processing
+	SellerDataArray LoadedSellers; // vector<SellerDataWithFilterMark> Sellers;
+	
+	//! Sellers displayed in the program, in combo boxes:
 	//! m_pComboSeller, m_pCashoutComboLookupSeller
-	//! non-sorted array so it is alignable to visual lists.
-	SellerDataArray m_DisplayedSellers;
+	//! sorted array. It is alignable to visual lists.
+	vector<SellerDataWithFilterMark> SellersOrdered;
 	
 	// === register ===
 
@@ -333,7 +347,7 @@ public:
 	
 	// Register
 	SELLER_ID		m_RegisterSelectedSellerId;
-	
+
 	bool 	RegisterAnySelectedSeller( void );
 	SellerData 	RegisterGetSelectedSeller( void );
 	SELLER_ID	RegisterGetSelectedSellerId( void );
@@ -393,5 +407,13 @@ public:
 	// all the data that are in the combo box, are also here, in same order.
 	ItemDataArray	cashoutComboSearchItemDatas;
 	
+private:
+	class SellerDataWithFilterMark : public SellerData
+	{
+	public:
+		string mark;
+		
+		SellerDataWithFilterMark(const SellerData& other) : SellerData( other ) { }
+	};
 } ;
 

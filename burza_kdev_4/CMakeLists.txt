@@ -38,10 +38,13 @@ include_directories(
 find_package(PkgConfig)
 pkg_check_modules(GTKMM REQUIRED gtkmm-2.4)
 pkg_check_modules(GLADEMM REQUIRED libglademm-2.4)
+pkg_check_modules(ICU REQUIRED icu-io)
+
 # pkg_check_modules(PQXX REQUIRED pqxx)
 
 MESSAGE("gtkmm: ${GTKMM_FOUND}, ${GTKMM_INCLUDE_DIRS} , ${GTKMM_LIBRARY_DIRS}.")
 MESSAGE("Glade: ${GLADEMM_FOUND}, ${GLADEMM_LIBRARY_DIRS} , ${GLADEMM_INCLUDE_DIRS} , ${GLADEMM_LIBRARIES} .")
+MESSAGE("ICU: ${ICU_FOUND}, ${ICU_DIRS} , ${ICU_INCLUDE_DIRS} , ${ICU_LIBRARIES} .")
 set(PQXX_LIBRARY_DIRS "/usr/lib")
 set(PQXX_INCLUDE_DIRS "/usr/include")
 set(PQXX_LIBRARIES "libpqxx.so")
@@ -55,6 +58,7 @@ SET( CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} ${GCC_LINK_FLAGS_liborig
 include_directories(	
   ${GLADEMM_INCLUDE_DIRS}
   ${GTKMM_INCLUDE_DIRS}
+  ${ICU_INCLUDE_DIRS}
   ${PQXX_INCLUDE_DIRS}
   "${PRJ_LIB_DIR}/libharu/include"
 #  "${PRJ_LIB_DIR}/libXL/include"
@@ -63,6 +67,7 @@ include_directories(
 link_directories( 
   ${GTKMM_LIBRARY_DIRS} 
   ${GLADEMM_LIBRARY_DIRS}
+  ${ICU_LIBRARY_DIRS}
   ${PQXX_LIBRARY_DIRS}
 #  ${PRJ_LIB_DIR}"/libXL"
   )
@@ -70,7 +75,11 @@ link_directories(
 target_link_libraries(burza
   ${GTKMM_LIBRARIES}
   ${GLADEMM_LIBRARIES}
+  ${ICU_LIBRARIES}
   ${PQXX_LIBRARIES}
   "${PRJ_LIB_DIR}/libharu/lib/libhpdf.a"
 #  "${PRJ_LIB_DIR}/libXL/libxl.so"
+
+# this is here just because automated thing does not work. Remove after it starts to behave correctly.
+  -licuio -licui18n -licuuc -licudata
   )

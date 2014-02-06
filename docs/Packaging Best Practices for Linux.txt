@@ -1,0 +1,94 @@
+> That was VERY informative. This is what I was afraid of. With Windows and OS 
+X even though there are 3 or 4 versions if you build for the earliest one (XP 
+or 10.5) the binary has a really good chance of still running on the latest 
+(Win7 or Lion). With Linux and so many distributions I don't have time to 
+create that many different virtual machines to compile on each and every one. I 
+am a single developer. I think I am going to go the source route and make sure 
+that my software just compiles with the standard packages from each of the 
+distros (Qt 4, HDF5 1.8, Boost and Qwt). The only issue might be Qwt as I 
+still use Version 5 and I think there is a newer version out that I doubt I am 
+compatible with. All else fails I have my own repo for Qwt that is public for 
+anyone to pull from. 
+>    I very much want to support Linux in the best way possible. I was hoping 
+for some thing easier but I guess this is just the way it is.
+
+
+Don't give up just yet! There are other options which might meet your needs. 
+No-one appears yet to have mentioned the LSB (Linux Standards Base) and it is 
+designed to solve problems just like yours. Admittedly, it will take a little 
+bit of (one-time) work, but as someone who has done this with production code 
+at a previous employer, we found it was well worth it. After getting things 
+working, we only had to distribute a single package to cover all linux 
+distributions (yes, even Debian-based ones such as Ubuntu).
+
+The LSB is a standard that all major linux distributions certify to. If you 
+can build your package to be LSB compliant, then one package can be installed 
+on all major linux distributions and you are guaranteed that they will work 
+(well, from a binary compatibility point of view anyway!). In order to build 
+your package as LSB compliant, you need to use the LSB compilers, which are 
+essentially wrappers around the GNU compilers (these wrappers set a few flags 
+to make the GNU compilers behave in certain ways). It can be a bit hard to find 
+info on how to get started building with the LSB. A couple of resources to 
+help get you started would be the linux foundation page for the LSB (its home) 
+and the LSB mailing list:
+
+http://www.linuxfoundation.org/collaborate/workgroups/lsb
+
+https://lists.linuxfoundation.org/mailman/listinfo/lsb-discuss
+
+Don't worry about the stuff dealing with linux distributions being LSB 
+compliant, you are interested in the parts relating to making *application* 
+packages LSB compliant. The first link on the LSB home page for the "LSB 
+Updates: SDK, Checkers, 4.1" should give you a running start.
+
+The main difficulty for you is that some of the libraries you are depending on 
+are not part of the LSB, or the LSB only covers older versions than the ones 
+you are using. But not to worry, you can still build those libraries with the 
+LSB compilers as well and include those libraries as part of your package. 
+Those dependent libraries would be considered private to your package and not 
+seen by anything else on the system, so there's no problem with potentially 
+destabilising the target system or causing unexpected behaviour changes when 
+you supply your own version of these libraries. The LSB standard mandates that 
+your package installs to an area in /opt, not in /usr. For those readers who 
+feel this is "not the linux way", keep in mind that this is a standard that 
+all major linux distributions certify to and support. ;) This isn't a 
+philosophical argument, just a way to meet the needs of the question posed in 
+the original post.
+
+Building those third party libraries with LSB compilers can be a bit tricky. 
+Fortunately for you, I've already posted a set of patches for building Qt 4.7 
+with LSB 4.0 compilers on the Qt bug tracker, so that should considerably 
+speed up the process for you. The relevant bug report can be found at the 
+following location (make sure you read through all the comments, since these 
+update statements made in the main description of the bug):
+
+https://bugreports.qt-project.org/browse/QTBUG-16385
+
+The last status of that bug report includes a full set of patches for Qt 
+4.7.3. I have since changed employers, so I won't be able to continue 
+providing patch updates in the short term.
+
+I would expect Qwt should build with LSB compilers as well, but if not, it 
+might be in my interest to work out what has to be done to make it so. Let me 
+know if you run into problems building Qwt with LSB compilers.
+
+I can't comment on Boost or HDF5, but you might have some luck with those too.
+
+One thing I didn't mention above is that when you build your package as LSB 
+compliant, you only need one dependency to be specified, that being on "lsb". 
+You don't depend on "qt" or "qwt" or anything like that, which is just as well 
+because the names of those packages vary between linux distributions (but the 
+"lsb" package is a mandatory name covered by the LSB spec).
+
+As a final comment of limited relevance, the work that went into making Qt 
+build with LSB compilers also resulted in making CMake itself buildable with 
+LSB compilers (thanks Brad King!). :)
+
+
+
+Craig Scott | Senior Software Engineer
+Southern Innovation | PO Box 307, Carlton South, VIC 3053
+t +613 9387 0338 | f +613 9387 0339
+e craig.scott at southerninnovation.com 
+
+w www.southerninnovation.com 
