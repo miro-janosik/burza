@@ -205,8 +205,8 @@ void HPDFWrapper::NewPage( string name )
 	currentPageTitle = name;
 	string str = name;
 	
-	ConvertUTF8ToISO8859_2orErrorString( str );
-	// StringEncoding::UTF8RemoveAccents( str );
+	// ConvertUTF8ToISO8859_2orErrorString( str );
+	StringEncoding::UTF8RemoveAccents( str );
 	// ConvertUTF8ToIAsciiOrErrorString( str );
 
 	outline = HPDF_CreateOutline( m_pdf, m_outline_root, str.c_str(), NULL);

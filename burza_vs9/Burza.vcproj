@@ -42,7 +42,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(ProjectDir)..\&quot;;&quot;$(ProjectDir)..\lib\libharu\include&quot;;&quot;$(ProjectDir)..\lib\libXL\include&quot;;&quot;$(ProjectDir)..\lib\pqxx\include\&quot;;&quot;$(ProjectDir)..\src\irrXml&quot;;&quot;$(ProjectDir)..\src\BasicExcelFormat&quot;;&quot;$(ProjectDir)..\lib\iconv\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(ProjectDir)..\&quot;;&quot;$(ProjectDir)..\lib\libharu\include&quot;;&quot;$(ProjectDir)..\lib\libXL\include&quot;;&quot;$(ProjectDir)..\lib\pqxx\include\&quot;;&quot;$(ProjectDir)..\src\irrXml&quot;;&quot;$(ProjectDir)..\src\BasicExcelFormat&quot;;&quot;$(ProjectDir)..\lib\iconv\include&quot;;&quot;$(ProjectDir)..\lib\icu\include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -63,10 +63,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libxl.lib libpqxxD.lib libhpdf.lib libiconv.lib"
+				AdditionalDependencies="libxl.lib libpqxxD.lib libhpdf.lib libiconv.lib icuio.lib icuin.lib icudt.lib icuuc.lib"
 				OutputFile="$(OutDir)\$(ProjectName)D.exe"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="&quot;$(ProjectDir)/../lib/libXL&quot;;&quot;$(ProjectDir)/../lib/pqxx&quot;;&quot;$(ProjectDir)/../lib/libharu&quot;;&quot;$(ProjectDir)/../lib/iconv/lib&quot;"
+				AdditionalLibraryDirectories="&quot;$(ProjectDir)/../lib/libXL&quot;;&quot;$(ProjectDir)/../lib/pqxx&quot;;&quot;$(ProjectDir)/../lib/libharu&quot;;&quot;$(ProjectDir)/../lib/iconv/lib&quot;;&quot;$(ProjectDir)/../lib/icu/lib&quot;"
 				IgnoreAllDefaultLibraries="false"
 				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="true"
@@ -276,6 +276,10 @@
 			</File>
 			<File
 				RelativePath="..\src\stringencoding.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\useicu.h"
 				>
 			</File>
 			<File

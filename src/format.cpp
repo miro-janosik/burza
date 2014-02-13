@@ -5,6 +5,7 @@
 #include "format.h"
 
 #ifdef _UNIX
+#include <stdint.h> // needed by stdlib.h
 #include <stdlib.h>
 #include <string.h>
 #endif

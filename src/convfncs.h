@@ -29,6 +29,8 @@
 		#include <afxwin.h>
 	#else
 		#include <dos.h>
+		
+		// #include <stdint.h> // needed by stdlib.h - not present in WIN
 		#include <stdlib.h>
 	#endif
 	#include <io.h>
@@ -48,6 +50,7 @@
 
 #ifdef CONV_FNCS_CONV_FILE_USED
 #include "convfile.h"
+using namespace ConvFile;
 #endif
 
 #if _WIN32

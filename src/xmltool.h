@@ -15,8 +15,10 @@
 #include "convfile.h"
 
 #ifdef _UNIX
-  
-	#include <stdlib.h>
+
+	#include <cstdlib>
+	// #include <stdint.h> // needed by stdlib.h
+	// #include <stdlib.h> // atoi, atof support
 	#include <string.h>
 
 	#ifndef stricmp
@@ -25,6 +27,8 @@
 		#define stricmp(a, b) strcasecmp((a),(b))
 	#endif
 #endif
+
+using namespace ConvFile;
 
 /*
 namespace irr {

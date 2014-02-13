@@ -10,6 +10,8 @@
 #include <string>
 #include <vector>
 
+#include "useicu.h"
+
 using namespace std;
 
 namespace Burza {
@@ -57,7 +59,10 @@ public:
 	
 private:
 	static std::vector<char> OneToAnother( const char* src, int sizeinbytes, const std::string& from, const std::string& to );
-
+	
+	static std::string desaxUTF8(const std::string& str);
+	
+	static Transliterator *icuAccentsRemover;
 };
 
 }

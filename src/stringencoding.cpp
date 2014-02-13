@@ -15,34 +15,17 @@
 #include <string.h>
 #endif
 
-// ICU
-#include <unicode/utypes.h>
-#include <unicode/unistr.h>
-#include <unicode/translit.h>
-
+#include "useicu.h"
 #include "convfncs.h"
 
 using namespace std;
-
-std::string desaxUTF8(const std::string& str) 
-{
-    // UTF-8 std::string -> UTF-16 UnicodeString
-    UnicodeString source = UnicodeString::fromUTF8(StringPiece(str));
-
-    // Transliterate UTF-16 UnicodeString
-    UErrorCode status = U_ZERO_ERROR;
-    Transliterator *accentsConverter = Transliterator::createInstance("NFD; [:M:] Remove; NFC", UTRANS_FORWARD, status);
-    accentsConverter->transliterate(source);
-    // TODO: handle errors with status
-
-    // UTF-16 UnicodeString -> UTF-8 std::string
-    std::string result;
-    source.toUTF8String(result);
-
-    return result;
-}
-
+using namespace U_ICU_NAMESPACE;
 namespace Burza {
+
+// setup transliterator that removes accents from string
+// Transliterate UTF-16 UnicodeString
+UErrorCode status = U_ZERO_ERROR;
+Transliterator *StringEncoding::icuAccentsRemover = Transliterator::createInstance("NFD; [:M:] Remove; NFC", UTRANS_FORWARD, status);
 
 StringEncoding::StringEncoding()
 {
@@ -219,6 +202,21 @@ string StringEncoding::ToComparable( string& text )
 	UTF8RemoveAccents( out );
 	ConvFuncs::StdStringToLower( out );
 	return out;
+}
+
+std::string StringEncoding::desaxUTF8(const std::string& str) 
+{
+    // UTF-8 std::string -> UTF-16 UnicodeString
+    UnicodeString source = UnicodeString::fromUTF8(StringPiece(str));
+
+    icuAccentsRemover->transliterate(source);
+    // TODO: handle errors with status
+
+    // UTF-16 UnicodeString -> UTF-8 std::string
+    std::string result;
+    source.toUTF8String(result);
+
+    return result;
 }
 
 }

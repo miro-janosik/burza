@@ -16,7 +16,11 @@
 
 using namespace std;
 
+namespace ConvFile
+{
 class CConvFile;
+}
+
 class BurzaDialogs;
 
 int main2( int argc, char **argv );

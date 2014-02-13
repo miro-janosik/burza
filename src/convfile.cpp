@@ -29,7 +29,9 @@
 *  version 1.0, - 19.january 2004
 */
 
-char	CConvFile::m_error_code_strings[ CConvFile::e_error_code_count ][ 40 ] = 
+using namespace ConvFile;
+
+char CConvFile::m_error_code_strings[ CConvFile::e_error_code_count ][ 40 ] = 
 {
 		"e_no_error",
 		"e_no_file",

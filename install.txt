@@ -9,6 +9,7 @@ Instal packages:
 	running (stack corruption on connecting to DB), but building static DLL works
 	if you add dependencies: wsock32.lib Ws2_32.lib , prefix PQXX_PQ_STATIC and set Burza to MDd.
 	RUN dir has to contain PostgreSql dll's (from installed DB program), they are already there.
+	* icu 4.8 requires vcredist 2010_sp1 to be installed, which can be found in 'run' folder.
 
 	=== Linux - development ===
 

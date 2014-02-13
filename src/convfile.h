@@ -1,5 +1,3 @@
-#pragma once
-
 #ifndef _ConvFile_h_
 #define _ConvFile_h_
 
@@ -22,11 +20,21 @@
 
 #include <stdio.h>
 
+#ifdef CONV_FILE_ENDIAN_SUPPORT
+#include "convfiletypes.h"
+#endif
+
 /*!	Basic class. It supports working with FILE* files and temporary memory space
 	Supports all basic things a file should have - reading and writing of bytes,
 	seeking, reading and writing strings.
 */
 
+// Make compilable with this later on !!! XXX #define CONV_FILE_ENDIAN_SUPPORT 1
+
+// Enclosed into namespace to separate types used in the class with common name - int16_t etc.
+namespace ConvFile
+{
+	
 class CConvFileBits;
 
 class CConvFile {
@@ -228,27 +236,9 @@ private:
 	conclusion: original file is closed when a copy is made this way
 */
 
+#ifdef CONV_FILE_ENDIAN_SUPPORT
 
-#ifndef uint32_t
-
-#ifdef _MSC_VER
-	// MSVC is missing these types
-	typedef unsigned long uint32_t;
-	typedef long int32_t;
-	typedef unsigned short uint16_t;
-	typedef short int16_t;
-	typedef unsigned char uint8_t;
-	typedef char int8_t;
-#else
-	// Use the C99 official header
-	#include <stdint.h>		
-#endif
-
-	typedef float float32_t;
-	typedef double float64_t;
-#endif
-
-
+using namespace ConvFile;
 
 class CConvFileWithEndianSwitchSupport : virtual public CConvFile {
 
@@ -457,6 +447,8 @@ private:
 } ;
 // end of CConvFileWithEndianSwitchSupport class
 
+#endif 
+
 /*! === CConvFile EXTENSION 2 ===
 	CConvFileWideString
 	This one adds wideString reading support
@@ -614,10 +606,14 @@ private:
 */
 
 class CConvFileCombined : 
+#ifdef CONV_FILE_ENDIAN_SUPPORT
 	virtual public CConvFileWithEndianSwitchSupport, 
+#endif
 	virtual public CConvFileWideString,
 	virtual public CConvFileBits {
 
 } ;
+
+}
 
 #endif

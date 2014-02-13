@@ -172,7 +172,7 @@ void Recipees::PrintRecipeeAtEndOfCheckout( ItemDataArray& items, PdfWrapperBase
 	try {
 		// print page title
 		string title;
-		title = _( "Účet vystavený " );
+		title = _( "Ucet vystaveny " );
 		ConvFuncs::GetDateTime();
 		ConvFuncs::s_datetime *dt = &ConvFuncs::datetime;
 		title += ConvFuncs::FormatStdStr( "%i-%i-%i %i:%i",
