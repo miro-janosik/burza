@@ -2172,9 +2172,18 @@ void BurzaDialogs::CashoutEditSearchEntryChanged( void )
 	m_pCashoutSearchFoundText->set_text("");
 
 	string text = m_pCashoutComboSearchEntry->get_text();
-	foundItems = search.LookForItemsContainingWords( text );
-
-	m_pCashoutSearchFoundText->set_text(ConvFuncs::FormatCstr(_("Nájdených: %i"), foundItems.size()));
+	const int itemsLimit = 60;
+	
+	foundItems = search.LookForItemsContainingWords( text, SELLER_ID_NONE, itemsLimit + 1 );
+	
+	string itemsCountText = _("Nájdených: ");
+	
+	itemsCountText += ConvFuncs::FormatStdStr("%i", foundItems.size() > itemsLimit ? itemsLimit : foundItems.size() );
+	if ( foundItems.size() > itemsLimit ) {
+		itemsCountText += " +";
+	}
+	
+	m_pCashoutSearchFoundText->set_text(itemsCountText);
 	
 	for( int i=0; i<foundItems.size(); ++i ) {
 

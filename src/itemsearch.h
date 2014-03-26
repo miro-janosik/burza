@@ -22,8 +22,9 @@ public:
 	//! Returns array of items that match the partOfName string
 	//! partOfName: one or more words where each is separately 
 	//! sellerId: if specified, then only items of that seller are searched.
+	//! limitItemCount: limits number of found items
 	//! Return: items are sorted, first are those most similair
-	vector<ItemData> LookForItemsContainingWords( string& partOfName, SELLER_ID sellerId = SELLER_ID_NONE );
+	vector<ItemData> LookForItemsContainingWords( string& partOfName, SELLER_ID sellerId = SELLER_ID_NONE, int limitItemCount = -1 );
 
 	//! searches items that are closest matching the [partOfName]
 	vector<ItemData> LookForItemsDistance( string& partOfName, SELLER_ID sellerId );

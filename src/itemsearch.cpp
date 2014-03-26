@@ -72,7 +72,7 @@ void ItemSearch::FetchLatestData( void )
 	}
 }
 
-vector<ItemData> ItemSearch::LookForItemsContainingWords( string& partOfName, SELLER_ID sellerId )
+vector<ItemData> ItemSearch::LookForItemsContainingWords( string& partOfName, SELLER_ID sellerId, int limitItemCount )
 {
 	vector<ItemData> result;
 
@@ -80,6 +80,9 @@ vector<ItemData> ItemSearch::LookForItemsContainingWords( string& partOfName, SE
 		return result;
 	}
 
+	if (limitItemCount == -1)
+		limitItemCount = 10e6;
+	
 	const unsigned int limit = 5;
 	unsigned int matches;
 	vector<ItemData> preResults[ limit ];
@@ -90,6 +93,10 @@ vector<ItemData> ItemSearch::LookForItemsContainingWords( string& partOfName, SE
 	StringEncoding::UTF8RemoveAccents( partOfName );
 	std::transform( partOfName.begin(), partOfName.end(), partOfName.begin(), static_cast<int (*)(int)>(tolower) );
 	ConvFuncs::Tokenize( partOfName, words );
+
+	int numOfWordsOrLimit = words.size();
+	if (numOfWordsOrLimit > limit)
+		numOfWordsOrLimit = limit;
 	
 	for( c = items.size(), i = 0; i < c; ++i ) {
 
@@ -111,6 +118,10 @@ vector<ItemData> ItemSearch::LookForItemsContainingWords( string& partOfName, SE
 			}
 
 			preResults[ matches ].push_back( items[ i ] );
+			
+			// break in the middle if limit is reached
+			if ( preResults[numOfWordsOrLimit].size() >= limitItemCount)
+				break;
 		}
 	}
 
@@ -126,6 +137,10 @@ vector<ItemData> ItemSearch::LookForItemsContainingWords( string& partOfName, SE
 	// return the items that have most matches
 	for( int i = limit - 1; i >= 0; --i ) {
 		if ( ! preResults[ i ].empty() ) {
+			
+			if ( preResults[ i ].size() > limitItemCount )
+				preResults[ i ].erase( preResults[ i ].begin() + limitItemCount, preResults[ i ].end() );
+			
 			return preResults[ i ];
 		}
 	}
