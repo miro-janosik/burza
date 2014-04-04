@@ -1069,9 +1069,9 @@ void BurzaDialogs::RegisterButtonImportMultiSellers( void )
 		}
 
 		string infoText = _("Spracovaný súbor");
-		infoText += " '";
+		infoText += "\n";
 		infoText += ConvFuncsInstance->Find_CurrentFileName();
-		infoText += "';";
+		infoText += "\n";
 
 		if ( readAndValid ) {
 			infoText += 

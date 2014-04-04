@@ -124,7 +124,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="&quot;$(ProjectDir)..\&quot;;&quot;$(ProjectDir)..\lib\libharu\include&quot;;&quot;$(ProjectDir)..\lib\libXL\include&quot;;&quot;$(ProjectDir)..\lib\pqxx\include\&quot;;&quot;$(ProjectDir)..\src\irrXml&quot;;&quot;$(ProjectDir)..\src\BasicExcelFormat&quot;"
+				AdditionalIncludeDirectories="&quot;$(ProjectDir)..\&quot;;&quot;$(ProjectDir)..\lib\libharu\include&quot;;&quot;$(ProjectDir)..\lib\libXL\include&quot;;&quot;$(ProjectDir)..\lib\pqxx\include\&quot;;&quot;$(ProjectDir)..\src\irrXml&quot;;&quot;$(ProjectDir)..\src\BasicExcelFormat&quot;;&quot;$(ProjectDir)..\lib\icu\include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -143,9 +143,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libxl.lib libpqxx.lib libhpdf.lib Oleaut32.lib libiconv.lib"
+				AdditionalDependencies="libxl.lib libpqxx.lib libhpdf.lib Oleaut32.lib libiconv.lib icuio.lib icuin.lib icuuc.lib icudt.lib"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="&quot;$(ProjectDir)/../lib/libXL&quot;;&quot;$(ProjectDir)/../lib/pqxx&quot;;&quot;$(ProjectDir)/../lib/libharu&quot;;&quot;$(ProjectDir)/../lib/iconv/lib&quot;"
+				AdditionalLibraryDirectories="&quot;$(ProjectDir)/../lib/libXL&quot;;&quot;$(ProjectDir)/../lib/pqxx&quot;;&quot;$(ProjectDir)/../lib/libharu&quot;;&quot;$(ProjectDir)/../lib/iconv/lib&quot;;&quot;$(ProjectDir)/../lib/icu/lib&quot;"
 				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="true"
 				SubSystem="1"

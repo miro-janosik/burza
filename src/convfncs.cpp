@@ -8,7 +8,10 @@
 #include <algorithm>
 //for exceptions on linux
 #include<stdexcept>
+#include <fcntl.h>
 // define either _DOS, _WIN32, _MAC, or _UNIX
+
+#include <fstream>
 
 // system includes
 #if ( defined ( _DOS ) || defined( _WIN32 ) )
@@ -1379,6 +1382,34 @@ int ConvFuncs::DoDeleteFile( const char* src )
 
 	assert( false );
 	return 0;
+}
+
+bool ConvFuncs::DoCopyFile(std::string src, std::string dest)
+{
+#if (( defined _UNIX ) || defined ( _WIN32 ))
+	
+	std::ifstream  srcf( src.c_str(), std::ios::binary );
+	if (!srcf.is_open()) {
+		LogS( InfoWarn, "File could not be open: '%s'", src.c_str() );
+		return false;
+	}
+	 
+	std::ofstream  dstf( dest.c_str(), std::ios::binary);
+	if (!dstf.is_open()) {
+		LogS( InfoWarn, "Output file could not be open: '%s'", dest.c_str() );
+		return false;
+	}
+
+	dstf << srcf.rdbuf();
+
+	dstf.close();
+	srcf.close();
+	return true;
+
+#endif
+
+	assert( false );
+	return false;
 }
 
 // Return true if the folder exists, false otherwise

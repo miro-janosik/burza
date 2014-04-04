@@ -280,8 +280,13 @@ public:
 	//! returns 0 on failure.
 	static int			DoMoveFile( const char* src, const char* dest );
 	static int			DoDeleteFile( const char* src );
-	static bool	DoCreateFolder( const char* parentPath, const char* folderName );
 
+	//! Copies file from source to destination file.
+	//! Returns true if successful
+	static bool DoCopyFile( std::string src, std::string dest );
+	
+	static bool	DoCreateFolder( const char* parentPath, const char* folderName );
+	
 	//string utils
 #ifdef _UNIX
 	static const char path_good_slash_char = '/';

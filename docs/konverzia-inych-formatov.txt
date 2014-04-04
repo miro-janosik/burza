@@ -1,0 +1,1 @@
+ibreoffice --headless --convert-to xls:"MS Excel 97" --outdir ../convert-po *.ods

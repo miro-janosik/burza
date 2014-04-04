@@ -872,9 +872,12 @@ string DataPostgresPqxx::ApostropheToDouble( string str )
 	for( it = str.begin(); it != str.end(); ++it ) {
 		if ( *it != '\'' )
 			continue;
-
-		str.insert( it, '\'' );
+		
+		// move after the apostrophe
 		++it;
+		
+		// it will point to newly inserted char
+		it = str.insert( it, '\'' );
 	}
 
 	return str;

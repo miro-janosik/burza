@@ -101,8 +101,23 @@ void ExcelFileXlWrapper::ReadSheetIntoTable( string filename ) throw( runtime_er
 
 void BasicExcelFileWrapper::ReadSheetIntoTable( string filename ) throw( runtime_error )
 {
+	int dotPosition = filename.rfind('.');
+	if (dotPosition == std::string::npos) {
+		throw runtime_error("File does not have extension.");
+	}
+	
+	std::string originalExtension = filename.substr(dotPosition);
+	ConvFuncs::StdStringToLower( originalExtension );
+	if (originalExtension != ".xls") {
+		throw runtime_error("File extension is not xls.");
+	}
+		
+	std::string temporaryFileName = "tmp.xls";
+	
+	ConvFuncs::DoCopyFile( filename, temporaryFileName );
+	
 	BasicExcel xls;
-	if (! xls.Load(filename.c_str())) {
+	if (! xls.Load(temporaryFileName.c_str())) {
 		throw runtime_error("Could not open file.");
 	}
 
@@ -150,6 +165,8 @@ void BasicExcelFileWrapper::ReadSheetIntoTable( string filename ) throw( runtime
 			
 			m_sheet.Cell( row, col ) = str;
 		}
+		
+	ConvFuncs::DoDeleteFile( temporaryFileName.c_str() );
 }
 
 bool ExcelFileWrapper::FindCellByText( const char* text, int& row, int& column)
@@ -173,9 +190,9 @@ bool ExcelFileWrapper::FindCellByText( const char* text, int& row, int& column)
 void ExcelFileWrapper::ReadSeller( string filename, SellerData& seller, ItemDataArray& items ) throw( runtime_error )
 {
 	string error_str;
-	error_str = _("Nepodarilo sa mi naèíta súbor s predajcom '");
+	error_str = _("Nepodarilo sa mi naèíta súbor s predajcom\n");
 	error_str += filename;
-	error_str += _("' pretože ");
+	error_str += _("\npretože ");
 	
 	try {
 		ReadSheetIntoTable( filename );
