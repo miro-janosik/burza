@@ -191,20 +191,27 @@ SELLER_CATEGORY_ID BurzaRegister::GetDefaultSellerCategoryId( void )
 void BurzaRegister::FinishCheckout( ItemDataArray& items )
 {
 	try {
-	  
-	  Recipees recipees;
-	  HPDFWrapper	pdf;
-	  string filename = Centrala::Settings().m_document_ouput_directory;
-	  filename += ConvFuncs::FormatStdStr( "%s_%02i-%02i-%02i_%02i-%02i.pdf",
+		
+		Recipees recipees;
+		HPDFWrapper	pdf;
+		string filename = Centrala::Settings().m_document_ouput_directory;
+		
+		// check existance or create the folder.
+		ConvFuncs *fncs = ConvFuncsInstance();
+		if ( fncs->Find_FirstFile( filename ) == false ) {
+			ConvFuncs::DoCreateFolder( filename.c_str() );
+		}
+		  
+		filename += ConvFuncs::FormatStdStr( "%s_%02i-%02i-%02i_%02i-%02i.pdf",
 		_("Predaj"),
 		ConvFuncs::datetime.year % 100, ConvFuncs::datetime.month, ConvFuncs::datetime.day,
 		ConvFuncs::datetime.hour, ConvFuncs::datetime.minute );
-	  pdf.CreatePDF( filename );
+		pdf.CreatePDF( filename );
 
-	  recipees.PrintRecipeeAtEndOfCheckout( items, pdf );
-	  
-	  pdf.ClosePDF();
-	  
+		recipees.PrintRecipeeAtEndOfCheckout( items, pdf );
+		
+		pdf.ClosePDF();
+		
 	} catch( std::exception& e ) {
 		ErrorHandling::HandlePdfExceptions( e );
 	}

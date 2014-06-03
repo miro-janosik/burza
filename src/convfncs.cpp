@@ -1456,6 +1456,11 @@ bool ConvFuncs::DoCreateFolder( const char* parentPath, const char* folderName )
 	std::string fullPath = parentPath;
 	fullPath += "/";
 	fullPath += folderName;
+	DoCreateFolder( fullPath );
+}
+
+bool ConvFuncs::DoCreateFolder( const char* fullPath)
+{
 	if (folderExists(fullPath.c_str()))
 		return true;
 

@@ -285,7 +285,9 @@ public:
 	//! Returns true if successful
 	static bool DoCopyFile( std::string src, std::string dest );
 	
+	//! Creates a folder in specified path
 	static bool	DoCreateFolder( const char* parentPath, const char* folderName );
+	static bool DoCreateFolder( const char* fullPath);
 	
 	//string utils
 #ifdef _UNIX

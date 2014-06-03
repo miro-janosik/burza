@@ -1782,6 +1782,11 @@ void BurzaDialogs::RegisterStartDialogEditProduct( ITEM_ID itemid )
 			selectedCategoryIndex = i;
 	}
 	
+	// select a default category, if none selected
+	if ( selectedCategoryIndex == -1 ) {
+		selectedCategoryIndex = 
+	}
+	
 	if ( selectedCategoryIndex != -1 )
 		m_pItemeditCategoryCombo->set_active( selectedCategoryIndex );
 	
@@ -2625,6 +2630,7 @@ void BurzaDialogs::RegisterSellerStatusRadioChanged( void )
 
 					switch ( items[ i ].status ) {
 					case on_stock:
+					case sold:
 					case returned:
 					case given_as_gift:
 					case lost:

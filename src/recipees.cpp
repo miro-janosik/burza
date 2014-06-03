@@ -418,6 +418,7 @@ void Recipees::PrintStats( PdfWrapperBase& pdf )
 		allSorted.push_back( & sellers[ i ] );
 	}
 
+	// group by status
 	std::sort( allSorted.begin(), allSorted.end(), SortSellerDataPtrsByShortcode );
 	
 	for( unsigned int i = 0; i < allSorted.size(); ++i )
