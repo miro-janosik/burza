@@ -1451,7 +1451,7 @@ bool folderExists(const char* folderName) {
 	return false;
 }
 
-bool ConvFuncs::DoCreateFolder( const char* parentPath, const char* folderName )
+bool ConvFuncs::DoCreateFolder( string parentPath, string folderName )
 {
 	std::string fullPath = parentPath;
 	fullPath += "/";
@@ -1459,14 +1459,16 @@ bool ConvFuncs::DoCreateFolder( const char* parentPath, const char* folderName )
 	DoCreateFolder( fullPath );
 }
 
-bool ConvFuncs::DoCreateFolder( const char* fullPath)
+bool ConvFuncs::DoCreateFolder( string fullPath )
 {
 	if (folderExists(fullPath.c_str()))
 		return true;
 
+	/*
 	if (!folderExists(parentPath))
 		return false;
-
+	*/
+	
 #if (defined ( _WIN32 ))
 	return CreateDirectory(fullPath.c_str(), NULL) != 0;
 #endif
@@ -1477,6 +1479,12 @@ bool ConvFuncs::DoCreateFolder( const char* fullPath)
 	
 	assert( false );
 	return 0;
+}
+
+bool ConvFuncs::DoCreateFolder( const char* fullPath )
+{
+	string path( fullPath );
+	DoCreateFolder( path );
 }
 
 

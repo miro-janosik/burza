@@ -197,8 +197,8 @@ void BurzaRegister::FinishCheckout( ItemDataArray& items )
 		string filename = Centrala::Settings().m_document_ouput_directory;
 		
 		// check existance or create the folder.
-		ConvFuncs *fncs = ConvFuncsInstance();
-		if ( fncs->Find_FirstFile( filename ) == false ) {
+		ConvFuncs *fncs = ConvFuncsInstance;
+		if ( fncs->Find_FirstFile( filename.c_str() ) == false ) {
 			ConvFuncs::DoCreateFolder( filename.c_str() );
 		}
 		  

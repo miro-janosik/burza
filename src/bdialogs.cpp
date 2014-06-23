@@ -1784,7 +1784,7 @@ void BurzaDialogs::RegisterStartDialogEditProduct( ITEM_ID itemid )
 	
 	// select a default category, if none selected
 	if ( selectedCategoryIndex == -1 ) {
-		selectedCategoryIndex = 
+		selectedCategoryIndex = 0;
 	}
 	
 	if ( selectedCategoryIndex != -1 )
