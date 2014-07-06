@@ -2666,6 +2666,32 @@ void BurzaDialogs::RegisterSellerStatusRadioChanged( void )
 
 		switch ( newState ) {
 		case imported:
+			{
+				// changing from 'selling' to 'imported' can be done only
+				// if no items are sold yet
+				int itemInvalidStatePcs = 0;
+				
+				ItemDataArray items = DemoLimitsGetSellerItems(seller.id);
+				for( int i=0; i < items.size(); ++i ) {
+
+					switch ( items[ i ].status ) {
+					case not_in_stock_yet:
+					case on_stock:
+						break;
+					default:
+						++itemInvalidStatePcs;
+						break;
+					}
+				}
+				
+				if ( itemInvalidStatePcs > 0 ) {
+					DisplayErrorMessageBox(
+						ConvFuncs::FormatStdStr( _( "%i kus(ov) tovaru už nieje prijatých."), itemInvalidStatePcs ),
+						_( "Prosím opravte" ) );
+					
+					returnStateBack = true;
+				}
+			}
 			break;
 
 		case handedOut:
@@ -2715,7 +2741,37 @@ void BurzaDialogs::RegisterSellerStatusRadioChanged( void )
 			returnStateBack = true;
 			break;
 		case receivedSelling:
+			{
+				// changing from 'selling' to 'handed out' can be done only
+				// if no items are left to sale.
+				int itemInvalidStatePcs = 0;
+
+				ItemDataArray items = DemoLimitsGetSellerItems(seller.id);
+				for( int i=0; i < items.size(); ++i ) {
+
+					switch ( items[ i ].status ) {
+					case returned:
+					case given_as_gift:
+					case lost:
+						break;
+					default:
+						++itemInvalidStatePcs;
+						break;
+					}
+				}
+
+				if ( itemInvalidStatePcs > 0 ) {
+					DisplayErrorMessageBox(
+						ConvFuncs::FormatStdStr( _( "%i kus(ov) tovaru nieje vrátených/stratených/darovaných."), itemInvalidStatePcs ),
+						_( "Prosím opravte" ) );
+
+					returnStateBack = true;
+				}
+
+				addComment = true;
+			}
 			break;
+
 		default:
 			assert( false );
 			return;
