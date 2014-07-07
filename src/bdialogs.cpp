@@ -1581,12 +1581,24 @@ void BurzaDialogs::CashoutButtonFinished( void )
 		return;
 	}
 	
+	// Store sum before checkout is finished.
+	double previousCashoutSum = m_cashout_sum;
+	
 	ItemDataArray items = Centrala::Storage().GetItems( m_shoppingCart );
 	mp_register->FinishCheckout( items );
 	
 	m_CashoutItemsListModel->clear();
 	m_shoppingCart.clear();
 	CheckoutCartChanged();
+
+	// add a text to the sum displaying sum of previous cashout
+	std::string	str;
+	str = m_pCashoutLabelSum->get_text();
+	str += ConvFuncsInstance->FormatCstr( _(" (Predchádzajúci nákup: %0.2f" ), previousCashoutSum );
+	str += " ";
+	str += Centrala::Settings().currencySign;
+	str += ")";
+	m_pCashoutLabelSum->set_text( str );
 }
 
 void BurzaDialogs::CashoutButtonRemoveItem( void )
