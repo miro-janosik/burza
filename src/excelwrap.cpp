@@ -31,9 +31,9 @@ ExcelFileWrapper::~ExcelFileWrapper()
 {
 }
 
+	/*
 void ExcelFileXlWrapper::ReadSheetIntoTable( string filename ) throw( runtime_error )
 {
-	/*
 	Book *xls_book = xlCreateBook();
 	string result_str;
 	
@@ -96,8 +96,8 @@ void ExcelFileXlWrapper::ReadSheetIntoTable( string filename ) throw( runtime_er
 		xls_book->release();
 		throw runtime_error( result_str );
 	}
-	*/
 }
+	*/
 
 void BasicExcelFileWrapper::ReadSheetIntoTable( string filename ) throw( runtime_error )
 {
@@ -111,9 +111,9 @@ void BasicExcelFileWrapper::ReadSheetIntoTable( string filename ) throw( runtime
 	if (originalExtension != ".xls") {
 		throw runtime_error("File extension is not xls.");
 	}
-		
-	std::string temporaryFileName = "tmp.xls";
 	
+	// copy to avoid reading open file which is not accessible
+	std::string temporaryFileName = "tmp.xls";
 	ConvFuncs::DoCopyFile( filename, temporaryFileName );
 	
 	BasicExcel xls;
@@ -216,6 +216,12 @@ void ExcelFileWrapper::ReadSeller( string filename, SellerData& seller, ItemData
 	// We have repeated the same problem at 2012/10, now we added one more problem
 	// We have !name! at two places - one at Seller name, and one at Item name!
 
+	int version = 0;
+	if (FindCellByText( "!version3!", numberRow, numberColumn))
+		version = 3;
+	
+	// LogS(
+		
 	itemsOk &= FindCellByText( "!number!", numberRow, numberColumn);
 	itemsOk &= FindCellByText( "!price!", priceRow, priceColumn);
 	bool nameCellFound = FindCellByText( "!name!", itemNameRow, itemNameColumn);
@@ -277,20 +283,37 @@ void ExcelFileWrapper::ReadSeller( string filename, SellerData& seller, ItemData
 	// from numberRow skip 2 lines - info codes + item table header
 	int row = numberRow + 1;
 	string s;
+	bool emptyLine;
+	int continuousEmptyLines = 0;
 	
 	while( true ) {
 		row++;
 		if ( row >= m_sheet.Rows())
 			break;
+		
+		emptyLine = false;
 
 		if (( m_sheet.Cell( row, numberColumn ) == "" ) &&
 			( m_sheet.Cell( row, itemNameColumn ) == "" ) &&
-			( m_sheet.Cell( row, priceColumn ) == "" )) 
-			break;
-
+			( m_sheet.Cell( row, priceColumn ) == "" ))
+			emptyLine = true;
+		
 		if (( m_sheet.Cell( row, itemNameColumn ) == "" ) || 
-			( m_sheet.Cell( row, priceColumn ) == "" )) {
+			( m_sheet.Cell( row, priceColumn ) == "" ))
+			emptyLine = true;
+		
+		if ( emptyLine ) {
+			++continuousEmptyLines;
+			
+			// if there are too many empty lines then it is not a short interruption but probably end of file.
+			if ( continuousEmptyLines > 100 )
+				break;
+			
+			// else continue, read next line.
 			continue;
+		}
+		else {
+			continuousEmptyLines = 0;
 		}
 		
 		s = m_sheet.Cell( row, numberColumn );
@@ -302,16 +325,18 @@ void ExcelFileWrapper::ReadSeller( string filename, SellerData& seller, ItemData
 			throw runtime_error( error_str );
 		}
 		
-		string price = m_sheet.Cell( row, priceColumn ).GetText();
-		for( int i=0; i<price.size(); ++i ) {
-			if ( price[ i ] == ',' )
-				price[ i ] = '.';
+		string priceText = m_sheet.Cell( row, priceColumn ).GetText();
+		double price;
+		if (!ConvFuncs::StringToDouble( priceText, price )) {
+			error_str += ConvFuncs::FormatStdStr( _("Tovar na riadku %i má namiesto ceny text '%s'"), 
+				row, priceText.c_str() );
+			throw runtime_error( error_str );
 		}
 
 		items.push_back(ItemData(
 			m_sheet.Cell( row, itemNameColumn ), 
 			num, 
-			atof( price.c_str() ), 
+			price, 
 			0, 
 			not_in_stock_yet ));
 	} ;

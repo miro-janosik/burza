@@ -8,7 +8,7 @@ set(CMAKE_MODULE_PATH  ${PROJECT_SOURCE_DIR})
 MESSAGE("CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
 
 set(Burza_VERSION_MAJOR 1)
-set(Burza_VERSION_MINOR 02)
+set(Burza_VERSION_MINOR 03)
 ADD_DEFINITIONS(-D_UNIX)
 
 OPTION( DOES_NOTHING "This option does nothing, it is as hint." ON )
@@ -36,9 +36,9 @@ include_directories(
  )
 
 find_package(PkgConfig)
-pkg_check_modules(GTKMM REQUIRED gtkmm-2.4)
+pkg_check_modules(GTKMM REQUIRED gtkmm-3.0)
 pkg_check_modules(GLADEMM REQUIRED libglademm-2.4)
-pkg_check_modules(ICU REQUIRED icu-io)
+pkg_check_modules(ICU REQUIRED icu)
 
 # pkg_check_modules(PQXX REQUIRED pqxx)
 
@@ -82,4 +82,7 @@ target_link_libraries(burza
 
 # this is here just because automated thing does not work. Remove after it starts to behave correctly.
   -licuio -licui18n -licuuc -licudata
+  
+# deflate of zlib is missing for hpdf
+  -lz
   )

@@ -346,6 +346,9 @@ public:
 
 	static void		StdStringToLower( std::string& str );
 	static void		StdStringToUpper( std::string& str );
+
+	// returns true if parsing went ok.
+	static bool		StringToDouble(std::string text, double& output);
 	
 	//various utils
 	int				WaitForKey( void );

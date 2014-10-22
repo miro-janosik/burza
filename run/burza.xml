@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <burza>
 	<config
-		salename="Jarna burza 2012"
+		salename="Jesenna burza 2014"
 		fontSize="-1"
 		>
 		<server
-			databaseInLocalFiles="True"
-			address="192.168.1.100"
+			databaseInLocalFiles="False"
+			address="192.168.1.14"
 			user="user"
 			password="trencin"
 			dbname="burza"
-			port="5436"
-			/>
+			port="5442"
+			 />
 		<License
 			to=""
 			key=""

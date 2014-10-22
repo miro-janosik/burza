@@ -38,11 +38,12 @@ protected:
 	bool FindCellByText( const char* text, int& row, int& column);
 	
 };
-
+/*
 class ExcelFileXlWrapper : public ExcelFileWrapper {
 protected:
 	virtual void ReadSheetIntoTable( string filename ) throw( runtime_error );
 };
+*/
 
 class BasicExcelFileWrapper : public ExcelFileWrapper {
 	virtual void ReadSheetIntoTable( string filename ) throw( runtime_error );

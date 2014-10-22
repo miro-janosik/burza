@@ -3,7 +3,9 @@
 #include <assert.h>
 #include <string.h>
 #include <stdarg.h>
-#include <string>
+
+// #include <string>
+
 // for std transform
 #include <algorithm>
 //for exceptions on linux
@@ -1457,6 +1459,7 @@ bool ConvFuncs::DoCreateFolder( string parentPath, string folderName )
 	fullPath += "/";
 	fullPath += folderName;
 	DoCreateFolder( fullPath );
+	return true;
 }
 
 bool ConvFuncs::DoCreateFolder( string fullPath )
@@ -1484,7 +1487,7 @@ bool ConvFuncs::DoCreateFolder( string fullPath )
 bool ConvFuncs::DoCreateFolder( const char* fullPath )
 {
 	string path( fullPath );
-	DoCreateFolder( path );
+	return DoCreateFolder( path );
 }
 
 
@@ -2122,4 +2125,27 @@ void ConvFuncs::Tokenize(const std::string& str, std::vector<std::string>& token
         // Find next "non-delimiter"
         pos = str.find_first_of(delimiters, lastPos);
     }
+}
+
+void CommaToDot(char& c)
+{
+	if (c == ',')
+		c = '.';
+}
+
+bool ConvFuncs::StringToDouble(string text, double& output)
+{
+	for_each( text.begin(), text.end(), CommaToDot);
+	
+	const char* start = text.c_str();
+	char* end;
+	output = strtod(start, &end);
+	
+	if (start == end)
+	{
+		LogS(InfoError, "Could not convert text %s to number.", text.c_str());
+		return false;
+	}
+	
+	return true;
 }
