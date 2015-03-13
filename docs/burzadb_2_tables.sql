@@ -3,6 +3,7 @@
 -- Table: item_category
 -- DROP TABLE item_category;
 CREATE SEQUENCE item_category_id_seq;
+GRANT SELECT, UPDATE, INSERT, DELETE, REFERENCES ON TABLE item_category_id_seq TO public;
 CREATE TABLE item_category
 (
   "ID" integer NOT NULL PRIMARY KEY DEFAULT nextval('item_category_id_seq'),
@@ -41,6 +42,7 @@ INSERT INTO item_category(
 -- Table: seller_category
 -- DROP TABLE seller_category;
 CREATE SEQUENCE seller_category_id_seq;
+GRANT SELECT, UPDATE, INSERT, DELETE, REFERENCES ON TABLE seller_category_id_seq TO public;
 CREATE TABLE seller_category
 (
   "ID" integer NOT NULL PRIMARY KEY DEFAULT nextval('seller_category_id_seq'),
@@ -79,6 +81,7 @@ INSERT INTO seller_category(
 -- Table: sellers
 -- DROP TABLE sellers;
 CREATE SEQUENCE sellers_id_seq;
+GRANT SELECT, UPDATE, INSERT, DELETE, REFERENCES ON TABLE sellers_id_seq TO public;
 CREATE TABLE sellers
 (
   "ID" integer PRIMARY KEY NOT NULL DEFAULT nextval('sellers_id_seq'),
@@ -103,6 +106,7 @@ COMMENT ON TABLE sellers IS 'List of sellers.';
 -- Table: items
 -- DROP TABLE items;
 CREATE SEQUENCE items_id_seq;
+GRANT SELECT, UPDATE, INSERT, DELETE, REFERENCES ON TABLE items_id_seq TO public;
 CREATE TABLE items
 (
   "ID" integer NOT NULL DEFAULT nextval('items_id_seq') PRIMARY KEY,
@@ -128,6 +132,7 @@ COMMENT ON TABLE items IS 'List of all items of all sellers.';
 
 -- DROP TABLE sold;
 CREATE SEQUENCE sold_id_seq;
+GRANT SELECT, UPDATE, INSERT, DELETE, REFERENCES ON TABLE sold_id_seq TO public;
 CREATE TABLE sold
 (
   "ID" integer NOT NULL DEFAULT nextval('sold_id_seq') PRIMARY KEY,
@@ -142,6 +147,7 @@ COMMENT ON TABLE sold IS 'Info about items sold to one person';
 
 -- DROP TABLE sold_item;
 CREATE SEQUENCE sold_item_id_seq;
+GRANT SELECT, UPDATE, INSERT, DELETE, REFERENCES ON TABLE sold_item_id_seq TO public;
 CREATE TABLE sold_item
 (
   "ID" integer NOT NULL DEFAULT nextval('sold_item_id_seq') PRIMARY KEY,

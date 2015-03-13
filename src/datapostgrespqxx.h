@@ -55,7 +55,6 @@ class DataPostgresPqxx : public DataAccessInterface
 	virtual ITEM_ID AddItem(ItemData& item, SELLER_ID id);
 	virtual void ModifyItem(ITEM_ID item_id, ItemData& item);
 	virtual void RemoveItem(ITEM_ID id);
-	virtual ITEM_ID GetNewItemId( void );
 	
 	virtual void StoreSaleOfItems(std::vector<ITEM_ID>& itemIds, std::string title);
 	
@@ -90,10 +89,10 @@ class DataPostgresPqxx : public DataAccessInterface
 	
 	SellerCategoryArray QueryForSellerCategories( string query, string queryName );
 	
+	string SellerToQueryColumnsString( void );
 	string SellerToQueryValuesString( SellerData& seller );
-	string SellerToQueryUpdateValuesString( SellerData& data );
-	string ItemToQueryNewValuesString( ItemData& item );
-	string ItemToQueryUpdateValuesString( ItemData& item );
+	string ItemToQueryColumnsString( void );
+	string ItemToQueryValuesString( ItemData& item );
 
 	// convert database result data into structore of ItemCategory
 	void DbDataToItemCategoryData( const result::tuple& result, ItemCategory& data );

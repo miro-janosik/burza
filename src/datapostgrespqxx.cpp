@@ -201,12 +201,11 @@ bool DataPostgresPqxx::ModifySellerStart(SELLER_ID id)
 
 void DataPostgresPqxx::ModifySellerEnd(SELLER_ID id, SellerData& seller)
 {
-	seller.id = id;
-  
 	try {
 	  pqxx::work work1(*dbConnection, "update seller" );
 	  string query = ConvFuncs::FormatStdStr( 
-		  "UPDATE sellers SET %s WHERE \"ID\" = %i", SellerToQueryUpdateValuesString( seller ).c_str(), id );
+		  "UPDATE sellers %s SET %s WHERE \"ID\" = %i", 
+		  SellerToQueryColumnsString().c_str(), SellerToQueryValuesString( seller ).c_str(), id );
 	  
 	  result sellersResult = work1.exec( query );
 	  work1.commit();
@@ -315,7 +314,6 @@ ItemCategoryArray DataPostgresPqxx::GetItemsCategories(vector<ITEM_CATEGORY_ID>&
 	}
 }
 
-
 ItemCategoryArray DataPostgresPqxx::GetItemsCategoriesByLetter(vector<char>& letters)
 {
 	string query = ConvFuncs::FormatStdStr( "SELECT * FROM item_category" );
@@ -407,17 +405,19 @@ void DataPostgresPqxx::RemoveSeller(SELLER_ID id)
 
 SELLER_ID DataPostgresPqxx::AddSeller(SellerData& seller)
 {
-	seller.id = GetNewSellerId();
 	ConvFuncs::GetDateTime();
 	seller.last_update = ConvFuncs::datetime;
   
 	try {
 		pqxx::work dbGetSellers(*dbConnection, "add seller" );
 		string query = ConvFuncs::FormatStdStr( 
-			"INSERT INTO sellers VALUES %s", SellerToQueryValuesString( seller ).c_str() );
+			"INSERT INTO sellers %s VALUES %s RETURNING \"ID\"", 
+			SellerToQueryColumnsString().c_str(), SellerToQueryValuesString( seller ).c_str() );
 		
-		result sellersResult = dbGetSellers.exec( query );
+		result qresult = dbGetSellers.exec( query );
 		dbGetSellers.commit();
+		
+		seller.id = qresult[0][0].as<int>();
 	}
 	catch(exception& ex) {
 		HandlePostgresqlException( ex );
@@ -432,15 +432,16 @@ ITEM_ID DataPostgresPqxx::AddItem(ItemData& item, SELLER_ID id)
 	item.last_update = ConvFuncs::datetime;
 	
 	try {
-		item.id = GetNewItemId();
 		item.seller_id = id;
 		
 		pqxx::work dbGetSellers(*dbConnection, "add item" );
 		string query = ConvFuncs::FormatStdStr( 
-			"INSERT INTO items VALUES %s", ItemToQueryNewValuesString( item ).c_str() );
-		
-		result sellersResult = dbGetSellers.exec( query );
+			"INSERT INTO items %s VALUES %s RETURNING \"ID\"", 
+			ItemToQueryColumnsString().c_str(), ItemToQueryValuesString( item ).c_str() );
+		result qresult = dbGetSellers.exec( query );
 		dbGetSellers.commit();
+		
+		item.id = qresult[0][0].as<int>();
 	}
 	catch(exception& ex) {
 		HandlePostgresqlException( ex );
@@ -454,7 +455,8 @@ void DataPostgresPqxx::ModifyItem(ITEM_ID item_id, ItemData& item)
 	try {
 		pqxx::work dbGetSellers(*dbConnection, "modify item" );
 		string query = ConvFuncs::FormatStdStr( 
-			"UPDATE items SET %s WHERE \"ID\" = %i", ItemToQueryUpdateValuesString( item ).c_str(), item_id );
+			"UPDATE items %s SET %s WHERE \"ID\" = %i", 
+			ItemToQueryColumnsString().c_str(), ItemToQueryValuesString( item ).c_str(), item_id );
 		
 		result sellersResult = dbGetSellers.exec( query );
 		dbGetSellers.commit();
@@ -478,24 +480,6 @@ void DataPostgresPqxx::RemoveItem(ITEM_ID id)
 		HandlePostgresqlException( ex );
 		throw new WrongItemException();
 	}
-}
-
-ITEM_ID DataPostgresPqxx::GetNewItemId( void )
-{
-	ItemDataArray items;
-	string query = ConvFuncs::FormatStdStr( "SELECT * FROM items ORDER BY \"ID\" DESC LIMIT 1" );
-
-	try {
-		items = QueryForItems( query, "getting item with greatest ID", false);
-	}
-	catch(exception& e)
-	{
-		HandlePostgresqlException( e );
-		throw e;
-	}
-	
-	SELLER_ID biggestId = items.empty() ? 1 : items[ 0 ].id;
-	return biggestId + 1;
 }
 
 void DataPostgresPqxx::StoreSaleOfItems(std::vector<ITEM_ID>& itemIds, std::string title)
@@ -784,50 +768,37 @@ void DataPostgresPqxx::DbDataToItemData( const result::tuple& result, ItemData& 
 	data.last_update = StringToTimestamp( timeString );
 }
 
+string DataPostgresPqxx::SellerToQueryColumnsString( void )
+{
+	return "(\"SHORT_CODE\", \"NAME\", \"COMMENT\", \"CHANGING\", \"CHANGED_BY\", \"SELLER_CATEGORY_ID\", \"MODIFIED\", \"STATUS\")";
+}
+
 string DataPostgresPqxx::SellerToQueryValuesString( SellerData& seller )
 {
 	string values = ConvFuncs::FormatStdStr( 
-		"( %i, '%s', '%s', '%s', %s, '%s', %i, '%s')",
-		seller.id, ApostropheToDouble( seller.shortcode ).c_str(), 
+		"('%s', '%s', '%s', %s, '%s', %i, '%s', '%i')",
+		ApostropheToDouble( seller.shortcode ).c_str(), 
 		ApostropheToDouble( seller.name ).c_str(),
-		ApostropheToDouble( seller.note ).c_str(), "false", "-", 
-		seller.category, ValidateTimestampToString( seller.last_update ).c_str() );
+		ApostropheToDouble( seller.note ).c_str(), 
+		"false", "-", 
+		seller.category, ValidateTimestampToString( seller.last_update ).c_str(),
+		seller.status );
 	return values;
 }
 
-string DataPostgresPqxx::ItemToQueryNewValuesString( ItemData& item )
+string DataPostgresPqxx::ItemToQueryColumnsString( void )
+{
+	return "(\"NAME\", \"SELLER_ID\", \"PRICE\", \"CHANGING\", \"CHANGED_BY\", \"ITEM_CATEGORY_ID\", \"NUMBER\", \"STATUS\", \"MODIFIED\")";
+}
+
+string DataPostgresPqxx::ItemToQueryValuesString( ItemData& item )
 {
 	string values = ConvFuncs::FormatStdStr( 
-		"( %i, '%s', %i, %0.4f, '%s', '%s', %i, %i, %i, '%s' )",
-		item.id, ApostropheToDouble( item.name ).c_str(), item.seller_id, item.price, 
+		"('%s', %i, %0.4f, '%s', '%s', %i, %i, %i, '%s' )",
+		ApostropheToDouble( item.name ).c_str(), item.seller_id, item.price, 
 		"false", "-", item.category, 
 		item.number, (int)item.status,
 		ValidateTimestampToString( item.last_update ).c_str() );
-	return values;
-}
-
-string DataPostgresPqxx::ItemToQueryUpdateValuesString( ItemData& item )
-{
-	string values = ConvFuncs::FormatStdStr( 
-"\"NAME\"= '%s', \"SELLER_ID\"= '%i', \"PRICE\"= '%0.4f', \"CHANGING\"= '%s', \
-\"CHANGED_BY\"= '%s', \"ITEM_CATEGORY_ID\"= '%i', \"NUMBER\"= '%i', \"STATUS\"= '%i', \
-\"MODIFIED\"= '%s'",
-		ApostropheToDouble( item.name ).c_str(), item.seller_id, item.price, 
-		"false", "-", item.category, item.number, item.status,
-		ValidateTimestampToString( item.last_update ).c_str() );
-	return values;
-}
-
-string DataPostgresPqxx::SellerToQueryUpdateValuesString( SellerData& data )
-{
-	string values = ConvFuncs::FormatStdStr( 
-		"\"SHORT_CODE\"='%s', \"NAME\"='%s', \"COMMENT\"='%s', \"CHANGING\"='%s', \"CHANGED_BY\"='%s', \"SELLER_CATEGORY_ID\"=%i, \"MODIFIED\"='%s', \"STATUS\"='%i'",
-		ApostropheToDouble( data.shortcode ).c_str(), 
-		ApostropheToDouble( data.name ).c_str(), 
-		ApostropheToDouble( data.note ).c_str(), 
-		"false", "", data.category, ValidateTimestampToString( data.last_update ).c_str(),
-		data.status );
-
 	return values;
 }
 
