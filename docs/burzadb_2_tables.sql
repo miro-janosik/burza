@@ -2,10 +2,10 @@
 
 -- Table: item_category
 -- DROP TABLE item_category;
-
+CREATE SEQUENCE item_category_id_seq;
 CREATE TABLE item_category
 (
-  "ID" integer NOT NULL PRIMARY KEY DEFAULT (-1),
+  "ID" integer NOT NULL PRIMARY KEY DEFAULT nextval('item_category_id_seq'),
   "LETTER" character(1) not null,
   "NAME" text not null,
   "LIMIT_PRICE_MIN" double precision,
@@ -40,10 +40,10 @@ INSERT INTO item_category(
 
 -- Table: seller_category
 -- DROP TABLE seller_category;
-
+CREATE SEQUENCE seller_category_id_seq;
 CREATE TABLE seller_category
 (
-  "ID" integer NOT NULL PRIMARY KEY DEFAULT (-1),
+  "ID" integer NOT NULL PRIMARY KEY DEFAULT nextval('seller_category_id_seq'),
   "LETTER" character(1),
   "NAME" text,
   "FEE" double precision DEFAULT 0, -- Fee is {value} for putting items on sale.
@@ -78,10 +78,10 @@ INSERT INTO seller_category(
 
 -- Table: sellers
 -- DROP TABLE sellers;
-
+CREATE SEQUENCE sellers_id_seq;
 CREATE TABLE sellers
 (
-  "ID" integer PRIMARY KEY NOT NULL,
+  "ID" integer PRIMARY KEY NOT NULL DEFAULT nextval('sellers_id_seq'),
   "SHORT_CODE" text NOT NULL,
   "NAME" text NOT NULL,
   "COMMENT" text,
@@ -102,10 +102,10 @@ COMMENT ON TABLE sellers IS 'List of sellers.';
 
 -- Table: items
 -- DROP TABLE items;
-
+CREATE SEQUENCE items_id_seq;
 CREATE TABLE items
 (
-  "ID" integer NOT NULL DEFAULT (-1) CONSTRAINT "item id is unique" PRIMARY KEY,
+  "ID" integer NOT NULL DEFAULT nextval('items_id_seq') PRIMARY KEY,
   "NAME" text,
   "SELLER_ID" integer NOT NULL DEFAULT (-1) references sellers("ID"),
   "PRICE" double precision NOT NULL DEFAULT 0.0,
@@ -126,12 +126,41 @@ GRANT SELECT, UPDATE, INSERT, DELETE, REFERENCES ON TABLE items TO public;
 COMMENT ON TABLE items IS 'List of all items of all sellers.';
 
 
+-- DROP TABLE sold;
+CREATE SEQUENCE sold_id_seq;
+CREATE TABLE sold
+(
+  "ID" integer NOT NULL DEFAULT nextval('sold_id_seq') PRIMARY KEY,
+  "TITLE" text,
+  "DATE" timestamp with time zone NOT NULL DEFAULT '2000-01-01 01:02:03'::timestamp without time zone
+) WITH ( OIDS=FALSE );
+ALTER TABLE sold OWNER TO postgres;
+GRANT ALL ON TABLE sold TO postgres;
+GRANT SELECT, UPDATE, INSERT, DELETE, REFERENCES ON TABLE sold TO public;
+COMMENT ON TABLE sold IS 'Info about items sold to one person';
+
+
+-- DROP TABLE sold_item;
+CREATE SEQUENCE sold_item_id_seq;
+CREATE TABLE sold_item
+(
+  "ID" integer NOT NULL DEFAULT nextval('sold_item_id_seq') PRIMARY KEY,
+  "SOLD_ID" integer NOT NULL references sold("ID"),
+  "ITEM_ID" integer NOT NULL references items("ID")
+) WITH ( OIDS=FALSE );
+ALTER TABLE sold_item OWNER TO postgres;
+GRANT ALL ON TABLE sold_item TO postgres;
+GRANT SELECT, UPDATE, INSERT, DELETE, REFERENCES ON TABLE sold_item TO public;
+COMMENT ON TABLE sold_item IS 'Info about items sold to one person';
+
+
+
 -- Table: info
 -- DROP TABLE info;
 
 CREATE TABLE info
 (
-  "VERSION" integer NOT NULL default 2,
+  "VERSION" integer NOT NULL,
   "TITLE" text,
   "DATE" timestamp with time zone NOT NULL DEFAULT '2000-01-01 01:02:03'::timestamp without time zone
 )
@@ -147,9 +176,7 @@ COMMENT ON TABLE info IS 'Instance information.';
 INSERT INTO info(
 	"VERSION", "TITLE")
     VALUES 
-    (2, 'Burza');
-
-
+    (3, 'Burza');
 
 
 

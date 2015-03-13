@@ -307,6 +307,9 @@ class DataAccessInterface {
   //! Returns current time
   virtual ConvFuncs::s_datetime GetCurrentTime( void );
   
+  //! Marks items as sold, creates record that these items were sold in one group.
+  virtual void StoreSaleOfItems(std::vector<ITEM_ID>& itemIds, std::string title) { throw NotImplementedException(); }
+  
   // ==== network identification and connection ====
   
   //! set name of local machine or program, to be seen on different machines in form

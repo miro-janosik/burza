@@ -11,9 +11,12 @@
 #include "bdialogs.h"
 #include "errhandler.h"
 #include "format.h"
+#include "translate.h"
 
 using namespace Burza;
 using namespace pqxx;
+
+const int Burza::DataPostgresPqxx::currentDatabaseVersion = 3;
 
 #define read_transaction work
 
@@ -74,6 +77,10 @@ enum columnIndexes {
 	ItemCategoryColumn_fee_item_perc,
 	ItemCategoryColumn_fee_sold_item,
 	ItemCategoryColumn_fee_sold_perc,
+	
+	InfoColumn_version = 0,
+	InfoColumn_title,
+	InfoColumn_date,
 };
 
 /*
@@ -130,6 +137,8 @@ DataPostgresPqxx::DataPostgresPqxx()
 		HandlePostgresqlException(new database_exception(str));
 		throw new DataStorageException();
 	}
+	
+	VerifyDatabaseVersion();
 }
 
 DataPostgresPqxx::~DataPostgresPqxx()
@@ -488,7 +497,46 @@ ITEM_ID DataPostgresPqxx::GetNewItemId( void )
 	SELLER_ID biggestId = items.empty() ? 1 : items[ 0 ].id;
 	return biggestId + 1;
 }
-	
+
+void DataPostgresPqxx::StoreSaleOfItems(std::vector<ITEM_ID>& itemIds, std::string title)
+{
+	try {
+		pqxx::work dbGetSellers(*dbConnection, "sold row" );
+		
+		// mark items as sold
+		string idsText = ListOfIntsToStringCommaDelimited( itemIds );
+		string queryUpdateItems = 
+			ConvFuncs::FormatStdStr( "UPDATE items SET \"STATUS\" = %i WHERE \"ID\" IN (", (int)sold )
+			+ idsText + ")";
+		result resultpdateItems = dbGetSellers.exec( queryUpdateItems );
+		
+		// create sold item
+		// current time
+		ConvFuncs::GetDateTime();
+		
+		string queryInsertSold = string("INSERT INTO sold (\"TITLE\", \"DATE\") VALUES ('") + 
+			title + "', '" + ValidateTimestampToString( ConvFuncs::datetime ).c_str() + "') RETURNING \"ID\"";
+		result soldResult = dbGetSellers.exec( queryInsertSold );
+		int soldId = soldResult[0][0].as<int>();
+		
+		string queryAddSoldItem = "INSERT INTO sold_item (\"SOLD_ID\", \"ITEM_ID\") VALUES";
+		int itemsCountM1 = itemIds.size() - 1;
+		for (int i=0; i<=itemsCountM1; ++i)
+		{
+			queryAddSoldItem += ConvFuncs::FormatStdStr( " ('%i', '%i')", soldId, itemIds[ i ] );
+			if (i < itemsCountM1)
+				queryAddSoldItem += ", ";
+		}
+		result resultAddSoldItem = dbGetSellers.exec( queryAddSoldItem );
+		// link items to sold record
+		
+		dbGetSellers.commit();
+	}
+	catch(exception& ex) {
+		HandlePostgresqlException( ex );
+	}
+}
+
 string DataPostgresPqxx::TimestampToString(ConvFuncs::s_datetime& time )
 {
 	// 2011-01-01 01:02:03
@@ -504,7 +552,7 @@ string DataPostgresPqxx::ValidateTimestampToString(ConvFuncs::s_datetime& time )
 	if ((time.year < 1900) || (time.month == 0) || (time.day == 0) ||
 		(time.hour > 23) || (time.minute > 59) || (time.second > 59)) 
 	{
-		LogS( InfoError, "Invalid date, reformatting to current date.");
+		LogS( InfoError, "Invalid date, reformatting to current date.\n");
 		ConvFuncs::GetDateTime();
 		time = ConvFuncs::datetime;
 	}
@@ -911,4 +959,41 @@ std::string DataPostgresPqxx::ListOfIntsToStringCommaDelimited(std::vector<int>&
 	}
 	
 	return result;
+}
+
+void DataPostgresPqxx::VerifyDatabaseVersion( void )
+{
+	// get database version, verify if it matches code
+	int databaseVersion = -1;
+	try {
+		pqxx::work dbGetDbInfo(*dbConnection, "get db info" );
+		result dbInfoResult = dbGetDbInfo.exec( "SELECT * FROM info" );
+		dbGetDbInfo.commit();
+		
+		if (dbInfoResult.empty()) {
+			databaseVersion = 0;
+		}
+		else {
+			if (!dbInfoResult[0][ InfoColumn_version ].to( databaseVersion )) {
+				databaseVersion = 1;
+			}
+			
+			std::string saleTitle;
+			if (dbInfoResult[0][ InfoColumn_title ].to( saleTitle )) {
+				Centrala::Settings().m_name_of_the_sale = saleTitle;
+			}
+		}
+	}
+	catch(exception& ex) {
+		HandlePostgresqlException( ex );
+	}
+
+	LogS(InfoMinor, "Connected to database version %i\n", databaseVersion);
+	
+	if (databaseVersion != currentDatabaseVersion) {
+		string errorText = ConvFuncs::FormatStdStr( 
+			_("Database version is not correct (%i)\n"), currentDatabaseVersion);
+		LogS(InfoMinor, errorText.c_str());
+		throw new database_exception(errorText.c_str());
+	}
 }

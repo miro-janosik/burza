@@ -38,6 +38,9 @@ public:
 	virtual int GetSellerIndex( SELLER_ID id );
 	virtual int GetItemIndex( ITEM_ID id );
 	
+	virtual void StoreSaleOfItems(std::vector<ITEM_ID>& itemIds, std::string title) {
+		throw NotImplementedException(); }
+
 private:
 	
 	typedef map<SELLER_ID, SellerData> SellerMap;

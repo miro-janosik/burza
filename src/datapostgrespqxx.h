@@ -57,10 +57,16 @@ class DataPostgresPqxx : public DataAccessInterface
 	virtual void RemoveItem(ITEM_ID id);
 	virtual ITEM_ID GetNewItemId( void );
 	
+	virtual void StoreSaleOfItems(std::vector<ITEM_ID>& itemIds, std::string title);
+	
   protected:
 	
+	static const int currentDatabaseVersion;
+	  
 	connection *dbConnection;
 
+	void VerifyDatabaseVersion( void );
+	
 	//! function that converts database format string holding 'date + time + timezone' into a structure
 	ConvFuncs::s_datetime StringToTimestamp( string time );
 

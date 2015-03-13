@@ -20,7 +20,7 @@ Install packages:
 	* g++
 	
 	=== PostgreSQL server on Linux ===
-edit /etc/postgresql/8.4/main/postgresql.conf
+edit /etc/postgresql/<ver>/main/postgresql.conf
 change listen_addresses from 'localhost' to '*' (so anyone can connect not only server programs).
 
 edit pg_hba.conf
@@ -28,7 +28,7 @@ add line:
 host	all	all	192.168.1.0	255.255.255.0	trust
 
 restart server:
-/etc/init.d/postgresql-8.4 restart
+/etc/init.d/postgresql<ver> restart
 
 You can't login afterwards through pgadmin anyhow.
 That's because connect requires password to be filled, and postgres does not have any password filled in.

@@ -93,12 +93,12 @@ int main2( int argc, char **argv )
 		Log( InfoMajor, "Gtk::Main::run()\n" );
 		Gtk::Main::run( *Centrala::Dialogs().m_pWndRegister );
 	}
-	catch (std::exception& ex) {
-		exceptionMessage += "std::exception: ";
-		exceptionMessage += ex.what();
-	}
 	catch (DataStorageException& ex){
 		exceptionMessage += "DataStorageException: ";
+		exceptionMessage += ex.what();
+	}
+	catch (std::exception& ex) {
+		exceptionMessage += "std::exception: ";
 		exceptionMessage += ex.what();
 	}
 	catch(...)
@@ -203,10 +203,10 @@ void BurzaRegister::FinishCheckout( ItemDataArray& items )
 		}
 		  
 		filename += ConvFuncs::FormatStdStr( "%s_%02i-%02i-%02i_%02i-%02i.pdf",
-		_("Predaj"),
-		ConvFuncs::datetime.year % 100, ConvFuncs::datetime.month, ConvFuncs::datetime.day,
-		ConvFuncs::datetime.hour, ConvFuncs::datetime.minute );
-		pdf.CreatePDF( filename );
+			_("Predaj"),
+			ConvFuncs::datetime.year % 100, ConvFuncs::datetime.month, ConvFuncs::datetime.day,
+			ConvFuncs::datetime.hour, ConvFuncs::datetime.minute );
+			pdf.CreatePDF( filename );
 
 		recipees.PrintRecipeeAtEndOfCheckout( items, pdf );
 		
@@ -215,15 +215,12 @@ void BurzaRegister::FinishCheckout( ItemDataArray& items )
 	} catch( std::exception& e ) {
 		ErrorHandling::HandlePdfExceptions( e );
 	}
-
-	// mark items in register as sold
-	ItemDataIterator it, ite;
 	
-	for( it = items.begin(), ite = items.end(); it != ite; ++it ) {
-
-		it->status = sold;
-		m_storage->ModifyItem(it->id, *it);
-	}
+	std::vector<ITEM_ID> itemIds;
+	for (int i=0; i<items.size(); ++i)
+		itemIds.push_back( items[i].id );
+	
+	m_storage->StoreSaleOfItems(itemIds, "Sale");
 }
 
 double BurzaRegister::CalcPriceOfProducts( ItemDataArray& items )
