@@ -17,7 +17,7 @@ void ErrorHandling::HandlePostgresException(const std::exception& e)
 	BurzaDialogs::DisplayErrorMessageBox( e.what(), _("Problem s databazou, prosim skuste opat.") );
 }
 
-bool ErrorHandling::HandlePdfExceptions( std::exception& e )
+bool ErrorHandling::HandlePdfExceptions(const std::exception& e )
 {
 	std::string title;
 	bool result = true;

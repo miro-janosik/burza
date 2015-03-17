@@ -65,7 +65,10 @@ public:
 	//! x, y : left top position on the page in percentage, 0 - 100%
 	//! column width is defined in TableColumnSpecs.
 	//! text of headers and cells : text in unicode
-	virtual void DrawTable( float x, float y, TableStyle& style, TableOfCells& t, TableColumnSpecs& c, int firstRow = -1, int lastRow = -1 ) = 0;
+	//! yEndOfTable: fills in Y position where table ended.
+	//! returns: number of rows drawn. May differ from [rowsToDraw] for example when header row is drawn.
+	//!  in that case returned number is rowsToDraw-1.
+	virtual int DrawTable( float x, float y, TableStyle& style, TableOfCells& t, TableColumnSpecs& c, int firstRow, int rowsToDraw, double& yEndOfTable ) = 0;
 	
 	//! converts position in page size percentage to position of the pdf engine
 	virtual void PercentToPos( float percentx, float percenty, int& posx, int& posy );
@@ -100,7 +103,7 @@ public:
 	void WriteSingleText( float x, float y, string text );
 	void WriteSingleTextIntoWidth( float x, float y, float width, string text );
 	
-	void DrawTable( float x, float y, TableStyle& style, TableOfCells& t, TableColumnSpecs& c, int firstRow = -1, int lastRow = -1 );
+	int DrawTable( float x, float y, TableStyle& style, TableOfCells& t, TableColumnSpecs& c, int firstRow, int rowsToDraw, double& yEndOfTable );
 
 	//! converts position in page size percentage to position of the engine
 	virtual int PercentToPosX( float percentx );

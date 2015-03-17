@@ -171,6 +171,16 @@ public:
 		c.m_width = width;
 		m_columns.push_back( c );
 	}
+	
+	bool HeadersHaveText( void )
+	{
+		for ( vector< TableColumnSpec >::const_iterator i = m_columns.begin(); i != m_columns.end(); ++i ) {
+			if (! i->m_name.empty() )
+				return true;
+		}
+		
+		return false;
+	}
 } ;
 
 

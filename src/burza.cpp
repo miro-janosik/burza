@@ -93,13 +93,17 @@ int main2( int argc, char **argv )
 		Log( InfoMajor, "Gtk::Main::run()\n" );
 		Gtk::Main::run( *Centrala::Dialogs().m_pWndRegister );
 	}
-	catch (DataStorageException& ex){
+	catch (const DataStorageException& ex){
 		exceptionMessage += "DataStorageException: ";
 		exceptionMessage += ex.what();
 	}
-	catch (std::exception& ex) {
+	catch (const std::exception& ex) {
 		exceptionMessage += "std::exception: ";
 		exceptionMessage += ex.what();
+	}
+	catch(const std::exception* e ) {
+		exceptionMessage += "Wrong format of exception - pointer - std::exception: ";
+		exceptionMessage += e->what();
 	}
 	catch(...)
 	{

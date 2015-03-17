@@ -249,32 +249,44 @@ float HPDFWrapper::HeightToPercent( int height )
 	return (float)height / m_default_page_height * 100; 
 }
 
-void HPDFWrapper::DrawTable( float fx, float fy, TableStyle& style, TableOfCells& t, TableColumnSpecs& c, int firstRow, int lastRow )
+int HPDFWrapper::DrawTable( float startx, float starty, 
+	TableStyle& style, TableOfCells& t, TableColumnSpecs& c, 
+	int firstRow, int spaceForHowManyRows, double& yEndOfTable )
 {
+	if ((firstRow < 0) || (spaceForHowManyRows <= 0)) {
+		throw out_of_range("DrawTable: firstRow or spaceForHowManyRows");
+	}
+	
+	if (t.Columns() != c.Columns()) {
+		throw out_of_range("DrawTable: t.Columns() != c.Columns()");
+	}
+	
+	if (t.Columns() == 0) {
+		throw out_of_range("DrawTable: Zero columns");
+	}
+	
+	// everything has to be drawn upside down
 	SetFontSize( style.fontSize );
 
+	int columnsCount = c.Columns();
 	int posxPx, posyPx, rowHeightPx;
-	PercentToPos( fx, fy, posxPx, posyPx );
+	PercentToPos( startx, starty, posxPx, posyPx );
 	rowHeightPx = PercentToHeight( style.rowHeight );
 	
-	if ( firstRow < 0 ) {
-		firstRow = 0;
-	}
-	if (( lastRow < 0 ) || ( lastRow < firstRow )) {
-		lastRow = t.Rows() - 1;
-	}
-
-	unsigned int pos, table_width, tableBottomPx;
-
-	// everything has to be drawn upside down
+	bool displayingHeaderRow = c.HeadersHaveText();
+	int tableContentRows = t.Rows();
+	int contentRowsToDraw = spaceForHowManyRows - (displayingHeaderRow ? 1 : 0);
+	if (firstRow + contentRowsToDraw > tableContentRows)
+		contentRowsToDraw = tableContentRows - firstRow;
 	
+	unsigned int pos, table_width, tableBottomPx;
 	const float cellTextLeftMarginPerc = GetFontHeight() / 6;
 	const float cellTextTopMarginPerc = 0;
 	
 	// count column width
 	table_width = 0;
 	double w = 0;
-	for( unsigned int i=0; i<c.m_columns.size(); ++i ) {
+	for( unsigned int i=0; i<columnsCount; ++i ) {
 		w += c.m_columns[ i ].m_width;
 	}
 
@@ -287,8 +299,8 @@ void HPDFWrapper::DrawTable( float fx, float fy, TableStyle& style, TableOfCells
 	// but draw lines depending on the size of header row, number of rows, etc.
 
 	// horizontal lines - draw header row if we're drawing first row
-	float py = fy;
-	if ( firstRow == 0 ) {
+	float py = starty;
+	if ( displayingHeaderRow ) {
 		int y = PercentToPosY( py );
 
 		HPDF_Page_MoveTo( m_current_page, posxPx, y );
@@ -297,9 +309,9 @@ void HPDFWrapper::DrawTable( float fx, float fy, TableStyle& style, TableOfCells
 		
 		py += style.headerRowHeight;
 	}
-
+	
 	// horizontal lines - draw lines for rest of rows, +1 = bottom line
-	for ( unsigned int i = firstRow; i <= 1 + lastRow; ++i )
+	for ( unsigned int i = 0; i <= contentRowsToDraw; ++i )
 	{
 		int y = PercentToPosY( py );
 
@@ -313,20 +325,19 @@ void HPDFWrapper::DrawTable( float fx, float fy, TableStyle& style, TableOfCells
 	// vertical lines
 	// do not draw header line, if it is merged with line to right
 	int topPx, topWithoutHeaderPx;
-	float px = fx;
+	float px = startx;
 	topPx = posyPx;
 	topWithoutHeaderPx = posyPx - PercentToHeight( style.headerRowHeight );
 	tableBottomPx = posyPx - PercentToHeight( 
-		( lastRow - firstRow + 1 ) * style.rowHeight + 
-		(( firstRow == 0 ) ? style.headerRowHeight : 0 ));
-
-	for ( unsigned int i = 0; i <= c.Columns(); ++i )
+		contentRowsToDraw * style.rowHeight + ( displayingHeaderRow ? style.headerRowHeight : 0 ));
+	
+	for ( unsigned int i = 0; i <= columnsCount; ++i )
 	{
 		int x = PercentToPosX( px );
 		
-		if (( i < c.Columns() ) &&
-			( c.m_columns[ i ].m_merge_header_cell_to_right ) &&
-			( firstRow == 0 )) {
+		if ( displayingHeaderRow &&
+			( i < columnsCount ) &&
+			( c.m_columns[ i ].m_merge_header_cell_to_right )) {
 			HPDF_Page_MoveTo( m_current_page, x, topWithoutHeaderPx );
 		} else {
 			HPDF_Page_MoveTo( m_current_page, x, topPx );
@@ -335,40 +346,41 @@ void HPDFWrapper::DrawTable( float fx, float fy, TableStyle& style, TableOfCells
 		HPDF_Page_Stroke( m_current_page );
 		
 		// last vertical line
-		if ( i < c.Columns() ) {
+		if ( i < columnsCount ) {
 			px += c.m_columns[ i ].m_width;
 		}
 	}
 	
 	float tx, ty;
-	tx = fx + cellTextLeftMarginPerc;
-	ty = fy + cellTextTopMarginPerc;
+	tx = startx + cellTextLeftMarginPerc;
+	ty = starty + cellTextTopMarginPerc;
 	
 	// print out header text if headers are present
-	if ( firstRow == 0 ) {
-		for ( unsigned int ix = 0; ix < c.m_columns.size(); ++ix ) {
-			
-			if ( c.m_columns[ ix ].m_name.empty() )
+	if ( displayingHeaderRow ) {
+		for ( unsigned int ix = 0; ix < columnsCount; ++ix ) {
+			TableColumnSpec& col = c.m_columns[ ix ];
+			if ( col.m_name.empty() )
 				continue;
 			
-			WriteSingleTextIntoWidth( tx, ty, c.m_columns[ ix ].m_width - cellTextLeftMarginPerc * 2, c.m_columns[ ix ].m_name );
+			WriteSingleTextIntoWidth( tx, ty, col.m_width - cellTextLeftMarginPerc * 2, col.m_name );
 			
-			tx += c.m_columns[ ix ].m_width;
+			tx += col.m_width;
 		}
-
+		
 		ty += style.headerRowHeight;
 	}
-
+	
 	// print out cell text
-	if (( firstRow <= lastRow ) && ( t.Columns() > 0 )) {
-		for ( unsigned int iy = firstRow; iy <= lastRow; ++iy ) {
+	if (( columnsCount > 0 )) {
+		for ( unsigned int iy = 0; iy < contentRowsToDraw; ++iy ) {
 			
-			tx = fx + cellTextLeftMarginPerc;
+			tx = startx + cellTextLeftMarginPerc;
 			
-			for ( unsigned int ix = 0; ix < t.Columns(); ++ix ) {
+			for ( unsigned int ix = 0; ix < columnsCount; ++ix ) {
+				string text = t.Cell( firstRow + iy, ix ).GetText();
 				
-				if ( ! t.Cell( iy, ix ).GetText().empty() ) {
-					WriteSingleTextIntoWidth( tx, ty, c.m_columns[ ix ].m_width - cellTextLeftMarginPerc * 2, t.Cell( iy, ix ).GetText() );
+				if ( ! text.empty() ) {
+					WriteSingleTextIntoWidth( tx, ty, c.m_columns[ ix ].m_width - cellTextLeftMarginPerc * 2, text );
 				}
 				
 				tx += c.m_columns[ ix ].m_width;
@@ -378,7 +390,9 @@ void HPDFWrapper::DrawTable( float fx, float fy, TableStyle& style, TableOfCells
 		}
 	}
 
-	LogS( InfoDebug, "DrawTable() : first row: %i last row: %i , finished at Y: %0.1f\n", firstRow, lastRow, ty );
+	LogS( InfoDebug, "DrawTable() : first row: %i content rows: %i , finished at Y: %0.1f\n", firstRow, contentRowsToDraw, ty );
+	yEndOfTable = ty;
+	return contentRowsToDraw;
 }
 
 void HPDFWrapper::WriteSingleText( float x, float y, string text )

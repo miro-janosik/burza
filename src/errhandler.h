@@ -16,7 +16,7 @@ public:
   
   //! Logs and displays message box.
   //! returns false if not handled.
-  static bool HandlePdfExceptions( std::exception& e );
+  static bool HandlePdfExceptions(const std::exception& e );
 
 } ;
 

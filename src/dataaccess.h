@@ -338,7 +338,7 @@ public:
   virtual SELLER_ID GetNewSellerId( void );
 
   //! returns unique non-used item ID
-  virtual ITEM_ID GetNewItemId( void ) = 0;
+  virtual ITEM_ID GetNewItemId( void ) { throw NotImplementedException(); }
 
   //! calls GetSellers() and finds next free seller code. Starts from code [firstTryCode]
   //! and continues through the character combinations until there is unused combination.

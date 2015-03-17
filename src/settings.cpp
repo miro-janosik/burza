@@ -36,7 +36,8 @@ ProgramSettings::ProgramSettings()
 	m_document_ouput_directory = exePath;
 	m_document_ouput_directory += "/documents/";
 	
-	currencySign = "∈";
+	// currencySign = "∈"; Replaced while PDF printer can't print the character
+	currencySign = "eur";
 	currencyInternationalShort = "EUR";
 	m_computer_name = "PC123";
 	m_name_of_the_sale = "Jarna burza 2012";

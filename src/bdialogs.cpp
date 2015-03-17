@@ -2464,7 +2464,7 @@ void BurzaDialogs::RegisterButtonReviewOfSellers( void )
 		storingFinished = true;
 		
 	}
-	catch( std::exception& e ) {
+	catch( const std::exception & e ) {
 		ErrorHandling::HandlePdfExceptions( e );
 	}
 

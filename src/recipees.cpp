@@ -120,44 +120,45 @@ float Recipees::DrawTableSplitOnPages( PdfWrapperBase& pdf, float fx, float fy, 
 	style.headerRowHeight = style.fontSize * 1.5;
 	style.rowHeight = style.fontSize * 1.2;
 
-	int firstRowToPrint, rowsToPrint, lastRowToPrint;
+	int firstRowToPrint, spaceForRowsCount;
 	firstRowToPrint = 0;
 	
-	float yEndOfTable = -1;
+	double yEndOfTable = -1;
+	bool printedZeroRows = false;
+	bool columnsWithHeaderText = columns.HeadersHaveText();
+	int minRowsToDraw = columnsWithHeaderText ? 2 : 1;
 
 	do {
 		double spaceLeft = contentBottom - fy;
-		if (firstRowToPrint == 0)
-		  spaceLeft -= style.headerRowHeight;
-		rowsToPrint = spaceLeft / style.rowHeight;
+		spaceForRowsCount = columnsWithHeaderText ? 
+			((spaceForRowsCount - style.headerRowHeight) / style.rowHeight ) : 
+			spaceLeft / style.rowHeight;
 		
-		if (rowsToPrint == 0)
+		if (spaceForRowsCount < minRowsToDraw)
 		{
-			rowsToPrint = 1;
-		}
-		
-		lastRowToPrint = firstRowToPrint + rowsToPrint - 1;
-
-		if ( lastRowToPrint >= table.Rows() ) {
-			lastRowToPrint = table.Rows() - 1;
-		}
-		
-		pdf.DrawTable( fx, fy, style, table, columns, firstRowToPrint, lastRowToPrint );
-		
-		if ( lastRowToPrint >= table.Rows() - 1 ) {
-			yEndOfTable = fy + ( lastRowToPrint - firstRowToPrint + 1 ) * style.rowHeight;
+			// check for possible situation when margins are so big that no row fits in
+			// condition avoids endless loop
+			if (printedZeroRows)
+				throw runtime_error("DrawTableSplitOnPages: row does not fit on page.");
 			
-			// add header row on first page
-			if ( firstRowToPrint == 0 ) {
-				yEndOfTable += style.headerRowHeight;
-			}
-			break;
+			printedZeroRows = true;
 		}
-
+		else 
+		{
+			int printedRows = pdf.DrawTable( fx, fy, style, table, columns, firstRowToPrint, spaceForRowsCount, yEndOfTable);
+			
+			if ( firstRowToPrint + printedRows >= table.Rows() ) {
+				// last row of table was drawn - we are finished.
+				break;
+			}
+			
+			firstRowToPrint = firstRowToPrint + printedRows;
+		}
+		
+		// create new page
 		pdf.NewPage( pdf.GetCurrentPageTitle() );
 		AddProgramPageHeaderAndFooter( pdf );
 		fy = contentTop;
-		firstRowToPrint = lastRowToPrint + 1;
 	} while( true );
 
 	return yEndOfTable;
@@ -277,9 +278,9 @@ void Recipees::PrintSellerReturnSheet( PdfWrapperBase& pdf, SELLER_ID id )
 	string str;
 
 	columns.AddColumn( _("cislo"), 5 );
-	columns.AddColumn( _("nazov"), 47 );
+	columns.AddColumn( _("nazov"), 57 );
 	columns.AddColumn( _("cena"), 7 );
-	columns.AddColumn( _("kat"), 4 );
+	columns.AddColumn( _("kat"), 6 );
 	columns.AddColumn( _("stav"), 8 );
 	columns.AddColumn( _("predane"), 7 );
 	
@@ -314,7 +315,7 @@ void Recipees::PrintSellerReturnSheet( PdfWrapperBase& pdf, SELLER_ID id )
 	TableOfCells	sumCells;
 	TableColumnSpecs	sumColumns;
 	
-	sumColumns.AddColumn( "", 71 );
+	sumColumns.AddColumn( "", 83 );
 	sumColumns.AddColumn( "", 7 );
 
 	// add sum of the items that were sold
@@ -323,7 +324,7 @@ void Recipees::PrintSellerReturnSheet( PdfWrapperBase& pdf, SELLER_ID id )
 	sumCells.Resize( 6 + fees.fees.size() * 2, sumColumns.m_columns.size() );
 
 	int row = 0;
-	sumCells.Cell( row, 0 ) = _( "Sucet predanych veci" );
+	sumCells.Cell( row, 0 ) = _( "Súčet predaných vecí" );
 	sumCells.Cell( row, 1 ) = ConvFuncs::FormatStdStr( "%10.2f", sum );
 	double finalSum = fees.sumOfSoldItems;
 
@@ -342,7 +343,8 @@ void Recipees::PrintSellerReturnSheet( PdfWrapperBase& pdf, SELLER_ID id )
 
 	++row;
 	++row;
-	sumCells.Cell( row, 0 ) = _( "Celkom vyplatené (eur) :" );
+	string currencySign = Centrala::Settings().currencySign;
+	sumCells.Cell( row, 0 ) = ConvFuncs::FormatStdStr( _( "Celkom vyplatene (%s) :" ), currencySign.c_str() );
 	string finalSumText = ConvFuncs::FormatStdStr( "%6.2f", finalSum );
 	sumCells.Cell( row, 1 ) = ConvFuncs::FormatStdStr( "%9s", finalSumText.c_str() );
 	
@@ -351,8 +353,6 @@ void Recipees::PrintSellerReturnSheet( PdfWrapperBase& pdf, SELLER_ID id )
 	sumCells.Cell( row, 0 ) = _( "Nepredané veci a peniaze prevzal : " );
 
 	DrawTableSplitOnPages( pdf, 5, ypos, sumCells, sumColumns );
-
-	// nepredané veci a peniaze prevzal : 		
 }
 
 float Recipees::AdvanceYpos( float ypos, float percent )

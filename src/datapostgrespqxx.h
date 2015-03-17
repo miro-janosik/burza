@@ -91,8 +91,10 @@ class DataPostgresPqxx : public DataAccessInterface
 	
 	string SellerToQueryColumnsString( void );
 	string SellerToQueryValuesString( SellerData& seller );
+	string SellerToQueryUpdateValuesString( SellerData& data );
 	string ItemToQueryColumnsString( void );
 	string ItemToQueryValuesString( ItemData& item );
+	string ItemToQueryUpdateValuesString( ItemData& item );
 
 	// convert database result data into structore of ItemCategory
 	void DbDataToItemCategoryData( const result::tuple& result, ItemCategory& data );

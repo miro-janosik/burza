@@ -220,8 +220,6 @@ void ExcelFileWrapper::ReadSeller( string filename, SellerData& seller, ItemData
 	if (FindCellByText( "!version3!", numberRow, numberColumn))
 		version = 3;
 	
-	// LogS(
-		
 	itemsOk &= FindCellByText( "!number!", numberRow, numberColumn);
 	itemsOk &= FindCellByText( "!price!", priceRow, priceColumn);
 	bool nameCellFound = FindCellByText( "!name!", itemNameRow, itemNameColumn);

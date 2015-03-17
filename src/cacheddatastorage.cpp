@@ -106,7 +106,7 @@ ItemData CachedDataTextfile::GetItem(ITEM_ID id)
 		return it->second;
 	}
 	
-	throw new WrongItemException();
+	throw WrongItemException();
 }
 
 ItemData CachedDataTextfile::GetSellerItem(SELLER_ID id, int item_number)
@@ -122,7 +122,7 @@ ItemData CachedDataTextfile::GetSellerItem(SELLER_ID id, int item_number)
 			return itemit->second;
 	}
   
-	throw new WrongItemException();
+	throw WrongItemException();
 }
 
 SellerDataArray CachedDataTextfile::GetSellers( void )
@@ -250,7 +250,7 @@ void CachedDataTextfile::ModifyItem(ITEM_ID item_id, ItemData& item)
 {
 	ItemMap::iterator it = items.find( item_id );
 	if ( it == items.end() ) {
-		throw new WrongItemException();
+		throw WrongItemException();
 	}
 	
 	// just to be sure, fill in the id.

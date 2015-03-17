@@ -75,11 +75,13 @@ SellerFees SellerFees::CalculateSellerFees( SellerCategory& sellerCat, ItemCateg
 		sumToReturn -= feeSumPerSoldItem;
 		sumToReturn -= feeSumPerSoldItemPerc;
 		
+		string currencySign = Centrala::Settings().currencySign;
+		
 		if ( feeSumPerItem > 0 )
 		{
 			string str = ConvFuncs::FormatStdStr(
-				_( "Manipulacny poplatok - %0.2f za kazdy kus \"%s\" (%i ks)" ), 
-				itemCat.fee_per_item, itemCat.name.c_str(), countOnStock );
+				_( "Manipulacny poplatok %0.2f %s za kazdy kus \"%s\" (%i ks)" ), 
+				itemCat.fee_per_item, currencySign.c_str(), itemCat.name.c_str(), countOnStock );
 			Fee fee( str.c_str(), feeSumPerItem, ::FeePerItemOnSale );
 			output.fees.push_back( fee );
 		}
@@ -87,7 +89,7 @@ SellerFees SellerFees::CalculateSellerFees( SellerCategory& sellerCat, ItemCateg
 		if ( feeSumPerItemPerc > 0 )
 		{
 			string str = ConvFuncs::FormatStdStr(
-				_( "Manipulacny poplatok - %0.2f% z ceny za kazdy kus \"%s\" (%i ks)" ), 
+				_( "Manipulacny poplatok %0.2f% z ceny za kazdy kus \"%s\" (%i ks)" ), 
 				itemCat.fee_item_perc, itemCat.name.c_str(), countOnStock );
 			Fee fee( str.c_str(), feeSumPerItemPerc, ::FeePerItemOnSale );
 			output.fees.push_back( fee );
@@ -96,8 +98,8 @@ SellerFees SellerFees::CalculateSellerFees( SellerCategory& sellerCat, ItemCateg
 		if ( feeSumPerSoldItem > 0 )
 		{
 			string str = ConvFuncs::FormatStdStr(
-				_( "Poplatok - %0.2f za kazdy predaný kus \"%s\" (%i ks)" ), 
-				itemCat.fee_per_sold_item, itemCat.name.c_str(), countSold );
+				_( "Poplatok %0.2f %s za kazdy predaný kus \"%s\" (%i ks)" ), 
+				itemCat.fee_per_sold_item, currencySign.c_str(), itemCat.name.c_str(), countSold );
 			Fee fee( str.c_str(), feeSumPerSoldItem, ::FeePerSold );
 			output.fees.push_back( fee );
 		}
@@ -114,18 +116,12 @@ SellerFees SellerFees::CalculateSellerFees( SellerCategory& sellerCat, ItemCateg
 
 	if ( sellerCat.fee_per_sale > 0 )
 	{
-		string str = ConvFuncs::FormatStdStr( _( "Manipulacny poplatok za ú?as? - %0.2f" ), sellerCat.fee_per_sale );
+		string str = ConvFuncs::FormatStdStr( _( "Manipulacny poplatok za ucast - %0.2f" ), sellerCat.fee_per_sale );
 		sumToReturn -= sellerCat.fee_per_sale;
 
 		Fee fee( str.c_str(), sellerCat.fee_per_sale, ::FeePerSale );
 		output.fees.push_back( fee );
 	}
-	
-	/*
-	if ( finalSum < 0 ) {
-		finalSum = 0;
-	}
-	*/
 	
 	output.sumOfSoldItems = sumSold;
 	output.finalSumToGiveToSeller = sumToReturn;

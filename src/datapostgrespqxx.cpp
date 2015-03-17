@@ -135,7 +135,7 @@ DataPostgresPqxx::DataPostgresPqxx()
 		string str = "Connection to database failed: ";
 		str += connectionFailedString;
 		HandlePostgresqlException(new database_exception(str));
-		throw new DataStorageException();
+		throw DataStorageException();
 	}
 	
 	VerifyDatabaseVersion();
@@ -204,8 +204,8 @@ void DataPostgresPqxx::ModifySellerEnd(SELLER_ID id, SellerData& seller)
 	try {
 	  pqxx::work work1(*dbConnection, "update seller" );
 	  string query = ConvFuncs::FormatStdStr( 
-		  "UPDATE sellers %s SET %s WHERE \"ID\" = %i", 
-		  SellerToQueryColumnsString().c_str(), SellerToQueryValuesString( seller ).c_str(), id );
+		  "UPDATE sellers SET %s WHERE \"ID\" = %i", 
+		  SellerToQueryUpdateValuesString( seller ).c_str(), id );
 	  
 	  result sellersResult = work1.exec( query );
 	  work1.commit();
@@ -257,7 +257,7 @@ ItemData DataPostgresPqxx::GetSellerItem(SELLER_ID id, int item_number)
 		}
 	}
 	
-	throw new WrongItemException();
+	throw WrongItemException();
 }
 
 ItemData DataPostgresPqxx::GetItem(ITEM_ID id)
@@ -272,12 +272,12 @@ ItemData DataPostgresPqxx::GetItem(ITEM_ID id)
 			return items[ 0 ];
 		}
 
-		throw new WrongItemException();
+		throw WrongItemException();
 	}
 	catch(exception& e)
 	{
 		HandlePostgresqlException( e );
-		throw new WrongItemException();
+		throw WrongItemException();
 	}
 }
 	
@@ -293,7 +293,7 @@ ItemCategoryArray DataPostgresPqxx::GetItemsCategories( void )
 	catch(exception& e)
 	{
 		HandlePostgresqlException( e );
-		throw new WrongItemException();
+		throw WrongItemException();
 	}
 }
 
@@ -310,7 +310,7 @@ ItemCategoryArray DataPostgresPqxx::GetItemsCategories(vector<ITEM_CATEGORY_ID>&
 	catch(exception& e)
 	{
 		HandlePostgresqlException( e );
-		throw new WrongItemException();
+		throw WrongItemException();
 	}
 }
 
@@ -326,7 +326,7 @@ ItemCategoryArray DataPostgresPqxx::GetItemsCategoriesByLetter(vector<char>& let
 	catch(exception& e)
 	{
 		HandlePostgresqlException( e );
-		throw new WrongItemException();
+		throw WrongItemException();
 	}
 }
 
@@ -342,7 +342,7 @@ SellerCategoryArray DataPostgresPqxx::GetSellersCategories( void )
 	catch(exception& e)
 	{
 		HandlePostgresqlException( e );
-		throw new WrongItemException();
+		throw WrongItemException();
 	}
 }
 
@@ -455,8 +455,8 @@ void DataPostgresPqxx::ModifyItem(ITEM_ID item_id, ItemData& item)
 	try {
 		pqxx::work dbGetSellers(*dbConnection, "modify item" );
 		string query = ConvFuncs::FormatStdStr( 
-			"UPDATE items %s SET %s WHERE \"ID\" = %i", 
-			ItemToQueryColumnsString().c_str(), ItemToQueryValuesString( item ).c_str(), item_id );
+			"UPDATE items SET %s WHERE \"ID\" = %i", 
+			ItemToQueryUpdateValuesString( item ).c_str(), item_id );
 		
 		result sellersResult = dbGetSellers.exec( query );
 		dbGetSellers.commit();
@@ -478,7 +478,7 @@ void DataPostgresPqxx::RemoveItem(ITEM_ID id)
 	}
 	catch(exception& ex) {
 		HandlePostgresqlException( ex );
-		throw new WrongItemException();
+		throw WrongItemException();
 	}
 }
 
@@ -786,6 +786,19 @@ string DataPostgresPqxx::SellerToQueryValuesString( SellerData& seller )
 	return values;
 }
 
+string DataPostgresPqxx::SellerToQueryUpdateValuesString( SellerData& data )
+{
+	string values = ConvFuncs::FormatStdStr( 
+		"\"SHORT_CODE\"='%s', \"NAME\"='%s', \"COMMENT\"='%s', \"CHANGING\"='%s', \"CHANGED_BY\"='%s', \"SELLER_CATEGORY_ID\"=%i, \"MODIFIED\"='%s', \"STATUS\"='%i'",
+		ApostropheToDouble( data.shortcode ).c_str(), 
+		ApostropheToDouble( data.name ).c_str(), 
+		ApostropheToDouble( data.note ).c_str(), 
+		"false", "", data.category, ValidateTimestampToString( data.last_update ).c_str(),
+		data.status );
+
+	return values;
+}
+
 string DataPostgresPqxx::ItemToQueryColumnsString( void )
 {
 	return "(\"NAME\", \"SELLER_ID\", \"PRICE\", \"CHANGING\", \"CHANGED_BY\", \"ITEM_CATEGORY_ID\", \"NUMBER\", \"STATUS\", \"MODIFIED\")";
@@ -798,6 +811,18 @@ string DataPostgresPqxx::ItemToQueryValuesString( ItemData& item )
 		ApostropheToDouble( item.name ).c_str(), item.seller_id, item.price, 
 		"false", "-", item.category, 
 		item.number, (int)item.status,
+		ValidateTimestampToString( item.last_update ).c_str() );
+	return values;
+}
+
+string DataPostgresPqxx::ItemToQueryUpdateValuesString( ItemData& item )
+{
+	string values = ConvFuncs::FormatStdStr( 
+"\"NAME\"= '%s', \"SELLER_ID\"= '%i', \"PRICE\"= '%0.4f', \"CHANGING\"= '%s', \
+\"CHANGED_BY\"= '%s', \"ITEM_CATEGORY_ID\"= '%i', \"NUMBER\"= '%i', \"STATUS\"= '%i', \
+\"MODIFIED\"= '%s'",
+		ApostropheToDouble( item.name ).c_str(), item.seller_id, item.price, 
+		"false", "-", item.category, item.number, item.status,
 		ValidateTimestampToString( item.last_update ).c_str() );
 	return values;
 }
@@ -965,6 +990,6 @@ void DataPostgresPqxx::VerifyDatabaseVersion( void )
 		string errorText = ConvFuncs::FormatStdStr( 
 			_("Database version is not correct (%i)\n"), currentDatabaseVersion);
 		LogS(InfoMinor, errorText.c_str());
-		throw new database_exception(errorText.c_str());
+		throw database_exception(errorText.c_str());
 	}
 }
