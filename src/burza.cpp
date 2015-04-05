@@ -311,10 +311,20 @@ BurzaRegister::LoadSellerSheetFileResult BurzaRegister::LoadSellerSheetFile(std:
 			result.status = BurzaRegister::FormatNotKnown;
 		}
 	}
-	catch( runtime_error& e ) {
-
+	catch( std::out_of_range& e ) {
 		result.status = BurzaRegister::ErrorImporting;
 		result.errorText = e.what();
+	}
+	catch( const exception& e ) {
+		result.status = BurzaRegister::ErrorImporting;
+		result.errorText = e.what();
+	}
+	catch( exception e ) {
+		result.status = BurzaRegister::ErrorImporting;
+		result.errorText = e.what();
+	}
+	catch(...) {
+		result.status = BurzaRegister::ErrorImporting;
 	}
 
 	result.itemsWithZeroPrice = 0;

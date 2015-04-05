@@ -1002,6 +1002,8 @@ void BurzaDialogs::RegisterButtonImportMultiSellers( void )
 	// == loop through the files ==
 	int finishedCount = 0, problemCount = 0;
 	
+	try {
+		
 	bool found = ConvFuncsInstance->Find_FirstFile( path.c_str() );
 	while ( found )
 	{
@@ -1012,12 +1014,15 @@ void BurzaDialogs::RegisterButtonImportMultiSellers( void )
 			continue;
 		}
 
-		string filename = path + ConvFuncsInstance->Find_CurrentFileName();
+		string fileNameShort = ConvFuncsInstance->Find_CurrentFileName();
+		string filename = path + fileNameShort;
 
 		// true if read (even if there is error then print info about read data).
 		bool readAndValid = false;
 		string error, warning, info;
 
+		LogS( InfoMajor, (string(_("Loading ")) + fileNameShort).c_str() );
+		
 		BurzaRegister::LoadSellerSheetFileResult loadedFile = mp_register->LoadSellerSheetFile( filename );
 		switch( loadedFile.status ) {
 			case BurzaRegister::Loaded:
@@ -1067,12 +1072,12 @@ void BurzaDialogs::RegisterButtonImportMultiSellers( void )
 				error = "Error importing file." + loadedFile.errorText;
 				break;
 		}
-
+		
 		string infoText = _("Spracovaný súbor");
 		infoText += "\n";
-		infoText += ConvFuncsInstance->Find_CurrentFileName();
+		infoText += fileNameShort;
 		infoText += "\n";
-
+		
 		if ( readAndValid ) {
 			infoText += 
 				ConvFuncs::FormatCstr(_(" načítaný, kód '%s', %i kusov tovaru;"),
@@ -1128,7 +1133,7 @@ void BurzaDialogs::RegisterButtonImportMultiSellers( void )
 		// find next file
 		found = ConvFuncsInstance->Find_NextFile();
 	}
-
+	
 	ImportMultiSellersLog( ConvFuncs::FormatCstr(
 		_("Dokončené ... správne načítaných: %i chýb: %i."), finishedCount, problemCount) );
 
@@ -1136,6 +1141,12 @@ void BurzaDialogs::RegisterButtonImportMultiSellers( void )
 		_( "Predajcovia načítaný"),
 		ConvFuncs::FormatStdStr( _("Korektne načítaných hárkov: %i Chýb: %i."), 
 			finishedCount, problemCount ));
+
+	} 
+	catch (const exception& e )
+	{
+		ErrorHandling::HandleException( e );
+	}
 
 	ReloadSellers();
 }
@@ -2458,6 +2469,17 @@ void BurzaDialogs::RegisterButtonReviewOfSellers( void )
 		for( unsigned int i=0; i<SellersOrdered.size(); i++ ) {
 			recipees.PrintSellerReturnSheet( pdf, SellersOrdered[ i ].id );
 		}
+		
+		/*
+		SellerData seller;
+		for ( int i=0; i<SellersOrdered.size(); ++i)
+		{
+			seller = SellersOrdered[i];
+			if (seller.shortcode == "AAK")
+				break;
+		}
+		recipees.PrintSellerReturnSheet( pdf, seller.id );
+		*/
 		
 		pdf.ClosePDF();
 

@@ -1,0 +1,19 @@
+== Stahovanie ==
+Gear mage AttachmentDownloaderInstall.zip
+
+== Ako premenovat subory tak, aby boli pekne citatelne vo formate 'ID.pripona' ==
+
+- ls > list.txt
+- open with kate and replace: 
+^(.*_ID\((\d*(_\d)*)\)_.*(\.\w*))$
+with: 
+mv "\1" "\2\4"
+
+- bash list.txt
+
+== Nacitat do tabulky/sheetu, kvoli prehladu ==
+
+== Konverzia inych formatov ==
+
+libreoffice --headless --convert-to xls:"MS Excel 97" --outdir ../convert-po *.ods
+

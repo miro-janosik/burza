@@ -114,7 +114,7 @@ public:
 	}
 	
 	T& Cell( const unsigned int row, const unsigned int column ) 
-		throw( std::out_of_range )
+//		throw( std::out_of_range )
 	{
 		if (( row >= m_rows ) ||
 			( column >= m_columns ))

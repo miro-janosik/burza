@@ -131,7 +131,7 @@ float Recipees::DrawTableSplitOnPages( PdfWrapperBase& pdf, float fx, float fy, 
 	do {
 		double spaceLeft = contentBottom - fy;
 		spaceForRowsCount = columnsWithHeaderText ? 
-			((spaceForRowsCount - style.headerRowHeight) / style.rowHeight ) : 
+			((spaceLeft - style.headerRowHeight) / style.rowHeight ) : 
 			spaceLeft / style.rowHeight;
 		
 		if (spaceForRowsCount < minRowsToDraw)
@@ -434,6 +434,8 @@ void Recipees::PrintStats( PdfWrapperBase& pdf )
 			handedOut.push_back( allSorted[ i ] );
 			break;
 		}
+		
+		LogS( InfoMajor, "%s\t%s\n", allSorted[i]->shortcode.c_str(), allSorted[i]->name.c_str() );
 	}
 
 	// start printing
