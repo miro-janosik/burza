@@ -27,22 +27,23 @@ format::format(const string fmt, ...)
 	} data;
 
 	va_list	args;
-
 	va_start(args,fmt);
-	memcpy( &data, args, 500 );
-
-	format_string( fmt, data );
+	format_string( fmt, args );
 }
 
 void format::format_string(const string fmt, ...)
 {
 	va_list	args;
-
-	store = "";
-
 	va_start(args,fmt);
-	bool		field=false;
+	format_string(fmt, args);
+}
+
+void format::format_string(const string fmt, va_list& args)
+{
+	store = "";
+	bool	field=false;
 	string	spec_str;
+
 	for(string::const_iterator i=fmt.begin(); i!=fmt.end(); ++i)
 	{
 		if(field)

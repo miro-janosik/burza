@@ -9,9 +9,11 @@ class format
 public:
 	format() { store = ""; }
 	// warning, format(const std::string, ...) can only format up to 500 bytes of parameters
-	format(const std::string, ...);
+	format( const std::string, ... );
 	void format_string( const std::string, ... );
-	const std::string	&str() const	{ return store; }
+	void format_string( const std::string fmt, va_list& args );
+
+	const std::string &str() const { return store; }
 private:
 	std::string	store;
 };

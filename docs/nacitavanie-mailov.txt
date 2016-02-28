@@ -1,10 +1,24 @@
 == Stahovanie ==
-Gear mage AttachmentDownloaderInstall.zip
+ Gear mage 'mail attachment dowloader', v maile mam licenciu na verziu 3.
+ Free verzia 2.4 ide na XP hned, verzia 3.0 vyzaduje na XP instalovat .net 4.0
+ Downloader nefunguje cez wine, treba to spravit cez VirtualBox XP
+ Na XP-ckach treba nakonfigurovat sietovy adapter - vid 
+ http://askubuntu.com/questions/232876/how-to-let-a-virtualbox-guest-running-windows-access-the-internet
+ Ak by nesiel spustit VirtualBox tak treba na stroji cez right-click v lavom zozname na 'discard current state', a potom zrusit share.
 
+Downloaded files to excel:
+
+Downloader - set to download files with following name:
+(date)_(id)_(filename)
+
+Set it to move files from one folder to another (requires IMAP)
+Files that are not moved probably do not contain attachment, or it can't be downloaded by Downloader
+Go to webmail.mcsrdiecko.sk and download attachments there manually.
+ 
 == Ako premenovat subory tak, aby boli pekne citatelne vo formate 'ID.pripona' ==
 
 - ls > list.txt
-- open with kate and replace: 
+
 ^(.*_ID\((\d*(_\d)*)\)_.*(\.\w*))$
 with: 
 mv "\1" "\2\4"
@@ -13,7 +27,43 @@ mv "\1" "\2\4"
 
 == Nacitat do tabulky/sheetu, kvoli prehladu ==
 
+- Create CSV file - open with kate and replace: 
+1) Remove (CEST) or (UTC)
+( \((UTC|CEST)\)
+=>
+
+2) Convert Date(Tue, 13 Oct 2015 02_06_56 -0700)_ID(50_2)_harok-burza-mcsrdiecko2.xls
+=>
+11.Oct.2015;21:40:6;10_2;harok-burza-mcsrdiecko2.xls
+
+Date\(.{3}\, (\d{1,2}) (\w{3}) (\d{4}) (\d{2})_(\d{2})_(\d{2}) (\+|\-)\d{4}\)_ID\((\d*_\d)\)_(.*)
+=>
+\1.\2.\3;\4:\5\:6;\8;\9
+=====
+Verzia 2 - rozdelena na dve casti pretoze tam mam viac ako 10 parametrov
+
+Date\(.{3}\, (\d{1,2}) (\w{3}) (\d{4}) (\d{2})_(\d{2})_(\d{2}) (\+|\-)\d{4}\)_ID\((\d*_\d)\)
+=>
+\1.\2.\3 \4:\5\:\6;\8;
+
+_From\((.*)\)_(Subject\((.*)\))?_(.*)
+=>
+\1;\3;\4;
+
 == Konverzia inych formatov ==
 
 libreoffice --headless --convert-to xls:"MS Excel 97" --outdir ../convert-po *.ods
+  
+== Stav importu ==
+13/9/2015 23:42:42.000 Loading Date(Sun, 11 Oct 2015 20_31_00 +0200)_ID(9_2)_harok-burza-mcsrdiecko15_jeseň_Repková.xls13/9/2015 23:42:42.000 ImportMultiSellers: 13/9/2015 23:42:42.000 Spracovaný súbor
+Date(Sun, 11 Oct 2015 20_31_00 +0200)_ID(9_2)_harok-burza-mcsrdiecko15_jeseň_Repková.xls
+ načítaný, kód 'RK', 74 kusov tovaru; Info:  Obsahuje 33 ks tovaru s okruhlou cenou;13/9/2015 23:42:42.000 
 
+
+^.* Loading .*ImportMultiSellers: .* Spracovaný súbor
+=>
+{nothing}
+
+^ načítaný, kód '(\w+)', (\d+) kusov tovaru; Info:  Obsahuje \d* ks tovaru s okruhlou cenou;.*$
+=>
+\1;\2

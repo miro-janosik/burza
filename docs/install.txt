@@ -18,8 +18,15 @@ Install packages:
 	* libgtkmm-2.4-dev and libglademm-2.4-dev (or 3.0 and make respective changes in CMakeLists.txt; but be sure that both are the same version)
 	* cmake
 	* g++
+	* libicu-dev
+	
+	Modify CMakeList to point to correct place with libICU
+	If needed compile libHaruPdf from external libs
 	
 	=== PostgreSQL server on Linux ===
+
+Install packages postgresql (server) and pgadmin3 (gui client)
+
 edit /etc/postgresql/<ver>/main/postgresql.conf
 change listen_addresses from 'localhost' to '*' (so anyone can connect not only server programs).
 

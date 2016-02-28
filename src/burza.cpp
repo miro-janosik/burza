@@ -48,6 +48,9 @@ int main2( int argc, char **argv )
 	BiturnLogInstance()->SetLogFileName( "burza-log.txt" );
 	BiturnLogInstance()->SetLoggingMood( BiturnLog::LoggingMoodHeavy );
 	Log( InfoMajor, "=== Burza starting ===\n" );
+	
+	if(!Glib::thread_supported()) Glib::thread_init();
+	
 	Log( InfoMajor, "main2 starting\n" );
 
 	Log( InfoMajor, "Call to Glib::init\n" );
@@ -315,10 +318,10 @@ BurzaRegister::LoadSellerSheetFileResult BurzaRegister::LoadSellerSheetFile(std:
 		result.status = BurzaRegister::ErrorImporting;
 		result.errorText = e.what();
 	}
-	catch( const exception& e ) {
+/*	catch( const exception& e ) {
 		result.status = BurzaRegister::ErrorImporting;
 		result.errorText = e.what();
-	}
+	}*/
 	catch( exception e ) {
 		result.status = BurzaRegister::ErrorImporting;
 		result.errorText = e.what();
@@ -394,6 +397,15 @@ ItemCategoryArray BurzaRegister::GetItemCategoriesForMatching( void )
 	
 	return categories;
 }
+
+/*
+string BurzaRegister::ConvertSheetFileToExcelFormat(string pathFileName)
+{
+	Log( InfoMajor, "Converting file '%s' to xls\n", pathFileName.c_str() );
+	
+	"libreoffice --headless --convert-to xls:\"MS Excel 97\" --outdir ../convert-po *.ods"
+}
+*/
 
 // ==============================================
 // ==============================================

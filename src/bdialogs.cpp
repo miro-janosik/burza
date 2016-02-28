@@ -26,6 +26,8 @@
 #include "generator.h"
 #include "licence.h"
 
+#include "stressTest.h"
+
 #include <gtkmm-2.4/gtkmm/filechooserdialog.h>
 
 using namespace Burza;
@@ -1002,6 +1004,8 @@ void BurzaDialogs::RegisterButtonImportMultiSellers( void )
 	// == loop through the files ==
 	int finishedCount = 0, problemCount = 0;
 	
+	vector< string > infoTexts;
+	
 	try {
 		
 	bool found = ConvFuncsInstance->Find_FirstFile( path.c_str() );
@@ -1021,7 +1025,8 @@ void BurzaDialogs::RegisterButtonImportMultiSellers( void )
 		bool readAndValid = false;
 		string error, warning, info;
 
-		LogS( InfoMajor, (string(_("Loading ")) + fileNameShort).c_str() );
+		LogS( InfoMajor, "Loading %s\n", fileNameShort.c_str());
+		string loadStatusShort;
 		
 		BurzaRegister::LoadSellerSheetFileResult loadedFile = mp_register->LoadSellerSheetFile( filename );
 		switch( loadedFile.status ) {
@@ -1030,15 +1035,22 @@ void BurzaDialogs::RegisterButtonImportMultiSellers( void )
 				// even if file was loaded there may be some values that invalidate the content. Check these values.
 				if ( Centrala::Register().SellerExists( loadedFile.seller.shortcode ) ) {
 					error += ConvFuncs::FormatCstr( _( " Predajca s rovnakým kódom už existuje. Zmažte najskôr predajcu '%s'." ), loadedFile.seller.shortcode.c_str() );
+					loadStatusShort += "Duplicate ";
 					break;
 				}
 
 				if ( loadedFile.itemsWithZeroPrice > 0 )
+				{
 					error += ConvFuncs::FormatCstr(_(" Obsahuje %i ks tovaru s nulovou cenou"), loadedFile.itemsWithZeroPrice );
+					loadStatusShort += "ZeroPrices ";
+				}
 				
 				if ( loadedFile.itemsWithoutName > 0 )
+				{
 					error += ConvFuncs::FormatCstr(_(" Obsahuje %i ks tovaru bez mena"), loadedFile.itemsWithoutName );
-
+					loadStatusShort += "NoItemNames ";
+				}
+				
 				if ( error.empty() )
 				{
 					readAndValid = true;
@@ -1059,48 +1071,53 @@ void BurzaDialogs::RegisterButtonImportMultiSellers( void )
 						Centrala::Register().SetItemBestMatchingProductCategory( loadedFile.items[i], itemCategories );
 					
 					Centrala::Storage().AddItems( loadedFile.items, loadedFile.seller.id );
+					
+					loadStatusShort += "OK ";
 				}
 				break;
 			case BurzaRegister::FormatNotKnown:
 				error = _("Neznámy typ súboru. Podporované su 'ods', 'xls', 'xlsx', 'txt'");
+				loadStatusShort += "UnsupportedType ";
 				break;
 			case BurzaRegister::FormatNotSupported:
 				error = _("Nepodporovany format suboru");
+				loadStatusShort += "UnknownType ";
 				break;
 			case BurzaRegister::ErrorImporting:
 			default:
 				error = "Error importing file." + loadedFile.errorText;
+				loadStatusShort += "ErrorOther ";
 				break;
 		}
 		
-		string infoText = _("Spracovaný súbor");
-		infoText += "\n";
-		infoText += fileNameShort;
-		infoText += "\n";
+		string infoText = fileNameShort;
+		infoText += ";";
+		infoText += loadStatusShort;
+		infoText += ";";
+		infoText += loadedFile.seller.shortcode;
+		infoText += ";";
+		infoText += ConvFuncs::FormatCstr( "%i", loadedFile.items.size() );
+		infoText += ";";
 		
 		if ( readAndValid ) {
-			infoText += 
-				ConvFuncs::FormatCstr(_(" načítaný, kód '%s', %i kusov tovaru;"),
-				loadedFile.seller.shortcode.c_str(),
-				loadedFile.items.size() );
 			
 			SellerCategoryArray categories = Centrala::Storage().GetSellersCategories();
 			loadedFile.seller.category = categories.empty() ? SELLER_CATEGORY_ID_NONE : categories.begin()->id;
 		}
-
+		
 		if ( !error.empty() )
 		{
-			infoText += _( " Chyba: " ) + error + ";";
+			ImportMultiSellersLog( _( " Chyba: " ) + error + ";" );
 		}
 
 		if ( !warning.empty() )
 		{
-			infoText += _( " Varovanie: " ) + warning + ";";
+			ImportMultiSellersLog( _( " Varovanie: " ) + warning + ";" );
 		}
 
 		if ( !info.empty() )
 		{
-			infoText += _( " Info: " ) + info + ";";
+			ImportMultiSellersLog( _( " Info: " ) + info + ";" );
 		}
 
 		// move file to dedicated folder:
@@ -1119,11 +1136,11 @@ void BurzaDialogs::RegisterButtonImportMultiSellers( void )
 
 		string dest = path + targetFolder + "/" + ConvFuncsInstance->Find_CurrentFileName();
 		if ( 0 == ConvFuncsInstance->DoMoveFile( filename.c_str(), dest.c_str() ) ) {
-			infoText += _( " Chyba pri presune na miesto: " ) + dest;
+			ImportMultiSellersLog( _( " Chyba pri presune na miesto: " ) + dest );
 			warning = "!!";
 		}
 
-		ImportMultiSellersLog( infoText );
+		infoTexts.push_back( infoText );
 
 		if ( warning.empty() && error.empty() )
 			++finishedCount;
@@ -1147,15 +1164,18 @@ void BurzaDialogs::RegisterButtonImportMultiSellers( void )
 	{
 		ErrorHandling::HandleException( e );
 	}
-
+	
+	for ( int i = 0; i < infoTexts.size(); ++i )
+	{
+		ImportMultiSellersLog( infoTexts[ i ] );
+	}
+	
 	ReloadSellers();
 }
 
 void BurzaDialogs::ImportMultiSellersLog(const char* text)
 {
-	LogS( InfoMajor, "ImportMultiSellers: " );
-	LogS( InfoMajor, text );
-	LogS( InfoMajor, "\n" );
+	LogS( InfoMajor, "ImportMultiSellers: %s\n", text );
 }
 
 void BurzaDialogs::ImportMultiSellersLog(std::string text)
@@ -2251,6 +2271,11 @@ void BurzaDialogs::RegisterButtonOtherActions( void )
 
 bool BurzaDialogs::RegisterButtonStats( GdkEventButton* button )
 {
+	SELLER_ID seller_id = RegisterGetSelectedSellerId();
+	StressTest::StressTest1( seller_id );
+	return false;
+	
+
 	string offeredName = BurzaDialogsFileHelper::FormatDateTimeFileName( _("Statistika"), "pdf" );
 	string name = BurzaDialogsFileHelper::AskToSaveDocumentFile( offeredName );
 	if ( name.empty() )

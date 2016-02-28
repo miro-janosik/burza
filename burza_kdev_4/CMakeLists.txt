@@ -10,6 +10,7 @@ MESSAGE("CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
 set(Burza_VERSION_MAJOR 1)
 set(Burza_VERSION_MINOR 03)
 ADD_DEFINITIONS(-D_UNIX)
+ADD_DEFINITIONS(-std=c++11)
 
 OPTION( DOES_NOTHING "This option does nothing, it is as hint." ON )
 
@@ -36,7 +37,7 @@ include_directories(
  )
 
 find_package(PkgConfig)
-pkg_check_modules(GTKMM REQUIRED gtkmm-3.0)
+pkg_check_modules(GTKMM REQUIRED gtkmm-2.4)
 pkg_check_modules(GLADEMM REQUIRED libglademm-2.4)
 pkg_check_modules(ICU REQUIRED icu)
 
@@ -77,7 +78,7 @@ target_link_libraries(burza
   ${GLADEMM_LIBRARIES}
   ${ICU_LIBRARIES}
   ${PQXX_LIBRARIES}
-  "${PRJ_LIB_DIR}/libharu/lib/libhpdf.a"
+  "${PRJ_LIB_DIR}/libharu/lib/libhpdfs.a"
 #  "${PRJ_LIB_DIR}/libXL/libxl.so"
 
 # this is here just because automated thing does not work. Remove after it starts to behave correctly.
@@ -85,4 +86,7 @@ target_link_libraries(burza
   
 # deflate of zlib is missing for hpdf
   -lz
+  
+# std threads c++11
+  -lpthread
   )
