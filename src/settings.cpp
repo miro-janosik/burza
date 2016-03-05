@@ -82,7 +82,11 @@ void ProgramSettings::LoadSettings( void )
 
 			node = server->GetAttribute("password");
 			if (node->IsValid())
-				dbPassword = node->GetValue();
+			{
+				std::string encodedPassword = node->GetValue();
+				// decode password from config file
+				dbPassword = DecodePassword( encodedPassword );
+			}
 
 			node = server->GetAttribute("dbname");
 			if (node->IsValid())
@@ -132,9 +136,11 @@ void ProgramSettings::SaveSettings( void )
 	
 	server->AddAttribute("databaseInLocalFiles", databaseInLocalFiles ? "True" : "False" );
 	
+	// encode password before storing it to config file
+	std::string encodedPassword = EncodePassword( dbPassword );
 	server->AddAttribute("address", dbAddress.c_str() );
 	server->AddAttribute("user", dbUser.c_str() );
-	server->AddAttribute("password", dbPassword.c_str() );
+	server->AddAttribute("password", encodedPassword.c_str() );
 	server->AddAttribute("dbname", dbName.c_str() );
 	server->AddAttribute("port")->SetValueInt( dbPort );
 
@@ -194,4 +200,59 @@ void ProgramSettings::Apply( void )
 		BurzaDialogs::DisplayErrorMessageBox( errorString, "Error initing dialog." );
 		throw runtime_error( errorString );
 	}
+}
+
+static std::string base64_encode(const std::string &in) {
+
+    std::string out;
+
+    int val=0, valb=-6;
+    for (unsigned char c : in) {
+        val = (val<<8) + c;
+        valb += 8;
+        while (valb>=0) {
+            out.push_back("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"[(val>>valb)&0x3F]);
+            valb-=6;
+        }
+    }
+    if (valb>-6) out.push_back("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"[((val<<8)>>(valb+8))&0x3F]);
+    while (out.size()%4) out.push_back('=');
+    return out;
+}
+
+static std::string base64_decode(const std::string &in) {
+
+    std::string out;
+
+    std::vector<int> T(256,-1);
+    for (int i=0; i<64; i++) T["ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"[i]] = i; 
+
+    int val=0, valb=-8;
+    for (unsigned char c : in) {
+        if (T[c] == -1) break;
+        val = (val<<6) + T[c];
+        valb += 6;
+        if (valb>=0) {
+            out.push_back(char((val>>valb)&0xFF));
+            valb-=8;
+        }
+    }
+    return out;
+}
+
+std::string ProgramSettings::EncodePassword(const std::string&  decoded)
+{
+	return base64_encode(decoded);
+}
+
+std::string ProgramSettings::DecodePassword(const std::string&  encoded)
+{
+	return base64_decode(encoded);
+}
+
+std::string ProgramSettings::HidePartOfPassword(const std::string&  pwd)
+{
+	std::string partial = pwd.substr(0, 1);
+	partial += "[...]";
+	return partial;
 }

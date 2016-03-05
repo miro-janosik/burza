@@ -2275,7 +2275,6 @@ bool BurzaDialogs::RegisterButtonStats( GdkEventButton* button )
 	StressTest::StressTest1( seller_id );
 	return false;
 	
-
 	string offeredName = BurzaDialogsFileHelper::FormatDateTimeFileName( _("Statistika"), "pdf" );
 	string name = BurzaDialogsFileHelper::AskToSaveDocumentFile( offeredName );
 	if ( name.empty() )
@@ -2318,7 +2317,8 @@ bool BurzaDialogs::RegisterButtonSettings( GdkEventButton* button )
 	settingsWindow.comboFontSize->clear();
 	int selectedFontIndex = 0;
 
-	for( int i = 0; i < ProgramSettings::predefined.listOfFontSizes.size(); ++i ) {
+	for( int i = 0; i < ProgramSettings::predefined.listOfFontSizes.size(); ++i ) 
+	{
 		settingsWindow.comboFontSize->append_text( 
 			ProgramSettings::predefined.listOfFontSizes[ i ].text );
 		if ( settings->fontSize == ProgramSettings::predefined.listOfFontSizes[ i ].size )
@@ -2336,9 +2336,11 @@ bool BurzaDialogs::RegisterButtonSettings( GdkEventButton* button )
 
 	settingsWindow.editDbAddress->set_text( settings->dbAddress );
 	settingsWindow.editDbUser->set_text( settings->dbUser );
-	settingsWindow.editDbPassword->set_text( settings->dbPassword );
 	settingsWindow.editDbPort->set_text( ConvFuncs::FormatStdStr( "%i", settings->dbPort ) );
-
+	
+	auto passwordPartial = ProgramSettings::HidePartOfPassword( settings->dbPassword );
+	settingsWindow.editDbPassword->set_text( passwordPartial );
+	
 	settingsWindow.dialog->run();
 	return true;
 }
@@ -2383,9 +2385,18 @@ void BurzaDialogs::SettingsClickedButtonOk( void )
 
 	settings->dbAddress = settingsWindow.editDbAddress->get_text();
 	settings->dbUser = settingsWindow.editDbUser->get_text();
-	settings->dbPassword = settingsWindow.editDbPassword->get_text();
 	settings->dbPort = atoi( settingsWindow.editDbPort->get_text().c_str() );
-
+	
+	// if user did not modify the password then it still may be the 'partial' password text
+	// that was filled into the textbox. In that case do not store the password, because
+	// it was not modified.
+	string possiblyPartialPassword = settingsWindow.editDbPassword->get_text();
+	auto passwordPartial = ProgramSettings::HidePartOfPassword( settings->dbPassword );
+	if (possiblyPartialPassword != passwordPartial)
+	{
+		settings->dbPassword = possiblyPartialPassword;
+	}
+	
 	settings->SaveSettings();
 	settings->Apply();
 

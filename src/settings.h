@@ -33,6 +33,9 @@ public:
 	void LoadSettings( void );
 	void SaveSettings( void );
 	void Apply( void );
+	static std::string	EncodePassword(const std::string& decoded);
+	static std::string	DecodePassword(const std::string& encoded);
+	static std::string	HidePartOfPassword(const std::string& pwd);
 
 	//! for example "e" (euro sign), "Kè" (czech krown),
 	std::string		currencySign;
@@ -75,6 +78,7 @@ public:
 private:
 	//! current exe path
 	std::string			exePath;
+	
 } ;
 
 } ; // end namespace Burza
