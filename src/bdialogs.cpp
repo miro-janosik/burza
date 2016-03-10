@@ -2271,10 +2271,6 @@ void BurzaDialogs::RegisterButtonOtherActions( void )
 
 bool BurzaDialogs::RegisterButtonStats( GdkEventButton* button )
 {
-	SELLER_ID seller_id = RegisterGetSelectedSellerId();
-	StressTest::StressTest1( seller_id );
-	return false;
-	
 	string offeredName = BurzaDialogsFileHelper::FormatDateTimeFileName( _("Statistika"), "pdf" );
 	string name = BurzaDialogsFileHelper::AskToSaveDocumentFile( offeredName );
 	if ( name.empty() )
@@ -2505,17 +2501,6 @@ void BurzaDialogs::RegisterButtonReviewOfSellers( void )
 		for( unsigned int i=0; i<SellersOrdered.size(); i++ ) {
 			recipees.PrintSellerReturnSheet( pdf, SellersOrdered[ i ].id );
 		}
-		
-		/*
-		SellerData seller;
-		for ( int i=0; i<SellersOrdered.size(); ++i)
-		{
-			seller = SellersOrdered[i];
-			if (seller.shortcode == "AAK")
-				break;
-		}
-		recipees.PrintSellerReturnSheet( pdf, seller.id );
-		*/
 		
 		pdf.ClosePDF();
 

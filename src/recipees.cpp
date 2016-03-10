@@ -89,19 +89,21 @@ void Recipees::AddProgramPageHeaderAndFooter( PdfWrapperBase& pdf )
 {
 	pdf.SetFontSize( 1 );
 	
+	string page = ConvFuncs::FormatStdStr(_("(Strana %i) "), pdf.CurrentPageNumber() );
+	
 	// header
 	pdf.WriteSingleText( 2, 2, 
-		ConvFuncs::FormatStdStr(_("Dokument vytvorený '%s' na burze '%s'."), 
+		page + ConvFuncs::FormatStdStr(_("Dokument vytvorený '%s' na burze '%s'."), 
 		ConvFuncsInstance->CurDateTimeString(),
-		Centrala::Settings().m_name_of_the_sale.c_str()));
+		Centrala::Settings().m_name_of_the_sale.c_str()) );
 	
 	// center free area is in vertical range "2% - 98%"
 	
 	//footer
 	pdf.WriteSingleText( 2, footerTop, 
-		ConvFuncs::FormatStdStr(_("Dokument vytvorený '%s' na počítači '%s'."), 
+		page + ConvFuncs::FormatStdStr(_("Dokument vytvorený '%s' na počítači '%s'."), 
 		ConvFuncsInstance->CurDateTimeString(),
-		Centrala::Settings().m_computer_name.c_str()));
+		Centrala::Settings().m_computer_name.c_str()) );
 	pdf.WriteSingleText( 2, footerTop + 1, 
 		ConvFuncs::FormatStdStr(_("Program má licenciu '%s'."), 
 		"Demo - zdarma"));
@@ -277,12 +279,13 @@ void Recipees::PrintSellerReturnSheet( PdfWrapperBase& pdf, SELLER_ID id )
 	TableColumnSpecs	columns;
 	string str;
 
-	columns.AddColumn( _("cislo"), 5 );
+	columns.AddColumn( _("cislo"), 3 );
 	columns.AddColumn( _("nazov"), 57 );
-	columns.AddColumn( _("cena"), 7 );
+	columns.AddColumn( _("cena"), 6 );
 	columns.AddColumn( _("kat"), 6 );
 	columns.AddColumn( _("stav"), 8 );
 	columns.AddColumn( _("predane"), 7 );
+	columns.AddColumn( _("cislo"), 3 );
 	
 	ItemDataArray sellerItems = Centrala::Storage().GetSellerItems( id );
 
@@ -293,7 +296,8 @@ void Recipees::PrintSellerReturnSheet( PdfWrapperBase& pdf, SELLER_ID id )
 	
 	for(int i=0; i<sellerItems.size(); ++i ) {
 		
-		items.Cell( i, 0 ) = ConvFuncs::FormatStdStr( "%i", sellerItems[ i ].number );
+		string num = ConvFuncs::FormatStdStr( "%i", sellerItems[ i ].number );
+		items.Cell( i, 0 ) = num;
 		items.Cell( i, 1 ) = sellerItems[ i ].name;
 		items.Cell( i, 2 ) = ConvFuncs::FormatStdStr( "%8.2f", sellerItems[ i ].price );
 		ItemCategory cat =  DataAccessInterface::GetItemCategory( sellerItems[ i ].category, itemCategories );
@@ -304,6 +308,8 @@ void Recipees::PrintSellerReturnSheet( PdfWrapperBase& pdf, SELLER_ID id )
 			items.Cell( i, 5 ) = ConvFuncs::FormatStdStr( "%10.2f", sellerItems[ i ].price );
 			sum += sellerItems[ i ].price;
 		}
+
+		items.Cell( i, 6 ) = num;
 	}
 
 	ypos = DrawTableSplitOnPages( pdf, 5, ypos, items, columns );
@@ -315,7 +321,7 @@ void Recipees::PrintSellerReturnSheet( PdfWrapperBase& pdf, SELLER_ID id )
 	TableOfCells	sumCells;
 	TableColumnSpecs	sumColumns;
 	
-	sumColumns.AddColumn( "", 83 );
+	sumColumns.AddColumn( "", 50 );
 	sumColumns.AddColumn( "", 7 );
 
 	// add sum of the items that were sold
@@ -352,7 +358,7 @@ void Recipees::PrintSellerReturnSheet( PdfWrapperBase& pdf, SELLER_ID id )
 	++row;
 	sumCells.Cell( row, 0 ) = _( "Nepredané veci a peniaze prevzal : " );
 
-	DrawTableSplitOnPages( pdf, 5, ypos, sumCells, sumColumns );
+	DrawTableSplitOnPages( pdf, 35, ypos, sumCells, sumColumns );
 }
 
 float Recipees::AdvanceYpos( float ypos, float percent )

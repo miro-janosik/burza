@@ -31,6 +31,9 @@ public:
 	virtual void ClosePDF( void ) = 0;
 	
 	virtual void NewPage( string name ) = 0;
+	
+	// 1-based number. May return 0 while document does not have any page.
+	virtual unsigned int CurrentPageNumber( void ) = 0;
 
 	//! font name, for example "Helvetica"
 	virtual void SetFontFace( string name ) = 0;
@@ -94,6 +97,9 @@ public:
   
 	void NewPage( string name );
 	
+	// 1-based number. May return 0 while document does not have any page.
+	unsigned int CurrentPageNumber( void );
+	
 	void SetFontFace( string name );
 	void SetFontSize( float size );
 	
@@ -152,6 +158,7 @@ private:
 	void FontPrintTest( void );
 
 	string		currentPageTitle;
+	unsigned int	currentPageNumber;
 } ;
 
 }; // namespace
