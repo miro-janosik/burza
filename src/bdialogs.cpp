@@ -1572,8 +1572,10 @@ void BurzaDialogs::CashoutButtonAddItem( void )
 	ItemCategory itemcat = Centrala::Storage().GetItemCategory( item.category );
 	SellerData seller = Centrala::Storage().GetSeller( item.seller_id );
 	Gtk::TreeModel::Row row;
+	Gtk::TreeModel::iterator rowIterator;
 	
-	row = * (m_CashoutItemsListModel->append());
+	rowIterator = m_CashoutItemsListModel->append();
+	row = *(rowIterator);
 	
 	row[ m_ItemsColumn.m_number ] = ConvFuncsInstance->FormatCstr( "%s - %i", seller.shortcode.c_str(), item.number );
 	row[ m_ItemsColumn.m_name ] = item.name;
@@ -1583,6 +1585,9 @@ void BurzaDialogs::CashoutButtonAddItem( void )
 		DataAccessInterface::ItemStatus2String( item.status ) );
 	row[ m_ItemsColumn.m_seller_id ] = item.seller_id;
 	row[ m_ItemsColumn.m_item_id ] = item.id;
+	
+	Gtk::TreeModel::Path rowPath( rowIterator );
+	m_pCashoutTreeViewList->scroll_to_row( rowPath );
 	
 	m_shoppingCart.push_back( item.id );
 	
