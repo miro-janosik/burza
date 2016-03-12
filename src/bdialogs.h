@@ -184,6 +184,11 @@ private:
 
 	// Logs message from multi seller importer. Logs to file or to screen
 	void ImportMultiSellersLog(string text);
+
+	// Sort function that orders row by numeric value of the text
+	// Used for number/price columns
+	int SortRegisterItemsNumberFunc(const Gtk::TreeIter& a, const Gtk::TreeIter& b);
+	int SortRegisterItemsPriceFunc(const Gtk::TreeIter& a, const Gtk::TreeIter& b);
 	
 public:
 	Burza::BurzaRegister			*mp_register;
@@ -314,6 +319,7 @@ public:
 		Gtk::TreeModelColumn<Glib::RefPtr<Gdk::Pixbuf> > m_state_pic;
 		Gtk::TreeModelColumn<bool> m_state_checkbox;
 	};
+
 
 	Glib::RefPtr<Gdk::Pixbuf>	registerColumnStateImages[ Burza::ItemStatusCountWithUndefined ];
 

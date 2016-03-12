@@ -274,6 +274,9 @@ int BurzaDialogs::SetupDialogs( void )
 	m_pTreeViewItems->append_column( "cena", m_ItemsColumn.m_price );
 	m_pTreeViewItems->append_column( "kategoria", m_ItemsColumn.m_category );
 	
+	m_RegisterItemsListModel->set_sort_func(m_ItemsColumn.m_number, sigc::mem_fun(*this, &BurzaDialogs::SortRegisterItemsNumberFunc));
+	m_RegisterItemsListModel->set_sort_func(m_ItemsColumn.m_price, sigc::mem_fun(*this, &BurzaDialogs::SortRegisterItemsPriceFunc));
+
 	//Make all the columns reorderable:
 	//This is not necessary, but it's nice to show the feature.
 	//You can use TreeView::set_column_drag_function() to more
@@ -678,14 +681,6 @@ void BurzaDialogs::RegisterDisplaySeller(SellerData& seller)
 	Gtk::TreeModel::Row row;
 	m_RegisterItemsListModel->clear();
 	
-	/* remove also properties: registerItemCheckBoxes.clear();
-	
-	for( int i=0; i<items.size(); i++ ) {
-		registerItemCheckBoxes.push_back( new CellItem_Bug() );
-		registerItemCheckBoxes2[ i ] = false;
-	}
-	*/
-
 	for( int i=0; i<items.size(); i++ ) {
 		
 		row = * (m_RegisterItemsListModel->append());
@@ -2252,22 +2247,7 @@ void BurzaDialogs::CashoutEditSearchEntryChanged( void )
 		m_pCashoutComboSearch->append_text( str );
 		cashoutComboSearchItemDatas.push_back( foundItems[ i ] );
 	}
-
-	/*
-	if ( ! foundItems.empty() ) {
-		m_pCashoutComboSearch->popup();
-	}
-	m_pCashoutComboSearchEntry->activate();
-	m_pCashoutComboSearchEntry->grab_focus();
-	*/
 }
-
-/*
-void BurzaDialogs::RegisterButtonSettings( void )
-{
-	settingsWindow.dialog->run();
-}
-*/
 
 void BurzaDialogs::RegisterButtonOtherActions( void )
 {
@@ -2348,7 +2328,6 @@ bool BurzaDialogs::RegisterButtonSettings( GdkEventButton* button )
 
 void BurzaDialogs::SettingsClickedButtonRequestLicence( void )
 {
-//	MessageEditBox
 	std::string vlastnik = "[vlastník]";
 	MessageEditBox( "Prosím zadajte názov vlastníka licencie", vlastnik );
 }
@@ -2892,4 +2871,33 @@ void BurzaDialogs::RegisterSellerStatusRadioChanged( void )
 	}
 	
 	RegisterSellerModified( seller );
+}
+
+int BurzaDialogs::SortRegisterItemsNumberFunc(const Gtk::TreeIter& a, const Gtk::TreeIter& b)
+{
+	string vala = (*a)[ m_ItemsColumn.m_number ];
+	string valb = (*b)[ m_ItemsColumn.m_number ];
+	
+	double numa, numb;
+	if (!ConvFuncs::StringToDouble(vala, numa) || !ConvFuncs::StringToDouble(valb, numb))
+	{
+		return 0;
+	}
+	
+	return numa - numb;
+}
+
+int BurzaDialogs::SortRegisterItemsPriceFunc(const Gtk::TreeIter& a, const Gtk::TreeIter& b)
+{
+	string vala = (*a)[ m_ItemsColumn.m_price ];
+	string valb = (*b)[ m_ItemsColumn.m_price ];
+	
+	double numa, numb;
+	if (!ConvFuncs::StringToDouble(vala, numa) || !ConvFuncs::StringToDouble(valb, numb))
+	{
+		return 0;
+	}
+	
+	double dif = numa - numb;
+	return (dif == 0 ? 0 : (dif > 0 ? 1 : -1));
 }

@@ -2149,3 +2149,20 @@ bool ConvFuncs::StringToDouble(string text, double& output)
 	
 	return true;
 }
+
+bool ConvFuncs::StringToInt(string text, long int& output)
+{
+	for_each( text.begin(), text.end(), CommaToDot);
+	
+	const char* start = text.c_str();
+	char* end;
+	output = strtol(start, &end, 10);
+	
+	if (start == end)
+	{
+		LogS(InfoError, "Could not convert text %s to number.", text.c_str());
+		return false;
+	}
+	
+	return true;
+}

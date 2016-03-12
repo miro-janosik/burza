@@ -349,6 +349,7 @@ public:
 
 	// returns true if parsing went ok.
 	static bool		StringToDouble(std::string text, double& output);
+	static bool 	StringToInt(std::string text, long int& output);
 	
 	//various utils
 	int				WaitForKey( void );
