@@ -14,6 +14,11 @@
 #include <string>
 #include <vector>
 
+#include <algorithm> 
+#include <functional> 
+#include <cctype>
+#include <locale>
+
 #if ( defined( _WIN32 ) || defined( _DOS ))
 /*
 	#ifdef _WIN32
@@ -313,6 +318,23 @@ public:
 	//! Gets words from the string into array.
 	//! Does not clear tokens array.
 	static void Tokenize(const std::string& str, std::vector<std::string>& tokens, const std::string& delimiters = " ");
+	
+	// trim from start
+	static inline std::string &ltrim(std::string &s) {
+		s.erase(s.begin(), std::find_if(s.begin(), s.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
+		return s;
+	}
+
+	// trim from end
+	static inline std::string &rtrim(std::string &s) {
+		s.erase(std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
+		return s;
+	}
+
+	// trim from both ends
+	static inline std::string &trim(std::string &s) {
+		return ltrim(rtrim(s));
+	}	
 	
 	// returns 1 if string represents a number (int or float)
 	// returns 0 otherwise

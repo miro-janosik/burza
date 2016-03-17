@@ -2,6 +2,88 @@
 <glade-interface>
   <!-- interface-requires gtk+ 2.16 -->
   <!-- interface-naming-policy toplevel-contextual -->
+  <widget class="GtkWindow" id="LoadFilesProgress">
+    <property name="can_focus">False</property>
+    <property name="modal">True</property>
+    <property name="window_position">center-on-parent</property>
+    <property name="default_width">640</property>
+    <property name="default_height">480</property>
+    <property name="destroy_with_parent">True</property>
+    <property name="deletable">False</property>
+    <child>
+      <widget class="GtkVBox" id="vbox1">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="border_width">5</property>
+        <property name="spacing">5</property>
+        <child>
+          <widget class="GtkLabel" id="label1">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="xalign">0.10000000149011612</property>
+            <property name="label" translatable="yes">Loading files...</property>
+          </widget>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkTextView" id="loading_text">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="editable">False</property>
+          </widget>
+          <packing>
+            <property name="expand">True</property>
+            <property name="fill">True</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkHBox" id="hbox1">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <child>
+              <placeholder/>
+            </child>
+            <child>
+              <widget class="GtkButton" id="buttonInterrupt">
+                <property name="label" translatable="yes">Prerušiť</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+              </widget>
+              <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+            <child>
+              <widget class="GtkButton" id="buttonFinished">
+                <property name="label" translatable="yes">Hotovo</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+              </widget>
+              <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">2</property>
+              </packing>
+            </child>
+          </widget>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">2</property>
+          </packing>
+        </child>
+      </widget>
+    </child>
+  </widget>
   <widget class="GtkDialog" id="MessageEditBox">
     <property name="can_focus">False</property>
     <property name="border_width">5</property>
@@ -25,7 +107,6 @@
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="border_width">5</property>
-                <property name="use_action_appearance">False</property>
                 <property name="use_stock">True</property>
               </widget>
               <packing>
@@ -41,7 +122,6 @@
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="border_width">5</property>
-                <property name="use_action_appearance">False</property>
                 <property name="use_stock">True</property>
               </widget>
               <packing>
@@ -113,7 +193,6 @@
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="use_action_appearance">False</property>
                 <property name="use_stock">True</property>
               </widget>
               <packing>
@@ -185,7 +264,6 @@
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
-                    <property name="use_action_appearance">False</property>
                   </widget>
                   <packing>
                     <property name="expand">True</property>
@@ -199,7 +277,6 @@
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
-                    <property name="use_action_appearance">False</property>
                   </widget>
                   <packing>
                     <property name="expand">True</property>
@@ -231,6 +308,18 @@
                 <property name="can_focus">False</property>
                 <property name="n_rows">4</property>
                 <property name="n_columns">2</property>
+                <child>
+                  <placeholder/>
+                </child>
+                <child>
+                  <placeholder/>
+                </child>
+                <child>
+                  <placeholder/>
+                </child>
+                <child>
+                  <placeholder/>
+                </child>
                 <child>
                   <widget class="GtkLabel" id="label1">
                     <property name="visible">True</property>
@@ -278,18 +367,6 @@
                     <property name="x_options">GTK_EXPAND</property>
                   </packing>
                 </child>
-                <child>
-                  <placeholder/>
-                </child>
-                <child>
-                  <placeholder/>
-                </child>
-                <child>
-                  <placeholder/>
-                </child>
-                <child>
-                  <placeholder/>
-                </child>
               </widget>
               <packing>
                 <property name="expand">True</property>
@@ -321,7 +398,6 @@
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">False</property>
-                    <property name="use_action_appearance">False</property>
                     <property name="active">True</property>
                     <property name="draw_indicator">True</property>
                   </widget>
@@ -337,7 +413,6 @@
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">False</property>
-                    <property name="use_action_appearance">False</property>
                     <property name="active">True</property>
                     <property name="draw_indicator">True</property>
                     <property name="group">radio_1file</property>
@@ -677,7 +752,6 @@
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="border_width">3</property>
-                <property name="use_action_appearance">False</property>
                 <child>
                   <widget class="GtkHBox" id="hbox21">
                     <property name="visible">True</property>
@@ -732,7 +806,6 @@
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="border_width">3</property>
-                <property name="use_action_appearance">False</property>
                 <property name="xalign">0.80000001192092896</property>
                 <child>
                   <widget class="GtkHBox" id="hbox22">
@@ -886,7 +959,6 @@
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="border_width">10</property>
-                <property name="use_action_appearance">False</property>
                 <child>
                   <widget class="GtkHBox" id="hbox19">
                     <property name="visible">True</property>
@@ -954,7 +1026,6 @@
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="border_width">10</property>
-                <property name="use_action_appearance">False</property>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -1134,7 +1205,6 @@
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="use_action_appearance">False</property>
                 <property name="use_stock">True</property>
               </widget>
               <packing>
@@ -1150,7 +1220,6 @@
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="use_action_appearance">False</property>
                 <property name="use_stock">True</property>
                 <property name="image_position">right</property>
               </widget>
@@ -1249,7 +1318,6 @@
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="border_width">5</property>
-                <property name="use_action_appearance">False</property>
                 <child>
                   <widget class="GtkHBox" id="hbox16">
                     <property name="visible">True</property>
@@ -1296,7 +1364,6 @@
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="border_width">5</property>
-                <property name="use_action_appearance">False</property>
                 <child>
                   <widget class="GtkHBox" id="hbox2">
                     <property name="visible">True</property>
@@ -1343,7 +1410,6 @@
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="border_width">5</property>
-                <property name="use_action_appearance">False</property>
                 <child>
                   <widget class="GtkHBox" id="hbox1">
                     <property name="visible">True</property>
@@ -1390,7 +1456,6 @@
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="border_width">5</property>
-                <property name="use_action_appearance">False</property>
                 <child>
                   <widget class="GtkHBox" id="hbox17">
                     <property name="visible">True</property>
@@ -1472,7 +1537,6 @@
                 <property name="receives_default">True</property>
                 <property name="extension_events">cursor</property>
                 <property name="border_width">5</property>
-                <property name="use_action_appearance">False</property>
               </widget>
               <packing>
                 <property name="expand">True</property>
@@ -1486,7 +1550,6 @@
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="border_width">5</property>
-                <property name="use_action_appearance">False</property>
                 <child>
                   <widget class="GtkHBox" id="hbox18">
                     <property name="visible">True</property>
@@ -1533,7 +1596,6 @@
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="border_width">5</property>
-                <property name="use_action_appearance">False</property>
               </widget>
               <packing>
                 <property name="expand">True</property>
@@ -1559,7 +1621,6 @@
                 <property name="receives_default">True</property>
                 <property name="extension_events">cursor</property>
                 <property name="border_width">5</property>
-                <property name="use_action_appearance">False</property>
                 <child>
                   <widget class="GtkHBox" id="hbox20">
                     <property name="visible">True</property>
@@ -1645,7 +1706,6 @@
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">False</property>
-                    <property name="use_action_appearance">False</property>
                     <property name="active">True</property>
                     <property name="draw_indicator">True</property>
                   </widget>
@@ -1661,7 +1721,6 @@
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">False</property>
-                    <property name="use_action_appearance">False</property>
                     <property name="active">True</property>
                     <property name="draw_indicator">True</property>
                     <property name="group">radiobuttonSellerStateImported</property>
@@ -1678,7 +1737,6 @@
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">False</property>
-                    <property name="use_action_appearance">False</property>
                     <property name="active">True</property>
                     <property name="draw_indicator">True</property>
                     <property name="group">radiobuttonSellerStateImported</property>
@@ -1704,7 +1762,6 @@
                 <property name="receives_default">True</property>
                 <property name="extension_events">cursor</property>
                 <property name="border_width">15</property>
-                <property name="use_action_appearance">False</property>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -1748,7 +1805,6 @@
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="border_width">3</property>
-                <property name="use_action_appearance">False</property>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -1774,7 +1830,6 @@
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="border_width">4</property>
-                <property name="use_action_appearance">False</property>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -1847,7 +1902,7 @@
               <packing>
                 <property name="top_attach">2</property>
                 <property name="bottom_attach">3</property>
-                <property name="x_options"></property>
+                <property name="x_options"/>
               </packing>
             </child>
             <child>
@@ -1963,7 +2018,6 @@
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="use_action_appearance">False</property>
                 <property name="use_stock">True</property>
               </widget>
               <packing>
@@ -1979,7 +2033,6 @@
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="use_action_appearance">False</property>
                 <property name="use_stock">True</property>
                 <property name="image_position">right</property>
               </widget>
@@ -2007,7 +2060,6 @@
       <widget class="GtkMenuItem" id="menuItemSettings">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-        <property name="use_action_appearance">False</property>
         <property name="label" translatable="yes">Nastavenia</property>
         <property name="use_underline">True</property>
       </widget>
@@ -2016,7 +2068,6 @@
       <widget class="GtkMenuItem" id="menuItemSaveSellerOverview">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-        <property name="use_action_appearance">False</property>
         <property name="label" translatable="yes">Ulož prehľad predajcov</property>
         <property name="use_underline">True</property>
       </widget>
@@ -2025,7 +2076,6 @@
       <widget class="GtkMenuItem" id="menuitemStats">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-        <property name="use_action_appearance">False</property>
         <property name="label" translatable="yes">Štatistika</property>
         <property name="use_underline">True</property>
       </widget>

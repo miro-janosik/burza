@@ -305,9 +305,11 @@ BurzaRegister::LoadSellerSheetFileResult BurzaRegister::LoadSellerSheetFile(std:
 		}
 		if ( ext == "ods" ) {
 			result.status = BurzaRegister::FormatNotSupported;
+			//XXX
 		}
 		if ( ext == "xlsx" ) {
 			result.status = BurzaRegister::FormatNotSupported;
+			//XXX
 		}
 
 		if (knownType == false) {
@@ -349,7 +351,11 @@ BurzaRegister::LoadSellerSheetFileResult BurzaRegister::LoadSellerSheetFile(std:
 				++result.itemsWithPriceWithoutDecimalPart;
 		}
 	}
-
+	
+	// fix seller code
+	result.seller.shortcode = ConvFuncs::trim(result.seller.shortcode);
+	ConvFuncs::StdStringToUpper(result.seller.shortcode);
+	
 	return result;
 }
 

@@ -22,6 +22,7 @@
 #include "EditMessageBox.h"
 #include "stringencoding.h"
 #include "bdfilehelper.h"
+#include "LoadingMultipleFiles.h"
 
 #include "generator.h"
 #include "licence.h"
@@ -144,15 +145,21 @@ int BurzaDialogs::SetupDialogs( void )
 	if ( ! xmlWndRegisterPopupMenu )
 		error = "BiturnDialogsGtkmm::Init() error loading glade item from xml. 'menuRegisterOtherActions'";
 	
+	loadFileProgressWindow.xmlWindow = Gnome::Glade::Xml::create( glade_fname.c_str(), "LoadFilesProgress" );
+	if ( ! loadFileProgressWindow.xmlWindow )
+		error = "BiturnDialogsGtkmm::Init() error loading glade item from xml. 'LoadFilesProgress'";
+	
 	xmlWndRegister->get_widget( "Register", m_pWndRegister );
 	xmlWndCashOut->get_widget( "Pokladna", m_pWndCashOut );
 	xmlWndModifySeller->get_widget( "Predajca", m_pWndSeller );
 	xmlWndModifyItem->get_widget( "Tovar", m_pWndItem );
+	loadFileProgressWindow.xmlWindow->get_widget( "LoadFilesProgress", loadFileProgressWindow.window );
 	
 	if (( m_pWndRegister == NULL ) ||
 		( m_pWndCashOut == NULL ) ||
 		( m_pWndSeller == NULL ) ||
-		( m_pWndItem == NULL )) {
+		( m_pWndItem == NULL ) ||
+		( loadFileProgressWindow.window == NULL )) {
 		error = "Dialog file is corrupt [windows].";
 		throw;
 	}
@@ -588,6 +595,21 @@ int BurzaDialogs::SetupDialogs( void )
 	settingsWindow.buttonInstallLicence->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::SettingsClickedButtonInstallLicence ) );
 	settingsWindow.buttonOk->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::SettingsClickedButtonOk ) );
 
+	// ============== Load file progress window =================
+	
+	loadFileProgressWindow.xmlWindow->get_widget( "loading_text", loadFileProgressWindow.editLoadingText );
+	loadFileProgressWindow.xmlWindow->get_widget( "buttonFinished", loadFileProgressWindow.buttonOk );
+	loadFileProgressWindow.xmlWindow->get_widget( "buttonInterrupt", loadFileProgressWindow.buttonInterrupt );
+
+	if (( loadFileProgressWindow.editLoadingText == NULL ) ||
+		( loadFileProgressWindow.buttonOk == NULL ) ||
+		( loadFileProgressWindow.buttonInterrupt == NULL )) {
+		error = "Dialog file is corrupt [LoadFilesProgress].";
+		throw;
+	}	
+	
+	loadFileProgressWindow.ConnectButtons();
+	
 	// === --- === --- === throw - catch  === --- === --- ===
 	
 	}
@@ -943,239 +965,16 @@ void BurzaDialogs::RegisterButtonImportSeller( void )
 
 void BurzaDialogs::RegisterButtonImportMultiSellers( void )
 {
-	ImportMultiSellersLog( "Starting" );
-
 	if (DemoLimitsCanAddSeller() == false)
 		return;
-	
-	Gtk::FileChooserDialog dialog("Select folder with sheets", Gtk::FILE_CHOOSER_ACTION_SELECT_FOLDER );
 
-	dialog.set_transient_for( *m_pWndRegister );
-	//Add response buttons the the dialog:
-	dialog.add_button( Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL );
-	dialog.add_button( Gtk::Stock::OK, Gtk::RESPONSE_OK );
-	dialog.set_filename( Centrala::Settings().m_data_dir_path );
-	
-	if ( Centrala::Settings().directoryImport.empty() ) {
-		dialog.set_current_folder( Centrala::Settings().m_data_dir_path );
-	} else {
-		dialog.set_current_folder( Centrala::Settings().directoryImport );
-	}
-
-	int result = dialog.run();
-	//Handle the response:
-	switch(result) {
-	case(Gtk::RESPONSE_OK):
-		break;
-	case(Gtk::RESPONSE_CANCEL):
-	case Gtk::RESPONSE_DELETE_EVENT:
-	default:
-		//DisplayErrorMessageBox( "BiturnDialogsGtkmm::on_clicked_ViewDirs() Unexpected button clicked.\n" );
+	if (!loadFileProgressWindow.AskForFolder( *m_pWndRegister ))
+	{
 		return;
 	}
 	
-	// set back the import directory
-	Centrala::Settings().directoryImport = dialog.get_current_folder();
-	Centrala::Settings().directoryImport += "/";
-	string path = Centrala::Settings().directoryImport;
-	ImportMultiSellersLog( "Selected folder: " + path );
-
-	// create output folders
-	
-	const char folderFinished[] = "finished";
-	const char folderWarning[] = "warning";
-	const char folderError[] = "error";
-	vector<string> folderNames;
-	folderNames.push_back( folderFinished );
-	folderNames.push_back( folderWarning );
-	folderNames.push_back( folderError );
-
-	BurzaRegister::CreateFolders( path, folderNames );
-
-	SellerCategoryArray categories = Centrala::Storage().GetSellersCategories();
-	SELLER_CATEGORY_ID newSellerCategory = categories.empty() ? SELLER_CATEGORY_ID_NONE : categories.begin()->id;
-	ItemCategoryArray itemCategories = Centrala::Register().GetItemCategoriesForMatching();
-	
-	// == loop through the files ==
-	int finishedCount = 0, problemCount = 0;
-	
-	vector< string > infoTexts;
-	
-	try {
-		
-	bool found = ConvFuncsInstance->Find_FirstFile( path.c_str() );
-	while ( found )
-	{
-		// find can find anything in the folder .. skip directories, use only files.
-		if (ConvFuncsInstance->Find_CurrentIsDir()) {
-			// find next file
-			found = ConvFuncsInstance->Find_NextFile();			
-			continue;
-		}
-
-		string fileNameShort = ConvFuncsInstance->Find_CurrentFileName();
-		string filename = path + fileNameShort;
-
-		// true if read (even if there is error then print info about read data).
-		bool readAndValid = false;
-		string error, warning, info;
-
-		LogS( InfoMajor, "Loading %s\n", fileNameShort.c_str());
-		string loadStatusShort;
-		
-		BurzaRegister::LoadSellerSheetFileResult loadedFile = mp_register->LoadSellerSheetFile( filename );
-		switch( loadedFile.status ) {
-			case BurzaRegister::Loaded:
-
-				// even if file was loaded there may be some values that invalidate the content. Check these values.
-				if ( Centrala::Register().SellerExists( loadedFile.seller.shortcode ) ) {
-					error += ConvFuncs::FormatCstr( _( " Predajca s rovnakým kódom už existuje. Zmažte najskôr predajcu '%s'." ), loadedFile.seller.shortcode.c_str() );
-					loadStatusShort += "Duplicate ";
-					break;
-				}
-
-				if ( loadedFile.itemsWithZeroPrice > 0 )
-				{
-					error += ConvFuncs::FormatCstr(_(" Obsahuje %i ks tovaru s nulovou cenou"), loadedFile.itemsWithZeroPrice );
-					loadStatusShort += "ZeroPrices ";
-				}
-				
-				if ( loadedFile.itemsWithoutName > 0 )
-				{
-					error += ConvFuncs::FormatCstr(_(" Obsahuje %i ks tovaru bez mena"), loadedFile.itemsWithoutName );
-					loadStatusShort += "NoItemNames ";
-				}
-				
-				if ( error.empty() )
-				{
-					readAndValid = true;
-
-					if ( loadedFile.itemsWithPriceWithoutDecimalPart > 0 )
-						info += ConvFuncs::FormatCstr(_(" Obsahuje %i ks tovaru s okruhlou cenou"), loadedFile.itemsWithPriceWithoutDecimalPart );
-
-					// imported items have to be checked by hand. Take note that these were not.
-					loadedFile.seller.note += ""; // _(" za MC prijal: ?");
-
-					loadedFile.seller.category = newSellerCategory;
-					loadedFile.seller.status = Burza::imported;
-					
-					loadedFile.seller.id = Centrala::Storage().AddSeller( loadedFile.seller );
-					
-					// set correct category to items
-					for( int i=0; i<loadedFile.items.size(); ++i)
-						Centrala::Register().SetItemBestMatchingProductCategory( loadedFile.items[i], itemCategories );
-					
-					Centrala::Storage().AddItems( loadedFile.items, loadedFile.seller.id );
-					
-					loadStatusShort += "OK ";
-				}
-				break;
-			case BurzaRegister::FormatNotKnown:
-				error = _("Neznámy typ súboru. Podporované su 'ods', 'xls', 'xlsx', 'txt'");
-				loadStatusShort += "UnsupportedType ";
-				break;
-			case BurzaRegister::FormatNotSupported:
-				error = _("Nepodporovany format suboru");
-				loadStatusShort += "UnknownType ";
-				break;
-			case BurzaRegister::ErrorImporting:
-			default:
-				error = "Error importing file." + loadedFile.errorText;
-				loadStatusShort += "ErrorOther ";
-				break;
-		}
-		
-		string infoText = fileNameShort;
-		infoText += ";";
-		infoText += loadStatusShort;
-		infoText += ";";
-		infoText += loadedFile.seller.shortcode;
-		infoText += ";";
-		infoText += ConvFuncs::FormatCstr( "%i", loadedFile.items.size() );
-		infoText += ";";
-		
-		if ( readAndValid ) {
-			
-			SellerCategoryArray categories = Centrala::Storage().GetSellersCategories();
-			loadedFile.seller.category = categories.empty() ? SELLER_CATEGORY_ID_NONE : categories.begin()->id;
-		}
-		
-		if ( !error.empty() )
-		{
-			ImportMultiSellersLog( _( " Chyba: " ) + error + ";" );
-		}
-
-		if ( !warning.empty() )
-		{
-			ImportMultiSellersLog( _( " Varovanie: " ) + warning + ";" );
-		}
-
-		if ( !info.empty() )
-		{
-			ImportMultiSellersLog( _( " Info: " ) + info + ";" );
-		}
-
-		// move file to dedicated folder:
-		string targetFolder;
-		if ( !error.empty() )
-		{
-			targetFolder = folderError;
-		}
-		else if ( !warning.empty() )
-		{
-			targetFolder = folderWarning;
-		}
-		else {
-			targetFolder = folderFinished;
-		}
-
-		string dest = path + targetFolder + "/" + ConvFuncsInstance->Find_CurrentFileName();
-		if ( 0 == ConvFuncsInstance->DoMoveFile( filename.c_str(), dest.c_str() ) ) {
-			ImportMultiSellersLog( _( " Chyba pri presune na miesto: " ) + dest );
-			warning = "!!";
-		}
-
-		infoTexts.push_back( infoText );
-
-		if ( warning.empty() && error.empty() )
-			++finishedCount;
-		else
-			++problemCount;
-
-		// find next file
-		found = ConvFuncsInstance->Find_NextFile();
-	}
-	
-	ImportMultiSellersLog( ConvFuncs::FormatCstr(
-		_("Dokončené ... správne načítaných: %i chýb: %i."), finishedCount, problemCount) );
-
-	DisplayOkMessageBox( 
-		_( "Predajcovia načítaný"),
-		ConvFuncs::FormatStdStr( _("Korektne načítaných hárkov: %i Chýb: %i."), 
-			finishedCount, problemCount ));
-
-	} 
-	catch (const exception& e )
-	{
-		ErrorHandling::HandleException( e );
-	}
-	
-	for ( int i = 0; i < infoTexts.size(); ++i )
-	{
-		ImportMultiSellersLog( infoTexts[ i ] );
-	}
-	
+	loadFileProgressWindow.RunImport( *m_pWndRegister );
 	ReloadSellers();
-}
-
-void BurzaDialogs::ImportMultiSellersLog(const char* text)
-{
-	LogS( InfoMajor, "ImportMultiSellers: %s\n", text );
-}
-
-void BurzaDialogs::ImportMultiSellersLog(std::string text)
-{
-	ImportMultiSellersLog(text.c_str());
 }
 
 void BurzaDialogs::RegisterButtonAddSeller( void )

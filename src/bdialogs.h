@@ -14,6 +14,7 @@
 #include "burza.h"
 #include "dataaccess.h"
 #include "EditMessageBox.h"
+#include "LoadingMultipleFiles.h"
 
 using namespace std;
 using namespace Burza;
@@ -197,8 +198,9 @@ public:
 	//! (for example checking if seller is already checked in, on change of seller combo.)
 	bool initializing;
 
-	Glib::RefPtr<Gnome::Glade::Xml> 	
-		xmlWndRegister, xmlWndCashOut, xmlWndModifySeller, xmlWndModifyItem, xmlWndRegisterPopupMenu;
+	Glib::RefPtr<Gnome::Glade::Xml> xmlWndRegister, xmlWndCashOut, 
+		xmlWndModifySeller, xmlWndModifyItem, 
+		xmlWndRegisterPopupMenu;
 		
 	Gtk::Window		*m_pWndRegister, *m_pWndCashOut, *m_pWndSeller, *m_pWndItem;
 
@@ -292,6 +294,9 @@ public:
 		Gtk::Entry		*editDbPassword;
 		Gtk::Entry		*editDbPort;
 	} settingsWindow;
+	
+	
+	LoadingMultipleFiles	loadFileProgressWindow;
 
 	// helper variables for dialogs
 	
