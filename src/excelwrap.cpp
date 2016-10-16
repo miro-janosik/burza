@@ -7,6 +7,8 @@
 #include "excelwrap.h"
 
 #include <exception>
+#include <unistd.h>
+
 #include "convfncs.h"
 #include "table.h"
 
@@ -338,4 +340,47 @@ void ExcelFileWrapper::ReadSeller( string filename, SellerData& seller, ItemData
 			0, 
 			not_in_stock_yet ));
 	} ;
+}
+
+string ExcelFileWrapper::LibreOfficeConvertSheetToXls(const string& pathFileName)
+{
+	// check input exists
+	if (!ConvFuncs::FileExists(pathFileName))
+	{
+		return "";
+	}
+	
+	// check output exists; libreoffice will create file and change extension
+	string workingAndOutpuDir = ConvFuncs::GetPathFromPathFilename(pathFileName);
+	string filenNameBase = ConvFuncs::GetFileWithoutExtensionFromPathFilename(pathFileName);
+	string outputFileName = workingAndOutpuDir + "/" + filenNameBase + ".xls";
+	
+	if (ConvFuncs::FileExists(outputFileName))
+	{
+		return outputFileName;
+	}
+	
+	// do a system call for conversion
+	// "ibreoffice --headless --convert-to xls:\"MS Excel 97\" --outdir ../convert-po *.ods"
+	string command = "libreoffice --headless --convert-to xls:\"MS Excel 97\" \"" + pathFileName + "\"";
+	char wd[4096];
+	getcwd(wd, 4095);
+	if (0 != chdir(workingAndOutpuDir.c_str()))
+	{
+		return std::string();
+	}
+	
+	int ret = system(command.c_str());
+	if (ret != 0)
+		return std::string();
+
+	chdir(wd);
+	
+	// check output exists again
+	if (ConvFuncs::FileExists(outputFileName))
+	{
+		return outputFileName;
+	}
+	
+	return std::string();
 }

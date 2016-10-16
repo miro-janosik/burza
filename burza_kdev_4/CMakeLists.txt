@@ -12,8 +12,6 @@ set(Burza_VERSION_MINOR 03)
 ADD_DEFINITIONS(-D_UNIX)
 ADD_DEFINITIONS(-std=c++11)
 
-OPTION( DOES_NOTHING "This option does nothing, it is as hint." ON )
-
 #get source files in the subdirectories instead of writing them all by hand.
 AUX_SOURCE_DIRECTORY(${PROJECT_ROOT}/kdev_src KDEV_SRC_FILES)
 AUX_SOURCE_DIRECTORY(${PROJECT_ROOT}/src SRC_FILES)
@@ -37,24 +35,16 @@ include_directories(
  )
 
 find_package(PkgConfig)
-pkg_check_modules(GTKMM REQUIRED gtkmm-2.4)
-pkg_check_modules(GLADEMM REQUIRED libglademm-2.4)
-pkg_check_modules(ICU REQUIRED icu)
-
-# pkg_check_modules(PQXX REQUIRED pqxx)
-
-MESSAGE("gtkmm: ${GTKMM_FOUND}, ${GTKMM_INCLUDE_DIRS} , ${GTKMM_LIBRARY_DIRS}.")
-MESSAGE("Glade: ${GLADEMM_FOUND}, ${GLADEMM_LIBRARY_DIRS} , ${GLADEMM_INCLUDE_DIRS} , ${GLADEMM_LIBRARIES} .")
-MESSAGE("ICU: ${ICU_FOUND}, ${ICU_DIRS} , ${ICU_INCLUDE_DIRS} , ${ICU_LIBRARIES} .")
-set(PQXX_LIBRARY_DIRS "/usr/lib")
-set(PQXX_INCLUDE_DIRS "/usr/include")
-set(PQXX_LIBRARIES "libpqxx.so")
+PKG_CHECK_MODULES(GTKMM REQUIRED gtkmm-2.4)
+MESSAGE("gtkmm found? ${GTKMM_FOUND}")
+PKG_CHECK_MODULES(GLADEMM REQUIRED libglademm-2.4)
+MESSAGE("Glade found? ${GLADEMM_FOUND}")
+PKG_CHECK_MODULES(ICU REQUIRED icu-io icu-i18n icu-uc)
+MESSAGE("ICU found? ${ICU_FOUND}")
+PKG_CHECK_MODULES(PQXX REQUIRED libpqxx)
+MESSAGE("PQXX found? ${PQXX_FOUND}")
 
 set(PRJ_LIB_DIR "${PROJECT_SOURCE_DIR}/../lib")
-
-# -Wl,-Bstatic -l/usr/lib/libpqxx.so 
-SET( GCC_LINK_FLAGS_liborigin "-Wl,-rpath=$ORIGIN/lib -Wl,-Bdynamic")
-SET( CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} ${GCC_LINK_FLAGS_liborigin}" )
 
 include_directories(	
   ${GLADEMM_INCLUDE_DIRS}
@@ -62,7 +52,6 @@ include_directories(
   ${ICU_INCLUDE_DIRS}
   ${PQXX_INCLUDE_DIRS}
   "${PRJ_LIB_DIR}/libharu/include"
-#  "${PRJ_LIB_DIR}/libXL/include"
   )
 
 link_directories( 
@@ -70,7 +59,6 @@ link_directories(
   ${GLADEMM_LIBRARY_DIRS}
   ${ICU_LIBRARY_DIRS}
   ${PQXX_LIBRARY_DIRS}
-#  ${PRJ_LIB_DIR}"/libXL"
   )
 
 target_link_libraries(burza
@@ -78,11 +66,6 @@ target_link_libraries(burza
   ${GLADEMM_LIBRARIES}
   ${ICU_LIBRARIES}
   ${PQXX_LIBRARIES}
-  "${PRJ_LIB_DIR}/libharu/lib/libhpdfs.a"
-#  "${PRJ_LIB_DIR}/libXL/libxl.so"
-
-# this is here just because automated thing does not work. Remove after it starts to behave correctly.
-  -licuio -licui18n -licuuc -licudata
   
 # deflate of zlib is missing for hpdf
   -lz
@@ -90,3 +73,15 @@ target_link_libraries(burza
 # std threads c++11
   -lpthread
   )
+
+if( CMAKE_SIZEOF_VOID_P EQUAL 8 )
+  target_link_libraries(burza "${PRJ_LIB_DIR}/libharu/lib/libhpdfs.a")
+else ( CMAKE_SIZEOF_VOID_P EQUAL 8 )
+  target_link_libraries(burza "${PRJ_LIB_DIR}/libharu/lib/libhpdfs64.a")
+endif( CMAKE_SIZEOF_VOID_P EQUAL 8 )
+
+# How to dynamically link libraries from specified path:
+# You can use a special keyword $ORIGIN to say ‘relative to the actual location of the executable’. 
+# Program will then dynamically load libraries from specified subfolder
+SET( GCC_LINK_FLAGS_liborigin "-Wl,-rpath=$ORIGIN/lib -Wl,-Bdynamic")
+SET( CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} ${GCC_LINK_FLAGS_liborigin}" )

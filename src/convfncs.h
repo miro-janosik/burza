@@ -295,6 +295,25 @@ public:
 	static bool DoCreateFolder( std::string fullPath );
 
 	static bool DoCreateFolder( const char* fullPath);
+
+	// returns true if file exists
+	static bool FileExists(const std::string& fullPath);
+
+	static std::string GetExtensionFromPathFilename(const std::string& pathFileName);
+
+	static std::string GetFileFromPathFilename(const std::string& pathFileName);
+
+	static std::string GetFileWithoutExtensionFromPathFilename(const std::string& pathFileName);
+	
+	// returns path with ending slash
+	static std::string GetPathFromPathFilename(const std::string& pathFileName);
+
+	//! fixes path string - removes extra ending slashes etc.
+	//! function does not check if file or directory exists, it only modifies the string
+	static std::string FixupPathString(const std::string& pathFileName, bool ending_slash );
+	//! fixes file string - corrects slashes, removes extra ending dot if no extension on Unix etc.
+	//! function does not check if file or directory exists, it only modifies the string
+	static std::string FixupPathFilenameString(const std::string& pathFileName);
 	
 	//string utils
 #ifdef _UNIX
@@ -342,15 +361,7 @@ public:
 	void			RemoveRemarkFromLine( char *remark_str );
 	void			RemoveLineLeadSpaces( void );
 	char*			GetNameFromQuotes( char *str );// if str=<bla ks"aejt aswe"qasdf> it returns <aejt aswe>
-	const char*		GetFileFromPathFilename( const char *str );
-	// returns path with ending slash
-	const char*		GetPathFromPathFilename( const char *str );
-	//! fixes path string - removes extra ending slashes etc.
-	//! function does not check if file or directory exists, it only modifies the string
-	const char*		FixupPathString( const char *str, bool ending_slash );
-	//! fixes file string - corrects slashes, removes extra ending dot if no extension on Unix etc.
-	//! function does not check if file or directory exists, it only modifies the string
-	const char*		FixupPathFilenameString( const char *str );
+
 	char*			RemoveLeadingAndTrailingChars( char* str, char* chars );
 	//return: no of replaced chars
 	int				StrReplaceChars( char *str, const char* oldchars, const char *newchars );

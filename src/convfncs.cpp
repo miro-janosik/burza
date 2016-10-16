@@ -1020,41 +1020,62 @@ int ConvFuncs::PointInRectLong( long px, long py, long x1, long y1, long x2, lon
 		return 0;
 }
 
-const char* ConvFuncs::GetFileFromPathFilename( const char *str )
+std::string ConvFuncs::GetExtensionFromPathFilename(const std::string& pathFileName )
 {
-	int		pos, size;
-static	char	result[ BBL_MaxFileNameLen ];
-
-	pos = strlen( str );
-
-	while (( pos > 0 ) && ( str[ pos-1 ] != '\\' ) && ( str[ pos-1 ] != '/' ))
-		pos--;
-
-	size = strlen( &str[ pos ] );
-	if ( (BBL_MaxFileNameLen-1) < size )
-		size = BBL_MaxFileNameLen-1;
-
-	memcpy( result, &str[ pos ], size );
-	result[ size ] = 0;
-	return result;
+	string::size_type pos = pathFileName.rfind('.');
+	if (pos == string::npos) 
+	{
+		return std::string();
+	}
+	
+	// get filename part; to handle situation that filename does not
+	// contain dot but path does.
+	if ((pathFileName.rfind(path_good_slash_char) > pos) || 
+		(pathFileName.rfind(path_bad_slash_char) > pos))
+	{
+		return std::string();
+	}
+	
+	return pathFileName.substr( pos + 1 );
 }
 
-const char* ConvFuncs::GetPathFromPathFilename( const char *str )
+std::string ConvFuncs::GetFileFromPathFilename(const std::string& pathFileName)
 {
-	int		pos;
-static	char	result[ BBL_MaxFileNameLen ];
+	std::string fname = FixupPathFilenameString(pathFileName);
+	string::size_type pos = fname.rfind(path_good_slash_char);
+	if (pos == string::npos)
+	{
+		return std::string();
+	}
 
-	pos = strlen( str );
+	return fname.substr(pos + 1);
+}
 
-	while (( pos > 0 ) && ( str[ pos-1 ] != '\\' ) && ( str[ pos-1 ] != '/' ))
-		pos--;
+std::string ConvFuncs::GetFileWithoutExtensionFromPathFilename(const std::string& pathFileName)
+{
+	std::string fname = FixupPathFilenameString(pathFileName);
+	string::size_type slashPos = fname.rfind(path_good_slash_char);
+	string::size_type afterSlashPos = (slashPos == string::npos) ? 0 : slashPos + 1;
+	
+	string::size_type dotPos = fname.rfind('.');
+	if ((dotPos == string::npos) || (dotPos < slashPos))
+	{
+		dotPos = fname.size();
+	}
+	
+	return fname.substr(afterSlashPos, dotPos - afterSlashPos);
+}
 
-	if ( (BBL_MaxFileNameLen-1) < pos )
-		pos = BBL_MaxFileNameLen-1;
+std::string ConvFuncs::GetPathFromPathFilename(const std::string& pathFileName)
+{
+	std::string fname = FixupPathFilenameString(pathFileName);
+	string::size_type pos = fname.rfind(path_good_slash_char);
+	if (pos == string::npos)
+	{
+		return std::string();
+	}
 
-	memcpy( result, str, pos );
-	result[ pos ] = 0;
-	return result;
+	return fname.substr(0, pos+1);
 }
 
 const char *ConvFuncs::FindOniFileById( unsigned long id, char* path )
@@ -1490,6 +1511,14 @@ bool ConvFuncs::DoCreateFolder( const char* fullPath )
 	return DoCreateFolder( path );
 }
 
+#include <sys/stat.h>
+#include <unistd.h>
+
+bool ConvFuncs::FileExists(const std::string& fullPath)
+{
+	struct stat buffer;
+	return (stat(fullPath.c_str(), &buffer) == 0); 	
+}
 
 #ifdef UNICODE
 const wchar_t*	ConvFuncs::GetExecutableFilePathName( void )
@@ -1790,22 +1819,21 @@ void ConvFuncs::StdStringToUpper( std::string& str )
 	std::transform( str.begin(), str.end(), str.begin(), static_cast<int (*)(int)>(toupper) );
 }
 
-const char* ConvFuncs::FixupPathString( const char *str, bool ending_slash )
+std::string ConvFuncs::FixupPathString(const std::string& pathFileName, bool ending_slash)
 {
-	static	std::string	result;
-	static	std::string::iterator it;
+	if ( pathFileName.empty() )
+		return pathFileName.c_str();
 	
-	result = str;
-	if ( result.empty() )
-		return result.c_str();
+	std::string	result = pathFileName;
+	std::string::iterator it;
 	
 	// fix slashes
 	for( it=result.begin(); it!=result.end(); it++ ) {
 		if ( *it == path_bad_slash_char )
 			*it = path_good_slash_char;
 	}
+
 	// remove trailing slashes
-	
 	it = result.end() - 1;
 	if ( *it == path_good_slash_char ) {
 		while (( it != result.begin() ) && ( *it == path_good_slash_char ))
@@ -1820,14 +1848,13 @@ const char* ConvFuncs::FixupPathString( const char *str, bool ending_slash )
 	return result.c_str();
 }
 
-const char* ConvFuncs::FixupPathFilenameString( const char *str )
+std::string ConvFuncs::FixupPathFilenameString(const std::string& pathFileName)
 {
-	static	std::string	result;
-	static	std::string::iterator it;
+	if ( pathFileName.empty() )
+		return pathFileName;
 	
-	result = str;
-	if ( result.empty() )
-		return result.c_str();
+	std::string	result = pathFileName;
+	std::string::iterator it;
 	
 	// fix slashes
 	for( it=result.begin(); it!=result.end(); it++ ) {
@@ -1842,7 +1869,7 @@ const char* ConvFuncs::FixupPathFilenameString( const char *str )
 		result.erase( it );
 #endif
 	
-	return result.c_str();
+	return result;
 }
 
 bool ConvFuncs::DirChangeNotificationSubscribe( const char* directory )
