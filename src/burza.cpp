@@ -303,13 +303,28 @@ BurzaRegister::LoadSellerSheetFileResult BurzaRegister::LoadSellerSheetFile(std:
 			excelFile.ReadSeller( filename, result.seller, result.items );
 			result.status = BurzaRegister::Loaded;
 		}
-		if ( ext == "ods" ) {
-			result.status = BurzaRegister::FormatNotSupported;
-			//XXX
-		}
-		if ( ext == "xlsx" ) {
-			result.status = BurzaRegister::FormatNotSupported;
-			//XXX
+		if (( ext == "ods" ) || ( ext == "xlsx" )) {
+			LogS( InfoDebug, "Conversion of file %s to xls started.\n", filename.c_str() );
+			string convertedFileName = 
+				BurzaExcel::ExcelFileWrapper::LibreOfficeConvertSheetToXls(filename);
+			
+			if (convertedFileName.empty())
+			{
+				result.status = BurzaRegister::FormatNotSupported;
+				LogS( InfoWarn, "Conversion of file %s to xls failed.\n", filename.c_str() );
+			}
+			else
+			{
+				LogS( InfoDebug, "Conversion of file %s to xls finished.\n", filename.c_str() );
+				knownType = true;
+				BurzaExcel::BasicExcelFileWrapper excelFile;
+				excelFile.ReadSeller( convertedFileName, result.seller, result.items );
+				result.status = BurzaRegister::Loaded;
+				
+				// delete converted file so it won't stay there forever
+				ConvFuncs::DoDeleteFile(convertedFileName.c_str());
+			}
+			
 		}
 
 		if (knownType == false) {
@@ -358,7 +373,6 @@ BurzaRegister::LoadSellerSheetFileResult BurzaRegister::LoadSellerSheetFile(std:
 	
 	return result;
 }
-
 
 void BurzaRegister::CreateFolders( string path, vector<string>& folderNames )
 {

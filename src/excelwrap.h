@@ -32,6 +32,12 @@ public:
 public:
 	void ReadSeller( string filename, SellerData& seller, ItemDataArray& items ) throw( runtime_error );
 	
+	// Converts sheet file into format XML
+	// If output file already exists then conversion is not performed and path is returned.
+	// Returns: empty string if conversion was not succesfull
+	// full path of new filename if succesfull.
+	static string LibreOfficeConvertSheetToXls(const string& pathFileName);
+	
 protected:
 	//! reads up xls file into m_table.
 	virtual void ReadSheetIntoTable( string filename ) throw( runtime_error ) = 0;

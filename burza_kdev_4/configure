@@ -1,0 +1,7 @@
+# /usr/bin/
+cd build/
+cmake -DCMAKE_BUILD_TYPE=Debug -G 'Unix Makefiles' ../
+
+
+echo If configured, call make
+
