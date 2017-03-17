@@ -27,6 +27,8 @@ PdfWrapperBase *Recipees::currentPdf = NULL;
 
 void Recipees::PrintSellerStatus( PdfWrapperBase& pdf, SELLER_ID id )
 {
+	return;
+	
 	SellerData seller;
 	SellerCategory sellerCat;
 
@@ -115,7 +117,8 @@ void Recipees::AddProgramPageHeaderAndFooter( PdfWrapperBase& pdf )
 		"Srdiečko"));
 }
 
-float Recipees::DrawTableSplitOnPages( PdfWrapperBase& pdf, float fx, float fy, TableOfCells& table, TableColumnSpecs& columns )
+float Recipees::DrawTableSplitOnPages( PdfWrapperBase& pdf, float fx, float fy, 
+	TableOfCells& table, TableColumnSpecs& columns)
 {
 	PdfWrapperBase::TableStyle	style;
 	style.fontSize = 1.3;
@@ -249,7 +252,9 @@ void Recipees::PrintSellerReturnSheet( PdfWrapperBase& pdf, SELLER_ID id )
 {
 	SellerData seller;
 	SellerCategory sellerCat;
-
+	bool duplexPrinting = true;
+	int startingPage = pdf.CurrentPageNumber();
+	
 	try {
 		seller = Centrala::Storage().GetSeller( id );
 		sellerCat = Centrala::Storage().GetSellerCategory( seller.category );
@@ -311,7 +316,7 @@ void Recipees::PrintSellerReturnSheet( PdfWrapperBase& pdf, SELLER_ID id )
 
 		items.Cell( i, 6 ) = num;
 	}
-
+	
 	ypos = DrawTableSplitOnPages( pdf, 5, ypos, items, columns );
 	
 	// position for another table is:
@@ -359,6 +364,17 @@ void Recipees::PrintSellerReturnSheet( PdfWrapperBase& pdf, SELLER_ID id )
 	sumCells.Cell( row, 0 ) = _( "Nepredané veci a peniaze prevzal : " );
 
 	DrawTableSplitOnPages( pdf, 35, ypos, sumCells, sumColumns );
+
+  	if (duplexPrinting)
+	{
+	      // duplex printing = if seller is only on single page, then add one empty page
+	      // so it can be printed in duplex, or 2 pages per single page
+	      int endingPage = pdf.CurrentPageNumber();
+	      if (((endingPage - startingPage) % 2) != 0)
+	      {
+		    pdf.NewPage("");
+	      }
+	}
 }
 
 float Recipees::AdvanceYpos( float ypos, float percent )

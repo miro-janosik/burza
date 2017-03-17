@@ -55,6 +55,9 @@ public:
 	
 	//! returns seller fee of specified type or null
 	Fees GetFeeOfType(FeeType iType);
+	
+	//! returns first cat if no category matches
+	static ItemCategory& GetItemCategoryByPrice( ItemCategoryArray& itemCategories, float itemPrice );
 };
 
 } // namespace Burza
