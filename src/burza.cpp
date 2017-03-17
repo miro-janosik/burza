@@ -36,7 +36,7 @@
 #include "cacheddatastorage.h"
 #include "datapostgrespqxx.h"
 #include "excelwrap.h"
-#include "fees.h"
+
 
 using namespace Burza;
 using namespace XmlWrapperTool;
@@ -385,7 +385,14 @@ ItemCategory& BurzaRegister::BestMatchingProductCategory( ItemData& item, ItemCa
 	assert( ! categories.empty() );
 	
 	// try to find price match
-	return SellerFees::GetItemCategoryByPrice(categories, item.price);
+	double price = item.price;
+	for (int i=0; i<categories.size(); ++i)
+	{
+		if ((categories[i].limit_price_min <= price) && (price <= categories[i].limit_price_max))
+			return categories[i];
+	}
+	
+	return categories[0];
 }
 
 void BurzaRegister::SetItemBestMatchingProductCategory( ItemData& item, ItemCategoryArray& categories )

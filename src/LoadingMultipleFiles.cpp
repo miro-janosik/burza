@@ -110,14 +110,6 @@ void LoadingMultipleFiles::RunImport( Gtk::Window& parentWindow )
 	// repeatNotifier.Start(std::chrono::milliseconds(400), [this] { loadingRefreshNotificationDispatcher.emit(); } );
 	// loadSellersWorker.Start(std::bind(&LoadingMultipleFiles::LoadMultipleFiles, this, _1));
 	LoadingMultipleFiles::LoadMultipleFiles( [this](string text) { SimpleNotification(text); } );
-	
-	// Buttons:
-	// stop (enabled only when import is running, only one clickable)
-	// Return right away to return control to user; so user can click the 'stop'
-	// run separate thread that does import + update of progress (perc + new text to log)
-	// fix displayed text (Filename:  Import OK; Code AA, 80 items;
-	// When progress is 100% update buttons enabled/disabled.
-	// and some mutex to not to allow any other action, while running is not finished.
 }
 
 void LoadingMultipleFiles::RefreshingNotificationAction( void )
@@ -133,22 +125,19 @@ void LoadingMultipleFiles::RefreshingNotificationAction( void )
 	}
 }
 
-void LoadingMultipleFiles::LoadMultipleFiles( function<void(int, string)> updateStatus )
+void LoadingMultipleFiles::LoadMultipleFiles( function<void(string)> addToStatus )
 {
 	string path = sourcePath;
 	auto mp_register = & Centrala::Register();
 	int finishedCount = 0, problemCount = 0;
-	int percentFinished = 0;
 	
 	SellerCategoryArray categories = Centrala::Storage().GetSellersCategories();
 	SELLER_CATEGORY_ID newSellerCategory = categories.empty() ? SELLER_CATEGORY_ID_NONE : categories.begin()->id;
 	ItemCategoryArray itemCategories = Centrala::Register().GetItemCategoriesForMatching();
 	
 	try {
-	
-	updateStatus(percentFinished, "enumerating files");
+		
 	bool found = ConvFuncsInstance->Find_FirstFile( path.c_str() );
-	std::vector<std::string> fileNames;
 	while ( found )
 	{
 		// find can find anything in the folder .. skip directories, use only files.
@@ -159,19 +148,13 @@ void LoadingMultipleFiles::LoadMultipleFiles( function<void(int, string)> update
 		}
 
 		string fileNameShort = ConvFuncsInstance->Find_CurrentFileName();
-		fileNames.push_back(fileNameShort);
-	}
-	
-	int filesCount = fileNames.size(), fileIndex = 0;
-	for ( auto fileNameShort : fileNames)
-	{
 		string filename = path + fileNameShort;
+
 		// true if read (even if there is error then print info about read data).
 		bool readAndValid = false;
 		string error, warning, info;
-		
-		percentFinished = fileIndex * 100 / filesCount;
-		updateStatus(percentFinished, "Loading " + fileNameShort );
+
+		addToStatus( "Loading " + fileNameShort );
 		string loadStatusShort;
 		
 		BurzaRegister::LoadSellerSheetFileResult loadedFile = mp_register->LoadSellerSheetFile( filename );
@@ -253,17 +236,17 @@ void LoadingMultipleFiles::LoadMultipleFiles( function<void(int, string)> update
 		
 		if ( !error.empty() )
 		{
-			updateStatus(percentFinished, _( " Chyba: " ) + error + ";" );
+			addToStatus( _( " Chyba: " ) + error + ";" );
 		}
 
 		if ( !warning.empty() )
 		{
-			updateStatus(percentFinished, _( " Varovanie: " ) + warning + ";" );
+			addToStatus( _( " Varovanie: " ) + warning + ";" );
 		}
 
 		if ( !info.empty() )
 		{
-			updateStatus(percentFinished, _( " Info: " ) + info + ";" );
+			addToStatus( _( " Info: " ) + info + ";" );
 		}
 
 		// move file to dedicated folder:
@@ -278,11 +261,11 @@ void LoadingMultipleFiles::LoadMultipleFiles( function<void(int, string)> update
 
 		string dest = path + targetFolder + "/" + ConvFuncsInstance->Find_CurrentFileName();
 		if ( 0 == ConvFuncsInstance->DoMoveFile( filename.c_str(), dest.c_str() ) ) {
-			updateStatus(percentFinished, _( " Chyba pri presune na miesto: " ) + dest );
+			addToStatus( _( " Chyba pri presune na miesto: " ) + dest );
 			warning = "!!";
 		}
 
-		updateStatus(percentFinished, infoText );
+		addToStatus( infoText );
 
 		if ( warning.empty() && error.empty() )
 			++finishedCount;
@@ -293,7 +276,7 @@ void LoadingMultipleFiles::LoadMultipleFiles( function<void(int, string)> update
 		found = ConvFuncsInstance->Find_NextFile();
 	}
 	
-	updateStatus(100, ConvFuncs::FormatCstr(
+	addToStatus( ConvFuncs::FormatCstr(
 		_("Dokončené ... správne načítaných: %i chýb: %i."), finishedCount, problemCount) );
 
 	// DisplayOkMessageBox( 
@@ -304,7 +287,7 @@ void LoadingMultipleFiles::LoadMultipleFiles( function<void(int, string)> update
 	} 
 	catch (const exception& e )
 	{
-		updateStatus(percentFinished, e.what() );
+		addToStatus( e.what() );
 	}
 }
 

@@ -22,8 +22,7 @@ private:
   static void AddProgramPageHeaderAndFooter( PdfWrapperBase& pdf );
 
   //! returns Y position on page in percent, where table ended.
-  float static DrawTableSplitOnPages( PdfWrapperBase& pdf, float fx, float fy, 
-	TableOfCells& table, TableColumnSpecs& columns );
+  float static DrawTableSplitOnPages( PdfWrapperBase& pdf, float fx, float fy, TableOfCells& table, TableColumnSpecs& columns );
  
   //! Takes Y position, advances it by some percents (down), returns the position.
   //! If position would be over bottom margin, new page is created and Y is moved

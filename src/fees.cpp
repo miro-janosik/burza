@@ -12,23 +12,6 @@ double SellerFees::RoundTo5Cents( double price )
 	return b;
 }
 
-ItemCategory& SellerFees::GetItemCategoryByPrice( ItemCategoryArray& itemCategories, float itemPrice )
-{
-	if (itemCategories.empty())
-	{
-		throw runtime_error("GetItemCategoryByPrice: No categories");
-	}
-	
-	for (int i=0; i<itemCategories.size(); ++i)
-	{
-		if ((itemCategories[i].limit_price_min <= itemPrice) && 
-			(itemPrice <= itemCategories[i].limit_price_max))
-			return itemCategories[i];
-	}
-	
-	return itemCategories[0];
-}
-
 SellerFees SellerFees::CalculateSellerFees( SellerCategory& sellerCat, ItemCategoryArray& itemCategories, ItemDataArray& sellerItems )
 {
 	int piecesPriceOverPayPerPiece = 0;
@@ -38,10 +21,6 @@ SellerFees SellerFees::CalculateSellerFees( SellerCategory& sellerCat, ItemCateg
 	for(int i=0; i<sellerItems.size(); ++i ) {
 		if ( sellerItems[ i ].status == ::sold )
 			sumSold += sellerItems[ i ].price;
-		
-		// I will not trust set category; I will select correct one by current price.
-		ItemCategory c = SellerFees::GetItemCategoryByPrice( itemCategories, sellerItems[ i ].price );
-		sellerItems[ i ].category = c.id;
 	}
 	
 	sumSold = RoundTo5Cents( sumSold );
@@ -66,8 +45,8 @@ SellerFees SellerFees::CalculateSellerFees( SellerCategory& sellerCat, ItemCateg
 		int countOnStock = 0;
 		int countSold = 0;
 		
-		for(int i=0; i<sellerItems.size(); ++i ) 
-		{
+		for(int i=0; i<sellerItems.size(); ++i ) {
+			
 			if ( sellerItems[ i ].category != itemCat.id )
 				continue;
 			

@@ -361,7 +361,7 @@ string ExcelFileWrapper::LibreOfficeConvertSheetToXls(const string& pathFileName
 	}
 	
 	// do a system call for conversion
-	// "libreoffice --headless --convert-to xls:\"MS Excel 97\" --outdir ../convert-po *.ods"
+	// "ibreoffice --headless --convert-to xls:\"MS Excel 97\" --outdir ../convert-po *.ods"
 	string command = "libreoffice --headless --convert-to xls:\"MS Excel 97\" \"" + pathFileName + "\"";
 	char wd[4096];
 	getcwd(wd, 4095);
