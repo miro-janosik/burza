@@ -156,7 +156,7 @@ private:
 	// displays the loading window
 	void DisplayWindow( Gtk::Window& parentWindow );
 	
-	void LoadMultipleFiles( function<void(string)> addToStatus );
+	void LoadMultipleFiles( function<void(int, string)> addToStatus );
 
 	void FinishedClickedOk();
 	
@@ -165,7 +165,7 @@ private:
 	void ImportMultiSellersLog(std::string text);
 
 	
-	void SimpleNotification( string text );
+	void SimpleNotification( int perc, string text );
 };
 
 }

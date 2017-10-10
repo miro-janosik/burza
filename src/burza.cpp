@@ -339,7 +339,11 @@ BurzaRegister::LoadSellerSheetFileResult BurzaRegister::LoadSellerSheetFile(std:
 		result.status = BurzaRegister::ErrorImporting;
 		result.errorText = e.what();
 	}*/
-	catch( exception e ) {
+	catch( std::runtime_error& e ) {
+		result.status = BurzaRegister::ErrorImporting;
+		result.errorText = e.what();
+	}
+	catch( exception& e ) {
 		result.status = BurzaRegister::ErrorImporting;
 		result.errorText = e.what();
 	}

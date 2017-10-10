@@ -127,6 +127,10 @@ void BasicExcelFileWrapper::ReadSheetIntoTable( string filename ) throw( runtime
 		throw runtime_error("XLS contains no sheets");
 	}
 
+	if (xls.GetTotalWorkSheets() > 1 ) {
+		throw runtime_error("XLS contains too many sheets, expecting only single.");
+	}
+
 	BasicExcelWorksheet* sheet = xls.GetWorksheet(0);
 	if ( sheet== NULL )
 		throw runtime_error( "Error retrieving sheet" );

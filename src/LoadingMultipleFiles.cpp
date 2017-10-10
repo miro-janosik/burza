@@ -91,7 +91,7 @@ void LoadingMultipleFiles::DisplayWindow( Gtk::Window& parentWindow )
 	buttonOk->set_sensitive( false );
 }
 
-void LoadingMultipleFiles::SimpleNotification( string text )
+void LoadingMultipleFiles::SimpleNotification( int perc, string text )
 {
 	ImportMultiSellersLog( text );
 	
@@ -107,9 +107,11 @@ void LoadingMultipleFiles::RunImport( Gtk::Window& parentWindow )
 	
 	buttonOk->set_sensitive( false );
 	
+	editLoadingText->get_buffer()->set_text( "" );
+	
 	// repeatNotifier.Start(std::chrono::milliseconds(400), [this] { loadingRefreshNotificationDispatcher.emit(); } );
 	// loadSellersWorker.Start(std::bind(&LoadingMultipleFiles::LoadMultipleFiles, this, _1));
-	LoadingMultipleFiles::LoadMultipleFiles( [this](string text) { SimpleNotification(text); } );
+	LoadingMultipleFiles::LoadMultipleFiles( [this](int perc, string text) { SimpleNotification(perc, text); } );
 	
 	// Buttons:
 	// stop (enabled only when import is running, only one clickable)
@@ -147,19 +149,24 @@ void LoadingMultipleFiles::LoadMultipleFiles( function<void(int, string)> update
 	try {
 	
 	updateStatus(percentFinished, "enumerating files");
-	bool found = ConvFuncsInstance->Find_FirstFile( path.c_str() );
 	std::vector<std::string> fileNames;
-	while ( found )
 	{
-		// find can find anything in the folder .. skip directories, use only files.
-		if (ConvFuncsInstance->Find_CurrentIsDir()) {
+		bool found = ConvFuncsInstance->Find_FirstFile( path.c_str() );
+		while ( found )
+		{
+			// find can find anything in the folder .. skip directories, use only files.
+			if (ConvFuncsInstance->Find_CurrentIsDir()) {
+				// find next file
+				found = ConvFuncsInstance->Find_NextFile();
+				continue;
+			}
+			
+			string fileNameShort = ConvFuncsInstance->Find_CurrentFileName();
+			fileNames.push_back(fileNameShort);
+
 			// find next file
 			found = ConvFuncsInstance->Find_NextFile();
-			continue;
 		}
-
-		string fileNameShort = ConvFuncsInstance->Find_CurrentFileName();
-		fileNames.push_back(fileNameShort);
 	}
 	
 	int filesCount = fileNames.size(), fileIndex = 0;
@@ -276,7 +283,7 @@ void LoadingMultipleFiles::LoadMultipleFiles( function<void(int, string)> update
 			targetFolder = folderFinished;
 		}
 
-		string dest = path + targetFolder + "/" + ConvFuncsInstance->Find_CurrentFileName();
+		string dest = path + targetFolder + "/" + fileNameShort;
 		if ( 0 == ConvFuncsInstance->DoMoveFile( filename.c_str(), dest.c_str() ) ) {
 			updateStatus(percentFinished, _( " Chyba pri presune na miesto: " ) + dest );
 			warning = "!!";
@@ -288,9 +295,6 @@ void LoadingMultipleFiles::LoadMultipleFiles( function<void(int, string)> update
 			++finishedCount;
 		else
 			++problemCount;
-
-		// find next file
-		found = ConvFuncsInstance->Find_NextFile();
 	}
 	
 	updateStatus(100, ConvFuncs::FormatCstr(

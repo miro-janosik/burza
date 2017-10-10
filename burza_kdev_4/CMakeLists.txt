@@ -59,20 +59,25 @@ link_directories(
   ${GLADEMM_LIBRARY_DIRS}
   ${ICU_LIBRARY_DIRS}
   ${PQXX_LIBRARY_DIRS}
+  
   )
-
+  
 target_link_libraries(burza
+
   ${GTKMM_LIBRARIES}
   ${GLADEMM_LIBRARIES}
   ${ICU_LIBRARIES}
   ${PQXX_LIBRARIES}
+
+# this is here just because automated thing does not work. Remove after it starts to behave correctly.
+  -licuio -licui18n -licuuc -licudata
   
 # deflate of zlib is missing for hpdf
   -lz
-  
-# std threads c++11
+
+  # std threads c++11
   -lpthread
-  )
+)
 
 if( CMAKE_SIZEOF_VOID_P EQUAL 8 )
   target_link_libraries(burza "${PRJ_LIB_DIR}/libharu/lib/libhpdfs.a")
