@@ -1,0 +1,15 @@
+=== See which users filled their contact information ===
+
+SELECT * FROM Users WHERE Name is not null OR Mail != "" OR Kontakt is not null
+
+=== See which users added at least one item ===
+
+SELECT LoginStr FROM Users WHERE ID IN (SELECT DISTINCT (UserID) FROM Polozky)
+
+=== See user info and number of items they added ===
+
+SELECT u.LoginStr, COUNT(p.UserID), u.Name
+FROM Polozky p
+LEFT JOIN Users u ON p.UserID = u.ID
+GROUP BY (p.UserID)
+

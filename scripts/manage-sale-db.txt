@@ -1,0 +1,20 @@
+=== update item categories ===
+
+UPDATE "items" SET "ITEM_CATEGORY_ID" = 1 WHERE "PRICE" < 15 AND "PRICE" > 0.1;
+UPDATE "items" SET "ITEM_CATEGORY_ID" = 2 WHERE "PRICE" >= 15;
+UPDATE "items" SET "ITEM_CATEGORY_ID" = 3 WHERE "PRICE" <= 0.1;
+
+=== number of items of sellers ===
+
+select sellers."SHORT_CODE", COUNT(items)
+from items
+left join sellers on items."SELLER_ID" = sellers."ID"
+group by sellers."ID"
+order by sellers."SHORT_CODE"
+
+select s."SHORT_CODE", count (i."ID") as itemsCount
+from "sellers" s left join "items" i on s."ID" = i."SELLER_ID"
+group by s."ID"
+order by s."SHORT_CODE"
+
+

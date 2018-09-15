@@ -1,0 +1,12 @@
+=== insert admin ===
+
+INSERT INTO `Users` SET `ID` = 0, `PoslatTeraz` = 0, `LoginStr` = 'f43b989026e46b555b38dae2ef86244a89245de46d253ddbbf20c3ad3da0fbedf0d391b049e510e88267da8ff2a3d2f418f9', `Name` = 'admin', `Mail` = 'admin@admin.admin', `Kontakt` = '421999555222', `Provizia` = 1;
+
+=== insert single user ===
+
+INSERT INTO `Users` SET `PoslatTeraz` = 0, `LoginStr` = 'JJ-JJJ', `info` = 'JJ', `Name` = 'Miro Jánošík', `Mail` = 'miro.jan.o.s.i.k@gmail.com', `Kontakt` = '+421-908 18 4747', `Provizia` = 1;
+
+=== delete sold items from web, use when moving to next burza ===
+
+DELETE FROM `Polozky` WHERE `Predane` = 1
+

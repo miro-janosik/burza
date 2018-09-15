@@ -1,0 +1,33 @@
+=== Zobrazenie predanych veci na burze na web ===
+
+1) export from PostgreSQL db (limit to items table if possible)
+2) prune file, remove everything except inserts:
+$ pgdb_to_web_inserts.pl nedela-items-sql3-transform.sql nedela-items-sql3-transform-out.sql
+Processing...
+Processed 8717, used 8669
+3) create table on web:
+CREATE TABLE items (
+    `ID` integer,
+    `NAME` text,
+    `SELLER_ID` integer DEFAULT -1,
+    `PRICE` double DEFAULT 0.0 NOT NULL,
+    `CHANGING` boolean DEFAULT false NOT NULL,
+    `CHANGED_BY` text,
+    `ITEM_CATEGORY_ID` integer DEFAULT 1 NOT NULL,
+    `NUMBER` integer DEFAULT -1 NOT NULL,
+    `STATUS` integer DEFAULT 0 NOT NULL,
+    `MODIFIED` timestamp
+);
+
+4) import sql from step 2 into table 'items' on web
+5) apply 'sold items' from 'items' into 'Polozky'
+UPDATE `Polozky` p
+LEFT JOIN `items` i on i.`ID` = p.`ID`
+SET `Predane` = 1
+WHERE i.`STATUS` = 2
+
+=== zmazanie predajcov z webu, ktorí nepriniesli svoje veci ===
+
+???
+
+

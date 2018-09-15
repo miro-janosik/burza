@@ -1,0 +1,33 @@
+=== New sellers ===
+
+1) export existing sellers from web
+SELECT `info` FROM `Users`
+and select 'export' link below. Save them to file, and trim away SQL structure to have only one code in one line.
+
+2) run program
+source: g++ generateCodeList.cpp
+usage:
+generateCodeList [old-codes-filename]
+
+Generates list of codes from specified letters + highlights old sellers.
+
+3) open csv in libreoffice, filter out only new sellers, copy two columns 'code-password' + 'code' into text file
+
+4) Use regex to replace 'code-password code' into insert statement like this:
+(0, 0, 1, NULL, "", NULL, "AD-VWE", "AD"),
+
+From:
+([\w-]+)\t ([\w-]+)
+To:
+\(0, 0, 1, NULL, "", NULL, "\2", "\1"\),
+
+5) place in front of that:
+INSERT INTO Users (PoslatTeraz, Provizia, isActive, Name, Mail, Kontakt, LoginStr, info) VALUES
+
+6) fix last comma into semicolon
+
+7) run script on web
+
+8) test to log in as one of those sellers
+
+
