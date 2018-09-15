@@ -3,4 +3,11 @@ lib/icu/
 burza_kdev_4/CMakeFiles/
 lib/iconv/
 burza_kdev_4/build/
-_data_2014/
+_data/
+tmp/
+run/
+run_linux/
+libs/
+external/libharu-master/
+burza-web/
+
