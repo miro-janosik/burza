@@ -1,0 +1,11 @@
+== How to transfer data WEB <=> Raspi ==
+
+0) general
+
+1) Get sellers + items from web
+
+2) Delete sellers + items on raspi
+3) Insert sellers + items on raspi
+
+4) after verifying items, list and delete sellers + items that are not present
+

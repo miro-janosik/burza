@@ -27,8 +27,6 @@ PdfWrapperBase *Recipees::currentPdf = NULL;
 
 void Recipees::PrintSellerStatus( PdfWrapperBase& pdf, SELLER_ID id )
 {
-	return;
-	
 	SellerData seller;
 	SellerCategory sellerCat;
 
