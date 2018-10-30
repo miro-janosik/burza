@@ -1,0 +1,3 @@
+DELETE FROM "items" 
+WHERE "STATUS" = 0;
+
