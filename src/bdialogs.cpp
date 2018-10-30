@@ -2282,6 +2282,7 @@ void BurzaDialogs::RegisterButtonReviewOfSellers( void )
 		pdf.CreatePDF( name );
 		
 		for( unsigned int i=0; i<SellersOrdered.size(); i++ ) {
+		    if (SellersOrdered[i].status > 0 )
 			recipees.PrintSellerReturnSheet( pdf, SellersOrdered[ i ].id );
 		}
 		
