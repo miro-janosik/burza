@@ -2080,5 +2080,13 @@
         <property name="use_underline">True</property>
       </widget>
     </child>
+    <child>
+      <widget class="GtkMenuItem" id="menuitemFixItemCats">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="label" translatable="yes">Oprav kategórie tovaru</property>
+        <property name="use_underline">True</property>
+      </widget>
+    </child>
   </widget>
 </glade-interface>

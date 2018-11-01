@@ -116,6 +116,7 @@ public:
 	bool RegisterButtonStats( GdkEventButton* button );
 	bool RegisterButtonSaveSellerOverview( GdkEventButton* button );
 	bool RegisterButtonSettings( GdkEventButton* button );
+	bool RegisterButtonFixItemCats( GdkEventButton* button );
 	void RegisterSellerStatusRadioChanged( void );
 
 	void CashoutItemsTreeSelectChanged( void );
@@ -235,6 +236,7 @@ public:
 	Gtk::MenuItem	*menuItemSettings;
 	Gtk::MenuItem	*menuItemSaveSellerOverview;
 	Gtk::MenuItem	*menuitemStats;
+	Gtk::MenuItem	*menuitemFixItemCats;
 	
 	// cash-out dialog
 	Gtk::Button		*m_pButtonRegister;

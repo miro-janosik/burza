@@ -194,6 +194,7 @@ int BurzaDialogs::SetupDialogs( void )
 	xmlWndRegisterPopupMenu->get_widget( "menuItemSettings", menuItemSettings );
 	xmlWndRegisterPopupMenu->get_widget( "menuItemSaveSellerOverview", menuItemSaveSellerOverview );
 	xmlWndRegisterPopupMenu->get_widget( "menuitemStats", menuitemStats );
+	xmlWndRegisterPopupMenu->get_widget( "menuitemFixItemCats", menuitemFixItemCats );
 	
 	if (( m_pComboSeller == NULL ) ||
 		( m_pEntryRegistryLookupSeller == NULL ) ||
@@ -220,6 +221,7 @@ int BurzaDialogs::SetupDialogs( void )
 		( m_pRegisterOtherActions == NULL ) ||
 		( menuRegisterOtherActions == NULL ) ||
 		( menuItemSettings == NULL ) ||
+		( menuitemFixItemCats == NULL ) ||
 		( menuItemSaveSellerOverview == NULL ) ||
 		( menuitemStats == NULL )) {
 		error = "Dialog file is corrupt [register 2].";
@@ -252,6 +254,7 @@ int BurzaDialogs::SetupDialogs( void )
 	menuItemSettings->signal_button_release_event().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonSettings ) );
 	menuItemSaveSellerOverview->signal_button_release_event().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonSaveSellerOverview ) );
 	menuitemStats->signal_button_release_event().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonStats ) );
+	menuitemFixItemCats->signal_button_release_event().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonFixItemCats ) );
 
 	m_pComboSeller->signal_changed().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterComboChangedSeller ) );
 	m_pEntryRegistryLookupSeller->signal_changed().connect( sigc::mem_fun( this, &BurzaDialogs::RegisterEditLookupSellerChanged ) );
@@ -2076,6 +2079,12 @@ bool BurzaDialogs::RegisterButtonStats( GdkEventButton* button )
 }
 
 bool BurzaDialogs::RegisterButtonSaveSellerOverview( GdkEventButton* button )
+{
+	RegisterButtonReviewOfSellers();
+	return true;
+}
+
+bool BurzaDialogs::RegisterButtonFixItemCats( GdkEventButton* button )
 {
 	RegisterButtonReviewOfSellers();
 	return true;
