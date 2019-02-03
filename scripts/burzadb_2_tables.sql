@@ -73,7 +73,7 @@ INSERT INTO seller_category(
 	"FEE", "MUL_FEE_ITEM", "MUL_FEE_ITEM_PERC", "MUL_FEE_SOLD_ITEM", "MUL_FEE_SOLD_PERC")
     VALUES 
     (1, 'p', 'Predajca', 0.0, 1.0, 1.0, 1.0, 1.0),
-    (2, 's', 'Sympatizant', 0.0, 0.0, 0.0, 1.0, 1.0),
+    (2, 's', 'Pomocnik', 0.0, 0.0, 0.0, 1.0, 1.0),
     (3, 'd', 'Organizator', 0.0, 0.0, 0.0, 0.0, 0.0);
 
 

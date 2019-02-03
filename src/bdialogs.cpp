@@ -866,7 +866,8 @@ void BurzaDialogs::RegisterEditLookupSellerChanged( void )
 	else 
 	{
 		RegisterSortSellersByName( str );
-		RegisterDisplaySeller( SellersOrdered[ 0 ] );
+		// do not display if it is not exact match. Displaying takes time. 
+		// See issue #40 RegisterDisplaySeller( SellersOrdered[ 0 ] );
 	}
 }
 
