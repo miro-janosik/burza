@@ -1,0 +1,43 @@
+== Before sale ==
+
+* Get list of existing sellers from web + their codes into CSV. 
+	FIX web-manage/getWebSellerCodes.pl
+	
+* Get additional new codes for new sellers into CSV (and send it for handout of codes)
+	genCodeList <web-code-list>
+
+* Add new codes to web DB
+	web-manage/addNewCodesToWebFromCsv.pl
+
+* Update web DB - remove items that are sold.
+	web-manage/deleteSoldItems.pl
+	If items are not marked as sold on web, then use scripts below
+
+== After sellers filled items on web ==
+
+* Copy data from web DB to sale DB
+
+YYYYYY
+
+== Sale - when verified items and sellers for sale ==
+
+* Find sellers with items not on sale (they did not arrive for sale). These items and sellers are deleted from sale DB.
+	sale-manage/s_fixSellerStatus.sh
+	sale-manage/s_removeItemsNotIn.sh
+	sale-manage/s_removeSellersWithoutItems.sh
+
+	XX categories
+
+* Sync web DB with sale DB (sellers and items). Items for sale or sellers could be modified. Some items could be added or removed.
+	sale-to-web/alignWebWithSale.pl
+	TODO: trimming of codes to match correctly
+	needs packages: String::Util List::Compare
+
+== Sale - when items are sold ==
+
+* Sync web DB with sale DB (item status). Items could be sold and this should appear on web.
+	sale-to-web/itemStatusSaleToWeb.pl
+
+== After sale ==
+
+* Backup databases through DB admin

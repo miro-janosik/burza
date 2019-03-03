@@ -1,0 +1,99 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use feature qw(say);
+use DBI;
+use lib '..';
+use connections;
+use Text::CSV;
+use List::Compare;
+use String::Util 'trim';
+
+say "Starting";
+
+my $csv_filename = "codes.csv";
+say "Reading sellers from CSV '$csv_filename'";
+
+# it reads format <seller code>, <0/1>, <login> where 0/1 value has to be 0.
+my %new_seller_codes_logins;
+my @new_seller_codes;
+{
+	my $csv = Text::CSV->new({ sep_char => ',' });
+	open (my $f, '<', $csv_filename) or die "Could not open text file '$csv_filename'";
+	while (my $line = <$f>) {
+		chomp $line;
+	
+		if ($csv->parse($line)) {
+	
+				my @fields = $csv->fields();
+				if ($fields[1] == "0")
+				{
+					$new_seller_codes_logins{trim($fields[0])} = trim($fields[2]);
+				}
+		} else {
+				warn "Line could not be parsed: $line\n";
+		}
+	}
+	close $f;
+	
+	if (scalar keys %new_seller_codes_logins == 0)
+	{
+		say "CSV did not contain any new logins.";
+		die;
+	}
+	
+	@new_seller_codes = keys %new_seller_codes_logins;
+	my $firstKey = $new_seller_codes[0];
+	my $firstValue = $new_seller_codes_logins{ $firstKey };
+	
+	say "Read ". scalar @new_seller_codes ." codes and logins, first is '$firstKey'='$firstValue'";
+}
+
+{
+	my $dbweb = connections::web_connect();
+
+	# reading 'seller codes' from web
+	my @web_seller_codes;
+	{
+		my @sellers_arr = $dbweb->selectall_array("SELECT `info` FROM `Users`");
+		@web_seller_codes = map {@$_} @sellers_arr;
+	}
+	
+	# looking for duplicates
+	{
+		my $lc = List::Compare->new(\@new_seller_codes, \@web_seller_codes);
+		my @intersection = $lc->get_intersection;
+		if (scalar @intersection > 0)
+		{
+			say "There is some problem, some new codes are already on web:". join(" ", @intersection);
+			die;
+		}
+	}
+	
+	say "Going to insert into web. Confirm by pressing ENTER.";
+	<STDIN>;
+	
+	# inserting
+	{
+		my $q = "INSERT INTO Users (PoslatTeraz, Provizia, isActive, Name, Mail, Kontakt, LoginStr, info) VALUES ";
+		
+		my @value_arr;
+		for my $code (@new_seller_codes) {
+			my $login = $new_seller_codes_logins{ $code };
+			my $values = '(0, 0, 1, NULL, "", NULL, "'.$login.'", "'.$code.'")';
+			push( @value_arr, $values );
+		}
+		
+		$q .= join( ",", @value_arr );
+		
+		say "Insert sentence is ". length($q) ." characters long.";
+		my $affected = $dbweb->do($q);
+		say "Affected $affected rows.";
+	}
+	
+	say "Disconnecting";
+	$dbweb->disconnect();
+}
+
+say "Exit.";
+
