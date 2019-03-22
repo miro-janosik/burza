@@ -1,3 +1,9 @@
+XXX - replaced by:
+FIX web-manage/getWebSellerCodes.pl
+web-manade/addNewCodesToWebFromCsv.pl
+
+(this document replaced by overall-scripts.txt)
+
 === New sellers ===
 
 1) export existing sellers from web

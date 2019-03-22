@@ -6,10 +6,17 @@
 #include <exception>
 #include "convfncs.h"
 
-#include "pqxx/pqxx"
-
-using namespace pqxx;
 using namespace std;
+
+namespace pqxx
+{
+	class connect_direct;
+	template <class T> class basic_connection;
+	
+	using connection = basic_connection<connect_direct>;
+	
+	class row;
+}
 
 //! class notifying that there is problem with database
 class database_exception : public runtime_error 
@@ -18,7 +25,8 @@ class database_exception : public runtime_error
 	database_exception(const string& what) : runtime_error( what ) { }
 };
 
-namespace Burza {
+namespace Burza 
+{
 
 class DataPostgresPqxx : public DataAccessInterface
 {
@@ -62,7 +70,7 @@ class DataPostgresPqxx : public DataAccessInterface
 	
 	static const int currentDatabaseVersion;
 	  
-	connection *dbConnection;
+	pqxx::connection *dbConnection;
 
 	void VerifyDatabaseVersion( void );
 	
@@ -74,12 +82,12 @@ class DataPostgresPqxx : public DataAccessInterface
 	string ValidateTimestampToString(ConvFuncs::s_datetime& time );
 	
 	//! function that parses one result row that queried for a seller into the SellerData
-	void DbDataToSellerData( const result::tuple& sellerResult, SellerData& sellerData );
+	void DbDataToSellerData( const pqxx::row& sellerResult, SellerData& sellerData );
 
 	//! function that parses one result row that queried for a seller into the ItemData
-	void DbDataToItemData( const result::tuple& result, ItemData& itemData );
+	void DbDataToItemData( const pqxx::row& result, ItemData& itemData );
 
-	void DbDataToSellerCategoryData( const result::tuple& result, SellerCategory& data );
+	void DbDataToSellerCategoryData( const pqxx::row& result, SellerCategory& data );
 
 	//! query for items
 	//! singleItem: if returned value is not single item, runtime_exception will be thrown
@@ -97,7 +105,7 @@ class DataPostgresPqxx : public DataAccessInterface
 	string ItemToQueryUpdateValuesString( ItemData& item );
 
 	// convert database result data into structore of ItemCategory
-	void DbDataToItemCategoryData( const result::tuple& result, ItemCategory& data );
+	void DbDataToItemCategoryData( const pqxx::row& result, ItemCategory& data );
 	
 	//requests single or multiple item category data and retrieve them
 	ItemCategoryArray QueryForItemCategories( string query, string queryName, bool singleCategory );

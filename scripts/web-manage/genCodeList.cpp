@@ -10,6 +10,8 @@
 #include <ctime>
 
 using namespace std;
+	
+string validLetters = "ABCDEHLIKMOPRSTVXZ";
 
 int main(int argc, char** argv)
 {
@@ -43,9 +45,6 @@ int main(int argc, char** argv)
 
 		cout << endl;
 	}
-
-	// char validLetters[] = "ABCDEHIKLMPRSTVYZ";
-	string validLetters = "ABCDEHLIKMPRSTVZ";
 
 	ofstream listFile("codes.csv");
 

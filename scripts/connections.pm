@@ -10,7 +10,7 @@ my $web_db = "bwr884kg";
 my $web_password = "kE8bsC41Sg";
 my $web_port = "3310";
 my %web_attr = ( PrintError=>1,  # turn off error reporting via warn()
-             RaiseError=>1 );   # turn on error reporting via die()
+             RaiseError=>1, mysql_enable_utf8 => 1 );   # turn on error reporting via die()
 my $web_con = "DBI:mysql:database=$web_db;host=$web_server;port=$web_port;mysql_connect_timeout=5";
 
 sub web_connect
@@ -29,8 +29,8 @@ sub web_connect
 # -f in_file.sql -o outfile.csv
 # -w does not ask for password, it is stored in .pgpass
 
-my $sale_server = "192.168.1.17";
-my $sale_db = "b2";
+my $sale_server = "127.0.0.1"; # "192.168.1.17";
+my $sale_db = "b1"; # "b2";
 my $sale_login = "user";
 my $sale_password = "trencin";
 my $sale_port = "5432";

@@ -90,7 +90,7 @@ CREATE TABLE sellers
   "COMMENT" text,
   "CHANGING" boolean NOT NULL DEFAULT false,
   "CHANGED_BY" text,
-  "SELLER_CATEGORY_ID" integer DEFAULT (-1) CONSTRAINT "sellers_seller_category_id" references seller_category("ID"),
+  "SELLER_CATEGORY_ID" integer DEFAULT (1) CONSTRAINT "sellers_seller_category_id" references seller_category("ID"),
   "MODIFIED" timestamp with time zone NOT NULL DEFAULT '2000-01-01 01:02:03'::timestamp without time zone,
   "STATUS" integer NOT NULL DEFAULT 0
   -- CONSTRAINT "seller id is unique" PRIMARY KEY ("SELLER_ID")
@@ -115,7 +115,7 @@ CREATE TABLE items
   "PRICE" double precision NOT NULL DEFAULT 0.0,
   "CHANGING" boolean NOT NULL DEFAULT false,
   "CHANGED_BY" text,
-  "ITEM_CATEGORY_ID" integer NOT NULL DEFAULT (-1) references item_category("ID"),
+  "ITEM_CATEGORY_ID" integer NOT NULL DEFAULT (1) references item_category("ID"),
   "NUMBER" integer NOT NULL DEFAULT (-1),
   "STATUS" integer NOT NULL DEFAULT 0,
   "MODIFIED" timestamp with time zone NOT NULL DEFAULT '2000-01-01 01:02:03'::timestamp without time zone

@@ -5,7 +5,11 @@
 // for snprintf
 #include <stdio.h> 
 
+// needed define for pqxx 6.2.4 + g++ 8.2.0
+// https://stackoverflow.com/questions/52932773/use-of-stdexperimentaloptional-with-g-v8-2-0
+#define PQXX_HIDE_EXP_OPTIONAL
 #include "pqxx/pqxx"
+
 #include "log.h"
 #include "convfncs.h"
 #include "bdialogs.h"
@@ -574,7 +578,7 @@ ConvFuncs::s_datetime DataPostgresPqxx::StringToTimestamp( string time )
 	return result;
 }
 
-void DataPostgresPqxx::DbDataToSellerData( const result::tuple& result, SellerData& data )
+void DataPostgresPqxx::DbDataToSellerData( const pqxx::row& result, SellerData& data )
 {
 	bool dataCorrupt = false;
 	string timeString;
@@ -636,7 +640,7 @@ SellerDataArray DataPostgresPqxx::QueryForSellers( string query, string queryNam
 	}
 	
 	for( ; i < c; ++i ) {
-		const result::tuple sellerResult = sellersResult[ i ];
+		const row sellerResult = sellersResult[ i ];
 		DbDataToSellerData( sellerResult, sellerData );
 		
 		sellers.push_back( sellerData );
@@ -645,7 +649,7 @@ SellerDataArray DataPostgresPqxx::QueryForSellers( string query, string queryNam
 	return sellers;
 }
 
-void DataPostgresPqxx::DbDataToSellerCategoryData( const result::tuple& result, SellerCategory& data ) 
+void DataPostgresPqxx::DbDataToSellerCategoryData( const pqxx::row& result, SellerCategory& data ) 
 {
 	bool dataCorrupt = false;
 	
@@ -694,7 +698,7 @@ SellerCategoryArray DataPostgresPqxx::QueryForSellerCategories( string query, st
 	string timeString;
 
 	for( ; i < c; ++i ) {
-		const result::tuple singleResult = queryResult[ i ];
+		const row singleResult = queryResult[ i ];
 		DbDataToSellerCategoryData( singleResult, category );
 		
 		categories.push_back( category );
@@ -741,7 +745,7 @@ ItemDataArray DataPostgresPqxx::QueryForItems( string query, string queryName, b
 	return items;
 }
 
-void DataPostgresPqxx::DbDataToItemData( const result::tuple& result, ItemData& data )
+void DataPostgresPqxx::DbDataToItemData( const pqxx::row& result, ItemData& data )
 {
 	bool dataCorrupt = false;
 	string timeString;
@@ -827,7 +831,7 @@ string DataPostgresPqxx::ItemToQueryUpdateValuesString( ItemData& item )
 	return values;
 }
 
-void DataPostgresPqxx::DbDataToItemCategoryData( const result::tuple& result, ItemCategory& data )
+void DataPostgresPqxx::DbDataToItemCategoryData( const pqxx::row& result, ItemCategory& data )
 {
 	bool dataCorrupt = false;
 	
@@ -887,7 +891,7 @@ ItemCategoryArray DataPostgresPqxx::QueryForItemCategories( string query, string
 	}
 	
 	for( ; i < c; ++i ) {
-		const result::tuple oneRow = categoryResult[ i ];
+		const pqxx::row oneRow = categoryResult[ i ];
 		DbDataToItemCategoryData( oneRow, category );
 		
 		categories.push_back( category );

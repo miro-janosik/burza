@@ -1514,6 +1514,8 @@
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="resize_mode">immediate</property>
+                <property name="headers_clickable">False</property>
+                <property name="enable_search">False</property>
                 <property name="enable_grid_lines">both</property>
               </widget>
             </child>

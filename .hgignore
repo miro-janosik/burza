@@ -10,4 +10,5 @@ run_linux/
 libs/
 external/libharu-master/
 burza-web/
+src/*~
 
