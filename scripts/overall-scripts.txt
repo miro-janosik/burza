@@ -1,4 +1,4 @@
-== Before sale ==
+== When making free codes for sellers ==
 
 * Get list of existing sellers from web + their codes into CSV. 
 	FIX web-manage/getWebSellerCodes.pl
@@ -17,7 +17,7 @@
 
 * Copy data from web DB to sale DB
 
-YYYYYY
+	web-to-sale/web-to-sale.pl
 
 == Sale - when verified items and sellers for sale ==
 

@@ -8,19 +8,28 @@ use connections;
 
 say "Starting";
 
+# sanitize string
+sub sanitize
+{
+	my ($t) = @_;
+	$t =~ s/"//g;
+	$t =~ s/'//g;
+	return $t;
+}
+
 my $dbsale = connections::sale_connect();
 
 # see if local database is cleared
 {
-	my @counts = map {@$_} $dbsale->selectall_array('SELECT COUNT(*) FROM "sellers"');
+	my @counts = $dbsale->selectrow_array('SELECT COUNT(*) FROM "sellers"');
 	my $sellers_count = $counts[0];
-	   @counts = map {@$_} $dbsale->selectall_array('SELECT COUNT(*) FROM "items"');
+	   @counts = $dbsale->selectrow_array('SELECT COUNT(*) FROM "items"');
 	my $items_count = $counts[0];
 
 	if (($sellers_count + $items_count) > 0)
 	{
 		$dbsale->disconnect();
-		say "Database contains items or sellers, delete them first";
+		say "Database contains items($items_count) or sellers ($sellers_count), delete them first";
 		die;
 	}
 }
@@ -29,7 +38,7 @@ my $dbweb = connections::web_connect();
 
 # copy sellers from web to local one
 {
-        my $qr = $dbweb->prepare(
+    my $qr = $dbweb->prepare(
 "SELECT ID, \
 info as shortcode, \
 IFNULL( NULLIF(Name, ''), '-' ) as name, \
@@ -39,33 +48,33 @@ WHERE info is not null"
 	);
 	$qr->execute;
 
-        my $updateItemLimit = 50;
-        my $handledItems = 0;
+    my $updateItemLimit = 50;
+    my $handledItems = 0;
 	my $allHandledItems = 0;
-        do
-        {
+    do
+    {
 		$handledItems = 0;
 
 		my $q = 'INSERT INTO sellers ("ID", "SHORT_CODE", "NAME", "COMMENT") VALUES ';
 
-                while ( (my $row = $qr->fetchrow_arrayref) and ($handledItems < $updateItemLimit) )
-                {
-			say "A: @$row[2]";
-                        ++$handledItems;
-                        $q .= "('@$row[0]', '@$row[1]', '@$row[2]', '@$row[3]'),";
-                }
-        
-                $q = substr $q, 0, -1;
-                $q .= ";"; say $q;
-                my $affected_rows = $dbsale->do($q);
-                if (defined $dbweb->err)
-                {
-                  say "DB Err: " . $dbsale->err;
-                }
-        
-                say "Affected $affected_rows rows";
+		while ( (my $row = $qr->fetchrow_arrayref) and ($handledItems < $updateItemLimit) )
+		{
+			# say "A: @$row[2]";
+			++$handledItems;
+			$q .= "('".sanitize(@$row[0])."', '".sanitize(@$row[1])."', '".sanitize(@$row[2])."', '".sanitize(@$row[3])."'),";
+		}
+
+		$q = substr $q, 0, -1;
+		$q .= ";";
+		my $affected_rows = $dbsale->do($q);
+		if (defined $dbweb->err)
+		{
+		  say "DB Err: " . $dbsale->err;
+		}
+
+		say "Affected $affected_rows rows";
 		$allHandledItems += $affected_rows;
-        } while ($handledItems == $updateItemLimit);
+	} while ($handledItems == $updateItemLimit);
 
 	say "Inserted $allHandledItems sellers";
 }
@@ -96,7 +105,7 @@ JOIN Velkost v on p.Velkost = v.ID"
                 while ( (my $row = $qr->fetchrow_arrayref) and ($handledItems < $updateItemLimit) )
                 {
                         ++$handledItems;
-                        $q .= "('@$row[0]', '@$row[1]', '@$row[2]', '@$row[3]', '@$row[4]', '@$row[5]'),";
+                        $q .= "('".sanitize(@$row[0])."', '".sanitize(@$row[1])."', '".sanitize(@$row[2])."', '".sanitize(@$row[3])."', '".sanitize(@$row[4])."', '".sanitize(@$row[5])."'),";
                 }
         
                 $q = substr $q, 0, -1;
