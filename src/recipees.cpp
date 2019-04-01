@@ -423,6 +423,7 @@ void Recipees::PrintStats( PdfWrapperBase& pdf )
 	catch(exception& e)
 	{
 		ErrorHandling::HandleException(e);
+		return;
 	}
 
 	currentPdf = &pdf;
@@ -647,7 +648,7 @@ void Recipees::PrintStats( PdfWrapperBase& pdf )
 	}
 
 	ypos = AdvanceYpos( ypos, lineSpacing );
-	pdf.WriteSingleText( textPosX, ypos, ConvFuncs::FormatStdStr(_( "Počet predajcov: %i" ), sellers.size()) );
+	pdf.WriteSingleText( textPosX, ypos, ConvFuncs::FormatStdStr(_( "Počet importovanych predajcov: %i, prebratych %i" ), sellers.size(), received.size() ));
 
 	ypos = AdvanceYpos( ypos, lineSpacing );
 	pdf.WriteSingleText( textPosX, ypos, ConvFuncs::FormatStdStr(_( "Kusov tovaru: %i" ), numberOfItems) );

@@ -309,6 +309,9 @@ class DataAccessInterface {
   
   //! Marks items as sold, creates record that these items were sold in one group.
   virtual void StoreSaleOfItems(std::vector<ITEM_ID>& itemIds, std::string title) { throw NotImplementedException(); }
+
+  //! Marks items as sold, creates record that these items were sold in one group.
+  virtual void GetSaleOfItems(std::vector<ITEM_ID>& itemIds, std::string title) { throw NotImplementedException(); }
   
   // ==== network identification and connection ====
   

@@ -111,7 +111,7 @@ sub updateForStatus
 	{
 		$handledItems = 0;
 		$q = "UPDATE Polozky SET Predane = $web_value WHERE ID IN (";
-		while ( (my $row = $qr->fetchrow_arrayref) and ($handledItems < $updateItemLimit) )
+		while ( ($handledItems < $updateItemLimit) and (my $row = $qr->fetchrow_arrayref) )
 		{
 			++$handledItems;
 			my $id = @$row[0];

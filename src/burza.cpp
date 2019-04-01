@@ -197,6 +197,11 @@ SELLER_CATEGORY_ID BurzaRegister::GetDefaultSellerCategoryId( void )
 
 void BurzaRegister::FinishCheckout( ItemDataArray& items )
 {
+	if (items.empty())
+	{
+		return;
+	}
+  
 	try {
 		
 		Recipees recipees;

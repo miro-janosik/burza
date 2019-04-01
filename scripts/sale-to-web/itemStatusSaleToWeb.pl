@@ -42,21 +42,24 @@ sub updateForStatus
 	{
 		$handledItems = 0;
 		$q = "UPDATE Polozky SET Predane = $web_value WHERE ID IN (";
-		while ( (my $row = $qr->fetchrow_arrayref) and ($handledItems < $updateItemLimit) )
+		while ( ($handledItems < $updateItemLimit) and (my $row = $qr->fetchrow_arrayref) )
 		{
 			++$handledItems;
 			my $id = @$row[0];
 			$q .= "$id,";
 		}
+		
+		if ($handledItems != 0)
+		{	
+			$q = substr $q, 0, -1;
+			$q .= ")";
+			my $affected_rows = $dbweb->do($q);
+			if (defined $dbweb->err)
+			{
+			  say "DB Err: " . $dbweb->err;
+			}
 	
-		$q = substr $q, 0, -1;
-		$q .= ")";
-		my $affected_rows = $dbweb->do($q);
-		if (defined $dbweb->err)
-		{
-		  say "DB Err: " . $dbweb->err;
+			say "Affected $affected_rows rows";
 		}
-	
-		say "Affected $affected_rows rows";
 	} while ($handledItems == $updateItemLimit);
 }

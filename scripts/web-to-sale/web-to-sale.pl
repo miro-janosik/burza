@@ -48,8 +48,8 @@ WHERE info is not null"
 	);
 	$qr->execute;
 
-    my $updateItemLimit = 50;
-    my $handledItems = 0;
+	my $updateItemLimit = 50;
+	my $handledItems = 0;
 	my $allHandledItems = 0;
     do
     {
@@ -57,23 +57,26 @@ WHERE info is not null"
 
 		my $q = 'INSERT INTO sellers ("ID", "SHORT_CODE", "NAME", "COMMENT") VALUES ';
 
-		while ( (my $row = $qr->fetchrow_arrayref) and ($handledItems < $updateItemLimit) )
+		while (($handledItems < $updateItemLimit) and (my $row = $qr->fetchrow_arrayref))
 		{
 			# say "A: @$row[2]";
 			++$handledItems;
 			$q .= "('".sanitize(@$row[0])."', '".sanitize(@$row[1])."', '".sanitize(@$row[2])."', '".sanitize(@$row[3])."'),";
 		}
 
-		$q = substr $q, 0, -1;
-		$q .= ";";
-		my $affected_rows = $dbsale->do($q);
-		if (defined $dbweb->err)
+		if ($handledItems > 0)
 		{
-		  say "DB Err: " . $dbsale->err;
-		}
+			$q = substr $q, 0, -1;
+			$q .= ";";
+			my $affected_rows = $dbsale->do($q);
+			if (defined $dbweb->err)
+			{
+			  say "DB Err: " . $dbsale->err;
+			}
 
-		say "Affected $affected_rows rows";
-		$allHandledItems += $affected_rows;
+			say "Affected $affected_rows rows";
+			$allHandledItems += $affected_rows;
+		}
 	} while ($handledItems == $updateItemLimit);
 
 	say "Inserted $allHandledItems sellers";
@@ -102,7 +105,7 @@ JOIN Velkost v on p.Velkost = v.ID"
 		$handledItems = 0;
 
 		my $q = 'INSERT INTO items ("ID","SELLER_ID","NUMBER","PRICE","NAME","MODIFIED") VALUES ';
-                while ( (my $row = $qr->fetchrow_arrayref) and ($handledItems < $updateItemLimit) )
+                while (($handledItems < $updateItemLimit) and (my $row = $qr->fetchrow_arrayref))
                 {
                         ++$handledItems;
                         $q .= "('".sanitize(@$row[0])."', '".sanitize(@$row[1])."', '".sanitize(@$row[2])."', '".sanitize(@$row[3])."', '".sanitize(@$row[4])."', '".sanitize(@$row[5])."'),";
