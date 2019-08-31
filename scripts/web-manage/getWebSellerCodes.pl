@@ -10,10 +10,9 @@ say "Starting";
 
 my $dbweb = connections::web_connect();
 
-my $cmd1 = "SELECT `info`, `loginStr` FROM `Users`";
+my $cmd1 = "SELECT `loginStr`, `Name` FROM `Users` ORDER BY `loginStr`";
 my $qr1 = $dbweb->prepare($cmd1);
 $qr1->execute;
-#my $tbl_arr_ref = $qr1->fetchall_arrayref([0]);
 my $tbl_arr_ref = $qr1->fetchall_arrayref();
 if (defined $qr1->err)
 {
@@ -24,14 +23,14 @@ say "Disconnecting";
 $dbweb->disconnect();
 
 open (my $f, '>', "web_codes.txt") or die "Could not create text file";
+binmode $f, ":utf8";
 
 foreach (@$tbl_arr_ref)
 {
-	my $code = @$_[0];
-	my $login = @$_[1];
-	say " $code";
-	print $f "$code\t$login\n";
+	print $f @$_[0] . "\t" . @$_[1] . "\n";
 }
+
+say "Exported " . scalar @$tbl_arr_ref . " sellers";
 
 close $f;
 say "Exit.";

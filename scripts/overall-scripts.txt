@@ -1,10 +1,16 @@
+Install needed packages:
+sudo apt-get install perl build-essential postgresql-server-dev-10 libpq-dev
+sudo cpan install DBI DBD::mysql DBD::Pg String::Util List::Compare Text::Unidecode Text::CSV
+## This does not work, String::Util can't be installed this way: sudo apt install libdbi-perl liblist-compare-perl libdbd-mysql-perl
+
 == When making free codes for sellers ==
 
-* Get list of existing sellers from web + their codes into CSV. 
-	FIX web-manage/getWebSellerCodes.pl
+* Get list of existing sellers from web + their codes into CSV.
+  It should be already cleared up from sellers from previous year that did not attend, to free up codes.
+	web-manage/getWebSellerCodes.pl - produces web_codes.txt
 	
 * Get additional new codes for new sellers into CSV (and send it for handout of codes)
-	genCodeList <web-code-list>
+	genCodeList web_codes.txt
 
 * Add new codes to web DB
 	web-manage/addNewCodesToWebFromCsv.pl
@@ -14,6 +20,10 @@
 	If items are not marked as sold on web, then use scripts below
 
 == After sellers filled items on web ==
+
+* See statistics and remove inactive sellers
+	web-manage/webSellerStats.pl
+	web-manage/webRemoveEmptySellers.pl
 
 * Copy data from web DB to sale DB
 
@@ -27,11 +37,11 @@
 	sale-manage/s_removeSellersWithoutItems.sh
 
 	XX categories
+	sale-manage/ts_sale_updateItemCats.sql
 
-* Sync web DB with sale DB (sellers and items). Items for sale or sellers could be modified. Some items could be added or removed.
+* Sync web DB with sale DB (sellers and items). Only removes sellers and items that were not brought to sale.
+
 	sale-to-web/alignWebWithSale.pl
-	TODO: trimming of codes to match correctly
-	needs packages: String::Util List::Compare
 
 == Sale - when items are sold ==
 

@@ -1,13 +1,15 @@
 // Program generuje zoznam dvojpismenovych kodov a k nim trojpismenove hesla.
-// Ak sa prida ako parameter subor s kodmi (za pomlckou mozu byt hesla)
+// Ak sa prida ako parameter subor s kodmi
 // tak tieto sa pouziju ako stare kody, pre ktore netreba generovat hesla
+// Tento subor obsahuje "AA-BBB<tab>Meno predajcu"
 
 #include <algorithm>
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <set>
 #include <ctime>
+#include <tuple>
+#include <vector>
 
 using namespace std;
 	
@@ -17,7 +19,7 @@ int main(int argc, char** argv)
 {
 	// random seed
 	srand( (unsigned int)time(0) );
-	set<string> oldCodes;
+    vector<tuple<string, string, string>> oldSellers;
 
 	if (argc >= 2)
 	{
@@ -32,15 +34,20 @@ int main(int argc, char** argv)
 		cout << "Old codes: ";
 		for ( string line; getline(oldCodesFile, line ); )
 		{
-			// strip away password after minus
-			size_t pos = line.find_first_of("-");
-			if (string::npos != pos)
-				line = line.substr(0, pos);
+			// separate into login and name
+			size_t pos = line.find_first_of("\t");
+			auto login = line.substr(0, pos);
+			auto name = line.substr(pos+1);
 
 			// change letters to uppercase			
-			for (auto& c : line ) c = toupper(c);
-			oldCodes.insert(line);
-			cout << line << " ";
+			for (auto& c : login ) c = toupper(c);
+            
+			// strip away password after minus
+			pos = login.find_first_of("-");
+			auto code = login.substr(0, pos);
+            
+			cout << code << " ";
+			oldSellers.push_back(make_tuple(code, login, name));
 		}
 
 		cout << endl;
@@ -56,11 +63,19 @@ int main(int argc, char** argv)
 			code += second;
 
 			// see if it is old or new
-			bool old = (oldCodes.end() != oldCodes.find(code));
+			auto it = find_if(oldSellers.begin(), oldSellers.end(), [code](const tuple<string,string,string>& i) 
+					{return std::get<0>(i) == code;});
+			bool old = (it != oldSellers.end());
 
 			// for new codes generate passwords
 			string codeWithPassword;
-			if (!old)
+			string name;
+			if (old)
+			{
+				codeWithPassword = std::get<1>(*it);
+				name = std::get<2>(*it);
+			}
+			else
 			{
 				string pwd;
 				static const unsigned char lettersCount = 'Z' - 'A';
@@ -73,7 +88,7 @@ int main(int argc, char** argv)
 				codeWithPassword = code + "-" + pwd;
 			}
 
-			listFile << code << ", " << (old ? 1 : 0) << ", " << codeWithPassword << endl;
+			listFile << code << ", " << (old ? 1 : 0) << ", " << codeWithPassword << ", " << name << endl;
 		}
 
 	cout << "Generated." << endl;

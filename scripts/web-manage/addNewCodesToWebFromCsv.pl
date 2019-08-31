@@ -19,7 +19,7 @@ my %new_seller_codes_logins;
 my @new_seller_codes;
 {
 	my $csv = Text::CSV->new({ sep_char => ',' });
-	open (my $f, '<', $csv_filename) or die "Could not open text file '$csv_filename'";
+	open (my $f, "<:utf8", $csv_filename) or die "Could not open text file '$csv_filename'";
 	while (my $line = <$f>) {
 		chomp $line;
 	
@@ -42,7 +42,7 @@ my @new_seller_codes;
 		die;
 	}
 	
-	@new_seller_codes = keys %new_seller_codes_logins;
+	@new_seller_codes =sort keys %new_seller_codes_logins;
 	my $firstKey = $new_seller_codes[0];
 	my $firstValue = $new_seller_codes_logins{ $firstKey };
 	

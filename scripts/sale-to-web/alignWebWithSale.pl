@@ -88,11 +88,58 @@ if (scalar @extra_web > 0)
 	say "Deleted $deleted_items items and $deleted_sellers sellers";
 }
 
+say "Updating seller names";
+{
+    # find in web DB which sellers do not have names
+    my @ids;
+	my $sellers_arr_ref = $dbweb->selectall_arrayref(
+		"SELECT ID FROM Users WHERE Name IS NULL");
+
+	if (scalar @$sellers_arr_ref > 0)
+	{
+        say scalar @$sellers_arr_ref . " sellers in web DB do not have a name";
+        
+        foreach (@$sellers_arr_ref)
+        {
+            push (@ids, @$_[0]);
+        }
+        
+        my $idtext = join(",", @ids);
+        
+        # get those names if they are present in sale DB
+        my $sellers_arr_ref = $dbsale->selectall_arrayref(
+            'SELECT "ID", "NAME" FROM sellers WHERE "ID" IN ('.$idtext.') AND "NAME" IS NOT NULL');
+        say scalar @$sellers_arr_ref . " sellers can be fixed by sale DB";
+        say "Confirm by pressing ENTER.";
+        <STDIN>;
+
+        my $affected_rows = 0;
+        foreach (@$sellers_arr_ref)
+        {
+            my $name = @$_[1];
+            my $q = 'UPDATE Users SET Name = ? WHERE ID='. @$_[0];
+            $affected_rows += $dbweb->do($q, undef, $name);
+            if (defined $dbweb->err)
+            {
+                say "DB Err: " . $dbweb->err;
+            }
+        }
+
+        say "Affected $affected_rows rows";
+    }
+    else
+    {
+        say "All seller names are filled in";
+    }
+}
+
 say "Disconnecting";
 $dbsale->disconnect();
 $dbweb->disconnect();
 
 say "Exit.";
+
+=begin comment
 
 sub updateForStatus
 {
@@ -129,3 +176,5 @@ sub updateForStatus
 		say "Affected $affected_rows rows";
 	} while ($handledItems == $updateItemLimit);
 }
+
+=end comment
