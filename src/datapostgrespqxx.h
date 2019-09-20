@@ -8,6 +8,12 @@
 
 using namespace std;
 
+// (version 2015+)
+#define pqxx_row_class_name row
+
+// (version 4.0, still in repos for linux)
+#define pqxx_row_class_name tuple
+
 namespace pqxx
 {
 	class connect_direct;
@@ -15,7 +21,7 @@ namespace pqxx
 	
 	using connection = basic_connection<connect_direct>;
 	
-	class row;
+	class pqxx_row_class_name;
 }
 
 //! class notifying that there is problem with database
@@ -82,12 +88,12 @@ class DataPostgresPqxx : public DataAccessInterface
 	string ValidateTimestampToString(ConvFuncs::s_datetime& time );
 	
 	//! function that parses one result row that queried for a seller into the SellerData
-	void DbDataToSellerData( const pqxx::row& sellerResult, SellerData& sellerData );
-
+	void DbDataToSellerData( const pqxx::pqxx_row_class_name& sellerResult, SellerData& sellerData );
+	
 	//! function that parses one result row that queried for a seller into the ItemData
-	void DbDataToItemData( const pqxx::row& result, ItemData& itemData );
+	void DbDataToItemData( const pqxx::pqxx_row_class_name& result, ItemData& itemData );
 
-	void DbDataToSellerCategoryData( const pqxx::row& result, SellerCategory& data );
+	void DbDataToSellerCategoryData( const pqxx::pqxx_row_class_name& result, SellerCategory& data );
 
 	//! query for items
 	//! singleItem: if returned value is not single item, runtime_exception will be thrown
@@ -105,7 +111,7 @@ class DataPostgresPqxx : public DataAccessInterface
 	string ItemToQueryUpdateValuesString( ItemData& item );
 
 	// convert database result data into structore of ItemCategory
-	void DbDataToItemCategoryData( const pqxx::row& result, ItemCategory& data );
+	void DbDataToItemCategoryData( const pqxx::pqxx_row_class_name& result, ItemCategory& data );
 	
 	//requests single or multiple item category data and retrieve them
 	ItemCategoryArray QueryForItemCategories( string query, string queryName, bool singleCategory );

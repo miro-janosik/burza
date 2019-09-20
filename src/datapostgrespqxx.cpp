@@ -101,7 +101,7 @@ string columnNameStrings[ columnNamesCount ] = {
 */
 
 #define GetItemData( column_name_index, target_variable ) \
-	if (!result[ column_name_index ].to( data.target_variable )) \
+	if (!result[ (int) column_name_index ].to( data.target_variable )) \
 		  dataCorrupt = true;
 
 #define GetItemDataNullable( column_name_index, target_variable, default_value ) \
@@ -578,11 +578,11 @@ ConvFuncs::s_datetime DataPostgresPqxx::StringToTimestamp( string time )
 	return result;
 }
 
-void DataPostgresPqxx::DbDataToSellerData( const pqxx::row& result, SellerData& data )
+void DataPostgresPqxx::DbDataToSellerData( const pqxx::pqxx_row_class_name& result, SellerData& data )
 {
 	bool dataCorrupt = false;
 	string timeString;
-	
+
 	GetItemData( sellerColumn_seller_id, id )
 	GetItemData( sellerColumn_short_code, shortcode )
 	GetItemData( sellerColumn_name, name )
@@ -640,7 +640,7 @@ SellerDataArray DataPostgresPqxx::QueryForSellers( string query, string queryNam
 	}
 	
 	for( ; i < c; ++i ) {
-		const row sellerResult = sellersResult[ i ];
+		const pqxx::pqxx_row_class_name sellerResult = sellersResult[ i ];
 		DbDataToSellerData( sellerResult, sellerData );
 		
 		sellers.push_back( sellerData );
@@ -649,7 +649,7 @@ SellerDataArray DataPostgresPqxx::QueryForSellers( string query, string queryNam
 	return sellers;
 }
 
-void DataPostgresPqxx::DbDataToSellerCategoryData( const pqxx::row& result, SellerCategory& data ) 
+void DataPostgresPqxx::DbDataToSellerCategoryData( const pqxx::pqxx_row_class_name& result, SellerCategory& data ) 
 {
 	bool dataCorrupt = false;
 	
@@ -698,7 +698,7 @@ SellerCategoryArray DataPostgresPqxx::QueryForSellerCategories( string query, st
 	string timeString;
 
 	for( ; i < c; ++i ) {
-		const row singleResult = queryResult[ i ];
+		const pqxx::pqxx_row_class_name singleResult = queryResult[ i ];
 		DbDataToSellerCategoryData( singleResult, category );
 		
 		categories.push_back( category );
@@ -745,7 +745,7 @@ ItemDataArray DataPostgresPqxx::QueryForItems( string query, string queryName, b
 	return items;
 }
 
-void DataPostgresPqxx::DbDataToItemData( const pqxx::row& result, ItemData& data )
+void DataPostgresPqxx::DbDataToItemData( const pqxx::pqxx_row_class_name& result, ItemData& data )
 {
 	bool dataCorrupt = false;
 	string timeString;
@@ -831,7 +831,7 @@ string DataPostgresPqxx::ItemToQueryUpdateValuesString( ItemData& item )
 	return values;
 }
 
-void DataPostgresPqxx::DbDataToItemCategoryData( const pqxx::row& result, ItemCategory& data )
+void DataPostgresPqxx::DbDataToItemCategoryData( const pqxx::pqxx_row_class_name& result, ItemCategory& data )
 {
 	bool dataCorrupt = false;
 	
@@ -891,7 +891,7 @@ ItemCategoryArray DataPostgresPqxx::QueryForItemCategories( string query, string
 	}
 	
 	for( ; i < c; ++i ) {
-		const pqxx::row oneRow = categoryResult[ i ];
+		const pqxx::pqxx_row_class_name oneRow = categoryResult[ i ];
 		DbDataToItemCategoryData( oneRow, category );
 		
 		categories.push_back( category );
