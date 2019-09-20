@@ -284,8 +284,10 @@ int BurzaDialogs::SetupDialogs( void )
 	m_pTreeViewItems->append_column( "cena", m_ItemsColumn.m_price );
 	m_pTreeViewItems->append_column( "kategoria", m_ItemsColumn.m_category );
 	
-	m_RegisterItemsListModel->set_sort_func(m_ItemsColumn.m_number, sigc::mem_fun(*this, &BurzaDialogs::SortRegisterItemsNumberFunc));
-	m_RegisterItemsListModel->set_sort_func(m_ItemsColumn.m_price, sigc::mem_fun(*this, &BurzaDialogs::SortRegisterItemsPriceFunc));
+	// m_RegisterItemsListModel->set_sort_func(m_ItemsColumn.m_number, sigc::mem_fun(*this, &BurzaDialogs::SortRegisterItemsNumberFunc));
+	// m_RegisterItemsListModel->set_sort_func(m_ItemsColumn.m_price, sigc::mem_fun(*this, &BurzaDialogs::SortRegisterItemsPriceFunc));
+	
+	m_RegisterItemsListModel->unset_default_sort_func();
 
 	//Make all the columns reorderable:
 	//This is not necessary, but it's nice to show the feature.
@@ -313,12 +315,12 @@ int BurzaDialogs::SetupDialogs( void )
 	
 	pColumn = m_pTreeViewItems->get_column( 0 );
 	if( pColumn ) {
-		pColumn->set_sort_column( m_ItemsColumn.m_number );
+		// pColumn->set_sort_column( m_ItemsColumn.m_number );
 		pColumn->set_min_width( 50 );
 	}
 	pColumn = m_pTreeViewItems->get_column( 1 );
 	if( pColumn ) {
-		pColumn->set_sort_column( m_ItemsColumn.m_state );
+		// pColumn->set_sort_column( m_ItemsColumn.m_state );
 		pColumn->set_min_width( 100 );
 	}
 
@@ -326,7 +328,7 @@ int BurzaDialogs::SetupDialogs( void )
 	if( pColumn ) {
 		//pColumn->set_sort_column( m_ItemsColumn.m_state_checkbox );
 		pColumn->set_min_width( 50 );
-		pColumn->set_clickable();
+		// pColumn->set_clickable();
 
 		Gtk::CellRenderer* pCellRenderer = pColumn->get_first_cell_renderer();
 		Gtk::CellRendererToggle* pCellRenderToggle = dynamic_cast<Gtk::CellRendererToggle*>(pCellRenderer);
@@ -338,17 +340,17 @@ int BurzaDialogs::SetupDialogs( void )
 
 	pColumn = m_pTreeViewItems->get_column( 3 );
 	if( pColumn ) {
-		pColumn->set_sort_column( m_ItemsColumn.m_name );
+		// pColumn->set_sort_column( m_ItemsColumn.m_name );
 		pColumn->set_min_width( 400 );
 	}
 	pColumn = m_pTreeViewItems->get_column( 4 );
 	if( pColumn ) {
-		pColumn->set_sort_column( m_ItemsColumn.m_price );
+		// pColumn->set_sort_column( m_ItemsColumn.m_price );
 		pColumn->set_min_width( 80 );
 	}
 	pColumn = m_pTreeViewItems->get_column( 5 );
 	if( pColumn ) {
-		pColumn->set_sort_column( m_ItemsColumn.m_category );
+		// pColumn->set_sort_column( m_ItemsColumn.m_category );
 		pColumn->set_min_width( 50 );
 		pColumn->set_max_width( 200 );
 	}
