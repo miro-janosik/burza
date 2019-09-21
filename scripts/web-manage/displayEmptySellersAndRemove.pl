@@ -8,7 +8,7 @@ use connections;
 
 say "Starting";
 
-my $dbh = connections::connect();
+my $dbh = connections::web_connect();
 
 my $cmd1 = "SELECT u.ID, u.info, COUNT(i.`UserID`) as itemsCount FROM `Users` u\
 LEFT JOIN Polozky i ON u.`ID` = i.`UserID`\
