@@ -71,6 +71,7 @@ class DataPostgresPqxx : public DataAccessInterface
 	virtual void RemoveItem(ITEM_ID id);
 	
 	virtual void StoreSaleOfItems(std::vector<ITEM_ID>& itemIds, std::string title);
+	virtual int GetNumberOfSales( void );
 	
   protected:
 	

@@ -646,6 +646,11 @@ void Recipees::PrintStats( PdfWrapperBase& pdf )
 		LogS( InfoMajor, "After seller %s - %s : %i\n", 
 			sellers[ s ].shortcode.c_str(), sellers[ s ].name.c_str(), (int)costOfAllItems );
 	}
+	
+	int numberOfBuyers = Centrala::Storage().GetNumberOfSales();
+	float averageBuySumPrice = 0;
+	if (numberOfBuyers > 0)
+		averageBuySumPrice = numberOfItemsInStatus[ ItemStatus::sold ] / numberOfBuyers;
 
 	ypos = AdvanceYpos( ypos, lineSpacing );
 	pdf.WriteSingleText( textPosX, ypos, ConvFuncs::FormatStdStr(_( "Počet importovanych predajcov: %i, prebratych %i" ), sellers.size(), received.size() ));
@@ -676,6 +681,9 @@ void Recipees::PrintStats( PdfWrapperBase& pdf )
 	ypos = AdvanceYpos( ypos, lineSpacing );
 	pdf.WriteSingleText( textPosX, ypos, ConvFuncs::FormatStdStr(_( "Zisk spolu: %0.2f" ), gainTotal) );
 
+	ypos = AdvanceYpos( ypos, lineSpacing );
+	pdf.WriteSingleText( textPosX, ypos, ConvFuncs::FormatStdStr(_( "Počet kupujúcich: %i, to znamená priemernú cenu nákupu: %0.2f" ), numberOfBuyers, averageBuySumPrice) );
+		
 	for( int i = 0; i < ItemStatusCount; ++i ) {
 
 		ypos = AdvanceYpos( ypos, lineSpacing );

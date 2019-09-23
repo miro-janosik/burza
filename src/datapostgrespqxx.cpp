@@ -525,6 +525,20 @@ void DataPostgresPqxx::StoreSaleOfItems(std::vector<ITEM_ID>& itemIds, std::stri
 	}
 }
 
+int DataPostgresPqxx::GetNumberOfSales( void )
+{
+	string query = "SELECT COUNT(1) FROM sold";
+	try {
+		pqxx::work w(*dbConnection, "get number of sold" );
+		result res = w.exec( query );
+		return res[0][0].as<int>();
+	}
+	catch(...)
+	{
+		throw;
+	}
+}
+
 string DataPostgresPqxx::TimestampToString(ConvFuncs::s_datetime& time )
 {
 	// 2011-01-01 01:02:03

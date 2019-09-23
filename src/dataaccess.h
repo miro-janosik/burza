@@ -211,6 +211,15 @@ public:
 */
 class DataAccessInterface {
   public:  
+  // ==== network identification and connection ====
+
+		//! Connect to server
+  virtual bool ConnectDb(string& serverName, string& login, string& password) { throw NotImplementedException(); }
+  
+  //! set name of local machine or program, to be seen on different machines in form
+  //! of "Seller XYZ is being modified by NAME since DATE"
+  virtual void SetLocalName(string& name) { throw NotImplementedException(); }
+		
   //! Data functions
 	
   //! Get list of sellers data.
@@ -311,16 +320,10 @@ class DataAccessInterface {
   virtual void StoreSaleOfItems(std::vector<ITEM_ID>& itemIds, std::string title) { throw NotImplementedException(); }
 
   //! Marks items as sold, creates record that these items were sold in one group.
-  virtual void GetSaleOfItems(std::vector<ITEM_ID>& itemIds, std::string title) { throw NotImplementedException(); }
+  // virtual void GetSaleOfItems(std::vector<ITEM_ID>& itemIds, std::string title) { throw NotImplementedException(); }
   
-  // ==== network identification and connection ====
-  
-  //! set name of local machine or program, to be seen on different machines in form
-  //! of "Seller XYZ is being modified by NAME since DATE"
-  virtual void SetLocalName(string& name) { throw NotImplementedException(); }
-
-  //! Connect to server
-  virtual bool ConnectDb(string& serverName, string& login, string& password) { throw NotImplementedException(); }
+  //! Returns number of sales in database, number 0 or greater
+	virtual int GetNumberOfSales( void ) { throw NotImplementedException(); }
   
 public:
   // ==== helper functions ====
@@ -354,7 +357,7 @@ public:
   //! returns array of exactly the same size as array in parameter.
   //! returned array contains category for items in the same order as items in parameter.
   virtual ItemCategoryArray GetItemsCategories( ItemDataArray& items );
-  
+	
   //! returns string representing 'item status'
   static const char* ItemStatus2String( ItemStatus status );
   
