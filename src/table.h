@@ -125,7 +125,7 @@ public:
 	}
 	
 	T& CellByIndex( const unsigned int index ) 
-		throw( std::out_of_range )
+//		throw( std::out_of_range )
 	{
 		if ( index >= m_cells_count )
 			throw std::out_of_range( "CellByIndex() out of range" );

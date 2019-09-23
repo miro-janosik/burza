@@ -42,6 +42,8 @@ sudo cpan install DBI DBD::mysql DBD::Pg String::Util List::Compare Text::Unidec
 * Sync web DB with sale DB (sellers and items). Only removes sellers and items that were not brought to sale.
 
 	sale-to-web/alignWebWithSale.pl
+	TODO: trimming of codes to match correctly
+	needs packages: String::Util List::Compare
 
 == Sale - when items are sold ==
 
