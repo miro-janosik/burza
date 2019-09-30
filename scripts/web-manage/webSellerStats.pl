@@ -10,6 +10,11 @@ say "Starting";
 
 my $dbh = connections::web_connect();
 
+my $cmd2 = "SELECT COUNT(*) as Poloziek, SUM(p.Cena) as Suma FROM Polozky p";
+my $tbl_suma = $dbh->selectall_arrayref($cmd2);
+my $row1 = @$tbl_suma[0];
+say "Poloziek: " . @$row1[0] . " Suma spolu: " . @$row1[1];
+
 my $cmd1 = "SELECT u.ID, u.info, u.Name, COUNT(i.`UserID`) as itemsCount FROM `Users` u\
 LEFT JOIN Polozky i ON u.`ID` = i.`UserID`\
 GROUP BY u.`ID`\

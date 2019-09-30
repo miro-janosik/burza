@@ -1,4 +1,5 @@
-Install needed packages:
+== Needed perl packages ==
+
 sudo apt-get install perl build-essential postgresql-server-dev-10 libpq-dev
 sudo cpan install DBI DBD::mysql DBD::Pg String::Util List::Compare Text::Unidecode Text::CSV
 ## This does not work, String::Util can't be installed this way: sudo apt install libdbi-perl liblist-compare-perl libdbd-mysql-perl
@@ -29,7 +30,7 @@ sudo cpan install DBI DBD::mysql DBD::Pg String::Util List::Compare Text::Unidec
 
 	web-to-sale/web-to-sale.pl
 
-== Sale - when verified items and sellers for sale ==
+== Sale - when verified items and sellers for sale, before sale ==
 
 * Find sellers with items not on sale (they did not arrive for sale). These items and sellers are deleted from sale DB.
 	sale-manage/s_fixSellerStatus.sh
@@ -39,11 +40,13 @@ sudo cpan install DBI DBD::mysql DBD::Pg String::Util List::Compare Text::Unidec
 	XX categories
 	sale-manage/ts_sale_updateItemCats.sql
 
-* Sync web DB with sale DB (sellers and items). Only removes sellers and items that were not brought to sale.
+* (not required:) Sync web DB with sale DB (sellers and items). Only removes sellers and items that were not brought to sale.
 
 	sale-to-web/alignWebWithSale.pl
-	TODO: trimming of codes to match correctly
-	needs packages: String::Util List::Compare
+	What it does:
+		- lists which sellers differ on web/in sale
+		- removes extra sellers from web that are not in sale
+		- updates seller names on web if they did not have name and have it in sale
 
 == Sale - when items are sold ==
 
