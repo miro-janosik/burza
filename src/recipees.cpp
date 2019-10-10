@@ -650,7 +650,7 @@ void Recipees::PrintStats( PdfWrapperBase& pdf )
 	int numberOfBuyers = Centrala::Storage().GetNumberOfSales();
 	float averageBuySumPrice = 0;
 	if (numberOfBuyers > 0)
-		averageBuySumPrice = numberOfItemsInStatus[ ItemStatus::sold ] / numberOfBuyers;
+		averageBuySumPrice = costOfItemsInStatus[ ItemStatus::sold ] / numberOfBuyers;
 
 	ypos = AdvanceYpos( ypos, lineSpacing );
 	pdf.WriteSingleText( textPosX, ypos, ConvFuncs::FormatStdStr(_( "Počet importovanych predajcov: %i, prebratych %i" ), sellers.size(), received.size() ));
