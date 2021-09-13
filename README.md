@@ -2,6 +2,11 @@
 
 This README would normally document whatever steps are necessary to get your application up and running.
 
+### Next tasks (no issues in repo) ### 
+
+* test deleting all items online, did not work correctly
+* print into stats PDF number of buyers
+
 ### What is this repository for? ###
 
 * Prgram acts as a small 'cash counter' where you can insert what is selling + WHO is the seller and then you can sell the items
