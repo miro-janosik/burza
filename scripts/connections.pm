@@ -4,7 +4,8 @@ use feature qw(say);
 use DBI;
 
 # server is mariadb / mysql
-my $web_server = "mariadb55.websupport.sk";
+#my $web_server = "mariadb55.websupport.sk";
+my $web_server = "db55.websupport.sk";
 my $web_login = "bwr884kg";
 my $web_db = "bwr884kg";
 my $web_password = "kE8bsC41Sg";
@@ -29,8 +30,8 @@ sub web_connect
 # -f in_file.sql -o outfile.csv
 # -w does not ask for password, it is stored in .pgpass
 
-my $sale_server = "127.0.0.1"; # "192.168.1.17";
-my $sale_db = "b1"; # "b2";
+my $sale_server = "192.168.1.222";
+my $sale_db = "burza"; # "b2";
 my $sale_login = "user";
 my $sale_password = "trencin";
 my $sale_port = "5432";

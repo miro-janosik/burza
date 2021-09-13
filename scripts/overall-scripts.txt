@@ -1,7 +1,7 @@
 == Needed perl packages ==
 
 sudo apt-get install perl build-essential postgresql-server-dev-10 libpq-dev
-sudo cpan install DBI DBD::mysql DBD::Pg String::Util List::Compare Text::Unidecode Text::CSV
+sudo cpan install DBI DBD::mysql DBD::Pg String::Util List::Compare Text::Unidecode Text::CSV 
 ## This does not work, String::Util can't be installed this way: sudo apt install libdbi-perl liblist-compare-perl libdbd-mysql-perl
 
 == When making free codes for sellers ==

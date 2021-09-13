@@ -2070,7 +2070,7 @@
       <widget class="GtkMenuItem" id="menuItemSaveSellerOverview">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-        <property name="label" translatable="yes">Ulož prehľad predajcov</property>
+        <property name="label" translatable="yes">Ulož PDF predajcovia a tovar</property>
         <property name="use_underline">True</property>
       </widget>
     </child>
@@ -2078,7 +2078,7 @@
       <widget class="GtkMenuItem" id="menuitemStats">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-        <property name="label" translatable="yes">Štatistika</property>
+        <property name="label" translatable="yes">Ulož PDF krátka štatistika</property>
         <property name="use_underline">True</property>
       </widget>
     </child>
