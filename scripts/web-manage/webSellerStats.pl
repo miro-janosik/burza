@@ -34,6 +34,8 @@ my @sellersOk;
 my @sellersNoItems;
 my @sellersNotAttending;
 
+say "Sorting, and also requesting last added item date, will take time:";
+
 foreach my $s (@$tbl_arr_ref)
 {
 	my $itemCount = @$s[3];
@@ -50,6 +52,13 @@ foreach my $s (@$tbl_arr_ref)
 	}
 	else
 	{
+		my $userId = @$s[0];
+		my $cmdLast = "SELECT p.`Pridane` FROM Polozky p WHERE p.`UserID` = $userId ORDER BY p.`Pridane` DESC LIMIT 1";
+		my $last_arr_ref = $dbh->selectall_arrayref($cmdLast);
+		my $dateRow = @$last_arr_ref[0];
+		my $date = @$dateRow[0];
+		push @$s, $date;
+		
 		push @sellersOk, $s;
 	}
 }
@@ -58,7 +67,7 @@ say "Sellers count: ". scalar @$tbl_arr_ref;
 say "Sellers ok, count ". scalar @sellersOk;
 foreach my $s (@sellersOk)
 {
-	say @$s[1] . "\t" . @$s[3];
+	say @$s[1] . "\t" . @$s[3] . "\t" . @$s[4];
 }
 
 say "Sellers without items, count ". scalar @sellersNoItems;
