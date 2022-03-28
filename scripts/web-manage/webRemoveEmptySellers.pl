@@ -34,10 +34,11 @@ foreach my $s (@$tbl_arr_ref)
 }
 
 say "Deleting ". scalar @ids . " sellers from ". scalar @$tbl_arr_ref;
+my $idlist = join( ",", @ids );
+say $idlist;
 say "Press ENTER to confirm";
 <STDIN>;
 
-my $idlist = join( ",", @ids );
 my $affected_rows = $dbh->do("DELETE FROM Users WHERE `ID` IN ($idlist)");
 say "Affected $affected_rows rows";
 

@@ -5,7 +5,7 @@ use DBI;
 
 # server is mariadb / mysql
 #my $web_server = "mariadb55.websupport.sk";
-my $web_server = "db55.websupport.sk";
+my $web_server = "db.websupport.sk";
 my $web_login = "bwr884kg";
 my $web_db = "bwr884kg";
 my $web_password = "kE8bsC41Sg";

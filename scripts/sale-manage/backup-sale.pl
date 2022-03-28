@@ -10,7 +10,9 @@ use Cwd 'abs_path';
 
 say "Starting";
 
-my $bkfolder = abs_path("../../bk/");
+my $pth = "../../../bk/";
+mkdir $pth;
+my $bkfolder = abs_path($pth);
 say "Backing up into folder $bkfolder";
 
 while (1) 
@@ -41,7 +43,7 @@ while (1)
 #	say "Disconnecting";
 #	$dbsale->disconnect();
 
-	my $sleep_min = 20;
+	my $sleep_min = 10;
 	say "Sleeping for $sleep_min minutes...";
 	sleep($sleep_min * 60);
 }
