@@ -6,11 +6,15 @@ sudo cpan install DBI DBD::mysql DBD::Pg String::Util List::Compare Text::Unidec
 
 == When making free codes for sellers ==
 
+Preparation before next sale...
+
+Predpoklad: Chceme všetkým zmeniť staré kódy za nové, aby sme si vedeli poznačiť kto všetko sa hlási na burzu. Chceme zmazať všetky predané veci z predchádzajúcej burzy a ponechať nepredané, aby predajca mohol ďalej predávať označené veci ktoré nepredal na minulej burze.
+
 * Get list of existing sellers from web + their codes into CSV.
   It should be already cleared up from sellers from previous year that did not attend, to free up codes.
-	web-manage/getWebSellerCodes.pl - produces web_codes.txt
+	web-manage/getWebSellerCodes.pl - produces web_codes.txt which contains login with password and a name.
 	
-* Get additional new codes for new sellers into CSV (and send it for handout of codes)
+* Create additional new codes for new sellers into CSV (and send it for handout of codes)
 	genCodeList web_codes.txt
 
 * Add new codes to web DB

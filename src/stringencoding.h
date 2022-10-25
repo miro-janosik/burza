@@ -62,7 +62,8 @@ private:
 	
 	static std::string desaxUTF8(const std::string& str);
 	
-	static Transliterator *icuAccentsRemover;
+	//static Transliterator *icuAccentsRemover;
+	static UTransliterator *icuAccentsRemover;
 };
 
 }
