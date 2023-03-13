@@ -10,7 +10,7 @@ say "Starting";
 
 my $dbweb = connections::web_connect();
 
-my $cmd1 = "SELECT `loginStr`, `Name` FROM `Users` ORDER BY `loginStr`";
+my $cmd1 = "SELECT `loginStr`, `Name`, `Mail` FROM `Users` ORDER BY `loginStr`";
 my $qr1 = $dbweb->prepare($cmd1);
 $qr1->execute;
 my $tbl_arr_ref = $qr1->fetchall_arrayref();
@@ -27,7 +27,7 @@ binmode $f, ":utf8";
 
 foreach (@$tbl_arr_ref)
 {
-	print $f @$_[0] . "\t" . @$_[1] . "\n";
+	print $f @$_[0] . "\t" . @$_[1] . "\t" . @$_[2] . "\n";
 }
 
 say "Exported " . scalar @$tbl_arr_ref . " sellers";
