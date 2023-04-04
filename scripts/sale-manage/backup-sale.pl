@@ -43,7 +43,7 @@ while (1)
 #	say "Disconnecting";
 #	$dbsale->disconnect();
 
-	my $sleep_min = 10;
+	my $sleep_min = 3;
 	say "Sleeping for $sleep_min minutes...";
 	sleep($sleep_min * 60);
 }

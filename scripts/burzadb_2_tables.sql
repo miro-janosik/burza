@@ -36,8 +36,8 @@ INSERT INTO item_category(
             "FEE_ITEM", "FEE_ITEM_PERC", "FEE_SOLD_ITEM", "FEE_SOLD_PERC")
     VALUES 
     (3, 'z', 'Do 0.1',NULL, 0.1, 0.0, 0.0, 0.0, 0 ),
-    (1, 'a', 'Do 15', 0.1, 15.0, 0.10, 0.0, 0.0, 10 ),
-    (2, 'b', 'Nad 15',15.0, NULL, 1.00, 0.0, 0.0, 10 );
+    (1, 'a', 'Do 15', 0.11, 15.0, 0.10, 0.0, 0.0, 10 ),
+    (2, 'b', 'Nad 15',15.01, NULL, 1.00, 0.0, 0.0, 10 );
 
 -- Table: seller_category
 -- DROP TABLE seller_category;

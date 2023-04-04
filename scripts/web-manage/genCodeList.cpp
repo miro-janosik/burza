@@ -12,8 +12,9 @@
 #include <vector>
 
 using namespace std;
-	
-string validLetters = "ABCDEHLIKMOPRSTVXZ";
+
+# removed similar letters, D ~ O, E ~ F, G ~ C, J ~ I, M ~ N, Q ~ O, U ~ V, Y ~ V
+string validLetters = "ABCEHIKLMOPRSTVXZ";
 
 int main(int argc, char** argv)
 {
