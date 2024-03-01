@@ -15,9 +15,9 @@ Predpoklad: Chceme všetkým zmeniť staré kódy za nové, aby sme si vedeli po
 	web-manage/getWebSellerCodes.pl - produces web_codes.txt which contains login with password and a name.
 	
 * Create additional new codes for new sellers into CSV (and send it for handout of codes)
-	genCodeList web_codes.txt
+	web-manage/genCodeList web_codes.txt
 
-* Add new codes to web DB
+* Add new codes to web DB (uses local file codes.csv)
 	web-manage/addNewCodesToWebFromCsv.pl
 
 * Update web DB - remove items that are sold.

@@ -13,7 +13,7 @@
 
 using namespace std;
 
-# removed similar letters, D ~ O, E ~ F, G ~ C, J ~ I, M ~ N, Q ~ O, U ~ V, Y ~ V
+// removed similar letters, D ~ O, E ~ F, G ~ C, J ~ I, M ~ N, Q ~ O, U ~ V, Y ~ V
 string validLetters = "ABCEHIKLMOPRSTVXZ";
 
 int main(int argc, char** argv)
@@ -75,6 +75,7 @@ int main(int argc, char** argv)
 			{
 				codeWithPassword = std::get<1>(*it);
 				name = std::get<2>(*it);
+				oldSellers.erase(it);
 			}
 			else
 			{
@@ -91,6 +92,17 @@ int main(int argc, char** argv)
 
 			listFile << code << ", " << (old ? 1 : 0) << ", " << codeWithPassword << ", " << name << endl;
 		}
+	
+	// print out remaining sellers that were not written
+	// may happen if seller code does contain non-allowed letters
+	bool old = true;
+	for ( auto seller: oldSellers )
+	{
+		string code = std::get<0>(seller);
+		string codeWithPassword = std::get<1>(seller);
+		string name = std::get<2>(seller);
+		listFile << code << ", " << (old ? 1 : 0) << ", " << codeWithPassword << ", " << name << endl;
+	}
 
 	cout << "Generated." << endl;
 	return 0;

@@ -30,7 +30,7 @@ foreach (@$tbl_arr_ref)
 	print $f @$_[0] . "\t" . @$_[1] . "\t" . @$_[2] . "\n";
 }
 
-say "Exported " . scalar @$tbl_arr_ref . " sellers";
+say "Exported " . scalar @$tbl_arr_ref . " sellers to web_codes.txt";
 
 close $f;
 say "Exit.";
