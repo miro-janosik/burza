@@ -67,7 +67,14 @@ say "Sellers count: ". scalar @$tbl_arr_ref;
 say "Sellers ok, count ". scalar @sellersOk;
 foreach my $s (@sellersOk)
 {
-	say @$s[1] . "\t" . @$s[3] . "\t" . @$s[4];
+	my $s1 = @$s[1];
+	my $s3 = @$s[3];
+	my $s4 = @$s[4];
+	if (!defined $s1) { $s1 = ""; }
+	if (!defined $s3) { $s3 = ""; }
+	if (!defined $s4) { $s4 = ""; }
+
+	say $s1 . "\t" . $s3 . "\t" . $s4;
 }
 
 say "Sellers without items, count ". scalar @sellersNoItems;
@@ -80,6 +87,12 @@ print "\n";
 say "Sellers without items and name, count ". scalar @sellersNotAttending;
 foreach my $s (@sellersNotAttending)
 {
+	my $s1 = @$s[1];
+	my $s0 = @$s[0];
+
+	if (!defined $s0) { $s0 = ""; }
+	if (!defined $s1) { $s1 = ""; }
+
 	print @$s[1] . "[" . @$s[0] . "] ";
 }
 print "\n";

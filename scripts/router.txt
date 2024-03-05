@@ -1,0 +1,40 @@
+192.168.1.1
+admin
+Karfiol745
+meno: Tn600
+VeciVecicky
+
+DghgMsnaQBF6ZZUymqZw
+
+zyxel NBG-416N admin/1234 => admin/DeravaCesta
+192.168.1.1, DHCP = 33-65
+meno: Tn700
+VeciVecicky
+
+
+if LAN ping works and WEB ping does not:
+
+list routing:
+route -n
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+0.0.0.0         192.168.1.1     0.0.0.0         UG    100    0        0 eth0
+0.0.0.0         192.168.43.1    0.0.0.0         UG    600    0        0 wlan0
+169.254.0.0     0.0.0.0         255.255.0.0     U     1000   0        0 eth0
+192.168.1.0     0.0.0.0         255.255.255.0   U     100    0        0 eth0
+192.168.43.0    0.0.0.0         255.255.255.0   U     600    0        0 wlan0
+
+shows that eth0 has lower metrics 100 = better priority
+set also prio of eth0 to 100, as there is 0.0.0.0 destination
+
+sudo ifmetric wlan0 100
+route -n
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+0.0.0.0         192.168.43.1    0.0.0.0         UG    100    0        0 wlan0
+0.0.0.0         192.168.1.1     0.0.0.0         UG    100    0        0 eth0
+169.254.0.0     0.0.0.0         255.255.0.0     U     1000   0        0 eth0
+192.168.1.0     0.0.0.0         255.255.255.0   U     100    0        0 eth0
+192.168.43.0    0.0.0.0         255.255.255.0   U     100    0        0 wlan0
+192.168.43.0    0.0.0.0         255.255.255.0   U     600    0        0 wlan0
+
