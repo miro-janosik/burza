@@ -50,7 +50,7 @@ my @existing_seller_codes;
 	my $firstKey = $new_seller_codes[0];
 	my $firstValue = $new_seller_codes_logins{ $firstKey };
 	
-	say "Read ". scalar @new_seller_codes ." codes and logins, first is '$firstKey'='$firstValue'";
+	say "Read ". scalar @new_seller_codes ." codes and logins, first new is '$firstKey'='$firstValue'";
 }
 
 {

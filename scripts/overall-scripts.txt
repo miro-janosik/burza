@@ -11,7 +11,25 @@ perl -I . script
 
 Preparation before next sale...
 
-Predpoklad: Chceme všetkým zmeniť staré kódy za nové, aby sme si vedeli poznačiť kto všetko sa hlási na burzu. Chceme zmazať všetky predané veci z predchádzajúcej burzy a ponechať nepredané, aby predajca mohol ďalej predávať označené veci ktoré nepredal na minulej burze.
+Predpoklad: 
+Chceme zmazať všetky predané veci z predchádzajúcej burzy a ponechať nepredané, aby predajca mohol ďalej predávať označené veci ktoré nepredal na minulej burze.
+Týmto prejdacom ponechávame kódy. Ponechávame aj kódy a veci ktoré niekto nepredával aj poslednú burzu, a zmažeme veci ktoré sa rok nezmenili.
+Ďalším predajcom chceme dať nové voľné kódy, aby sme si vedeli poznačiť kto všetko sa hlási na burzu. 
+
+== removing inactive sellers ==
+
+ nedokoncene, ale dalo by sa to takto:
+	
+	web-manage/webSellerStats.pl
+	
+	zobrazi predajcov a naposledy upravene veci
+	Tie co su starsie ako XX (zorad si to v sheete), tych predajcov zmazat
+
+* Update web DB - remove items that are sold.
+	web-manage/deleteSoldItems.pl
+	If items are not marked as sold on web, then use scripts below
+
+== Preparing new codes ==
 
 * Get list of existing sellers from web + their codes into CSV.
   It should be already cleared up from sellers from previous year that did not attend, to free up codes.
@@ -19,13 +37,10 @@ Predpoklad: Chceme všetkým zmeniť staré kódy za nové, aby sme si vedeli po
 	
 * Create additional new codes for new sellers into CSV (and send it for handout of codes)
 	web-manage/genCodeList web_codes.txt
+		(generates codes.csv)
 
 * Add new codes to web DB (uses local file codes.csv)
 	web-manage/addNewCodesToWebFromCsv.pl
-
-* Update web DB - remove items that are sold.
-	web-manage/deleteSoldItems.pl
-	If items are not marked as sold on web, then use scripts below
 
 == After sellers filled items on web ==
 
