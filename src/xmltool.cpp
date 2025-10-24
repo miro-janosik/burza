@@ -10,7 +10,7 @@
 
 #include "irrXML.h"
 
-#include "format.h"
+#include <format>
 #include "log.h"
 #include "convfile.h"
 #include "convfncs.h"
@@ -18,10 +18,10 @@
 XmlWrapperTool::CXmlTreeSingleNode	XmlWrapperTool::CXmlTreeSingleNode::m_null_child( "!null child!", "!null child!" );
 
 void XmlWrapperTool::CXmlTreeSingleNode::SetValueInt( int n )
-{ format fmt; fmt.format_string( "%i", n ); m_value = fmt.str(); }
+{ m_value = std::format( "{}", n ); }
 
 void XmlWrapperTool::CXmlTreeSingleNode::SetValueFloat( float n )
-{ format fmt; fmt.format_string( "%0.1f", n ); m_value = fmt.str(); }
+{ m_value = std::format( "{:.1f}", n ); }
 
 void XmlWrapperTool::CXmlWrapperTools::ReadTreeFromIrrXml( irr::io::IrrXMLReader* reader, XmlWrapperTool::CXmlTreeSingleNode& target_root )
 {

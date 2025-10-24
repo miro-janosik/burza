@@ -1,3 +1,4 @@
+/*
 #ifndef FORMAT_H_
 #define FORMAT_H_
 
@@ -54,6 +55,7 @@ private:
 	friend std::ostream &operator<<(std::ostream &, const fmtspec &);
 };
 
-inline std::ostream &operator<<(std::ostream &o, const format &f)	{ o<<f.str(); return o; }
+inline std::ostream &operator<<(std::ostream &o, const _format &f)	{ o<<f.str(); return o; }
 
 #endif
+*/

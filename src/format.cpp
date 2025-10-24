@@ -1,3 +1,4 @@
+/*
 #include <stdarg.h>
 #include <iomanip>
 #include <ostream>
@@ -285,3 +286,4 @@ ostream &operator<<(ostream &out, const fmtspec &spec)
 	if(spec.sign) out<<showpos;
 	return out;
 }
+*/

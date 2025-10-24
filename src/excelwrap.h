@@ -30,7 +30,7 @@ public:
 	TableOfCells	m_sheet;
 	
 public:
-	void ReadSeller( string filename, SellerData& seller, ItemDataArray& items ) throw( runtime_error );
+	void ReadSeller( string filename, SellerData& seller, ItemDataArray& items ) noexcept( false );
 	
 	// Converts sheet file into format XML
 	// If output file already exists then conversion is not performed and path is returned.
@@ -40,19 +40,19 @@ public:
 	
 protected:
 	//! reads up xls file into m_table.
-	virtual void ReadSheetIntoTable( string filename ) throw( runtime_error ) = 0;
+	virtual void ReadSheetIntoTable( string filename ) noexcept( false ) = 0;
 	bool FindCellByText( const char* text, int& row, int& column);
 	
 };
 /*
 class ExcelFileXlWrapper : public ExcelFileWrapper {
 protected:
-	virtual void ReadSheetIntoTable( string filename ) throw( runtime_error );
+	virtual void ReadSheetIntoTable( string filename ) noexcept( false );
 };
 */
 
 class BasicExcelFileWrapper : public ExcelFileWrapper {
-	virtual void ReadSheetIntoTable( string filename ) throw( runtime_error );
+	virtual void ReadSheetIntoTable( string filename ) noexcept( false );
 };
 
 } // namespace

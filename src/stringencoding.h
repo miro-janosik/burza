@@ -10,7 +10,10 @@
 #include <string>
 #include <vector>
 
-#include "useicu.h"
+// #include "useicu.h"
+namespace icu_76 {
+	class Transliterator;
+}
 
 using namespace std;
 
@@ -62,8 +65,7 @@ private:
 	
 	static std::string desaxUTF8(const std::string& str);
 	
-	//static Transliterator *icuAccentsRemover;
-	static UTransliterator *icuAccentsRemover;
+	static icu_76::Transliterator *icuAccentsRemover;
 };
 
 }

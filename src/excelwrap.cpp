@@ -34,7 +34,7 @@ ExcelFileWrapper::~ExcelFileWrapper()
 }
 
 	/*
-void ExcelFileXlWrapper::ReadSheetIntoTable( string filename ) throw( runtime_error )
+void ExcelFileXlWrapper::ReadSheetIntoTable( string filename ) noexcept( false )
 {
 	Book *xls_book = xlCreateBook();
 	string result_str;
@@ -101,7 +101,7 @@ void ExcelFileXlWrapper::ReadSheetIntoTable( string filename ) throw( runtime_er
 }
 	*/
 
-void BasicExcelFileWrapper::ReadSheetIntoTable( string filename ) throw( runtime_error )
+void BasicExcelFileWrapper::ReadSheetIntoTable( string filename ) noexcept( false )
 {
 	int dotPosition = filename.rfind('.');
 	if (dotPosition == std::string::npos) {
@@ -193,7 +193,7 @@ bool ExcelFileWrapper::FindCellByText( const char* text, int& row, int& column)
 	return false;
 }
 
-void ExcelFileWrapper::ReadSeller( string filename, SellerData& seller, ItemDataArray& items ) throw( runtime_error )
+void ExcelFileWrapper::ReadSeller( string filename, SellerData& seller, ItemDataArray& items ) noexcept( false )
 {
 	string error_str;
 	error_str = _("Nepodarilo sa mi naèíta súbor s predajcom\n");

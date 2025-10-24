@@ -1,6 +1,7 @@
 #include "datapostgrespqxx.h"
 
 #include <exception>
+#include <format>
 
 // for snprintf
 #include <stdio.h> 
@@ -14,7 +15,6 @@
 #include "convfncs.h"
 #include "bdialogs.h"
 #include "errhandler.h"
-#include "format.h"
 #include "translate.h"
 
 using namespace Burza;
@@ -111,17 +111,17 @@ string columnNameStrings[ columnNamesCount ] = {
 DataPostgresPqxx::DataPostgresPqxx()
 {
 	ProgramSettings s = Centrala::Settings();
-	format connectionString("user=%s password=%s dbname=%s hostaddr=%s port=%i",
-		s.dbUser.c_str(), s.dbPassword.c_str(), s.dbName.c_str(), s.dbAddress.c_str(), s.dbPort);
+	std::string connectionString = std::format("user={} password={} dbname={} hostaddr={} port={}",
+		s.dbUser, s.dbPassword, s.dbName, s.dbAddress, s.dbPort);
 
-	format logString("Connecting to postgresqldb: user=%s password=%s dbname=%s hostaddr=%s port=%i\n",
-		s.dbUser.c_str(), "xxx", s.dbName.c_str(), s.dbAddress.c_str(), s.dbPort);
-	LogS(InfoMajor, logString.str().c_str());
+	std::string logString = std::format("Connecting to postgresqldb: user={} password={} dbname={} hostaddr={} port={}\n",
+		s.dbUser, "xxx", s.dbName, s.dbAddress, s.dbPort);
+	LogS(InfoMajor, logString.c_str());
 
 	// Make a connection to the database
 	string connectionFailedString;
 	try {
-		dbConnection = new connection(connectionString.str());
+		dbConnection = new connection(connectionString);
 	}
 	catch(pqxx::broken_connection& e)
 	{

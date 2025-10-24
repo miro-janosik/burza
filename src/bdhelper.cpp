@@ -20,5 +20,5 @@ void BurzaDialogsHelper::ChangeGtkmmAppFontSize( int fontSize )
 		fontSize
 		);
 
-	gtk_rc_parse_string( str.c_str() );
+	// gtk_rc_parse_string( str.c_str() ); => Gtk::CssProvider()
 }

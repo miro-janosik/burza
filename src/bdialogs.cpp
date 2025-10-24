@@ -29,15 +29,17 @@
 
 #include "stressTest.h"
 
-#include <gtkmm-2.4/gtkmm/filechooserdialog.h>
+#include <gtkmm.h>
 
 using namespace Burza;
 using namespace BurzaExcel;
 using namespace std;
 
+/*
 ComboBoxTextDer::ComboBoxTextDer( BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
 	: Gtk::ComboBoxText(cobject)
 { }
+*/
 
 // ==============================================
 // ==============================================
@@ -114,46 +116,75 @@ ItemData BurzaDialogs::CashoutGetSelectedItem( void )
 
 int BurzaDialogs::SetupDialogs( void )
 {
-	std::string		glade_fname;
+	std::string		ui_fname;
+	ui_fname = Centrala::Settings().m_data_dir_path;
+	ui_fname += "burza.ui";
 	
-	glade_fname = Centrala::Settings().m_data_dir_path;
-	glade_fname += "burza.glade";
-	
-	std::string		error;
-	
-	error = "";
-	
+	std::string		error = "";
+
+	// Load the GtkBuilder file and instantiate its widgets:
+	auto refBuilder = Gtk::Builder::create();
+	try
+	{
+		refBuilder->add_from_file(ui_fname);
+
+		LoadDialogs(refBuilder);
+	}
+	catch(const Glib::FileError& ex)
+	{
+		error = "FileError: ";
+		error += ex.what();
+	}
+	catch(const Glib::MarkupError& ex)
+	{
+		error = "MarkupError: ";
+		error += ex.what();
+	}
+	catch(const Gtk::BuilderError& ex)
+	{
+		error = "BuilderError: ";
+		error += ex.what();
+	}
+
+	if (!error.empty())
+	{
+		error += '\n';
+		Log(InfoError, error.c_str());
+		return 1;
+	}
+
+	return 0;
+}
+
+int BurzaDialogs::LoadDialogs( Glib::RefPtr<Gtk::Builder>& refBuilder )
+{
+	std::string error = "";
+
 	try {
 
-	xmlWndRegister = Gnome::Glade::Xml::create( glade_fname.c_str(), "Register" );
-	if ( ! xmlWndRegister )
+	m_pWndRegister = refBuilder->get_widget<Gtk::Window>( "Register" );
+	if ( ! m_pWndRegister )
 		error = "BiturnDialogsGtkmm::Init() error loading glade item from xml. 'Register'";
 	
-	xmlWndCashOut = Gnome::Glade::Xml::create( glade_fname.c_str(), "Pokladna" );
-	if ( ! xmlWndCashOut )
+	m_pWndCashOut = refBuilder->get_widget<Gtk::Window>( "Pokladna" );
+	if ( ! m_pWndCashOut )
 		error = "BiturnDialogsGtkmm::Init() error loading glade item from xml. 'Pokladna'";
 	
-	xmlWndModifySeller = Gnome::Glade::Xml::create( glade_fname.c_str(), "Predajca" );
-	if ( ! xmlWndModifySeller )
+	m_pWndSeller = refBuilder->get_widget<Gtk::Window>( "Predajca" );
+	if ( ! m_pWndSeller )
 		error = "BiturnDialogsGtkmm::Init() error loading glade item from xml. 'Predajca'";
 	
-	xmlWndModifyItem = Gnome::Glade::Xml::create( glade_fname.c_str(), "Tovar" );
-	if ( ! xmlWndModifyItem )
+	m_pWndItem = refBuilder->get_widget<Gtk::Window>( "Tovar" );
+	if ( ! m_pWndItem )
 		error = "BiturnDialogsGtkmm::Init() error loading glade item from xml. 'Tovar'";
 	
-	xmlWndRegisterPopupMenu = Gnome::Glade::Xml::create( glade_fname.c_str(), "menuRegisterOtherActions" );
-	if ( ! xmlWndRegisterPopupMenu )
-		error = "BiturnDialogsGtkmm::Init() error loading glade item from xml. 'menuRegisterOtherActions'";
+	//xmlWndRegisterPopupMenu = refBuilder->get_widget<Gtk::Window>( "menuRegisterOtherActions" );
+	//if ( ! xmlWndRegisterPopupMenu )
+	//	error = "BiturnDialogsGtkmm::Init() error loading glade item from xml. 'menuRegisterOtherActions'";
 	
-	loadFileProgressWindow.xmlWindow = Gnome::Glade::Xml::create( glade_fname.c_str(), "LoadFilesProgress" );
-	if ( ! loadFileProgressWindow.xmlWindow )
+	loadFileProgressWindow.window = refBuilder->get_widget<Gtk::Window>( "LoadFilesProgress" );
+	if ( ! loadFileProgressWindow.window )
 		error = "BiturnDialogsGtkmm::Init() error loading glade item from xml. 'LoadFilesProgress'";
-	
-	xmlWndRegister->get_widget( "Register", m_pWndRegister );
-	xmlWndCashOut->get_widget( "Pokladna", m_pWndCashOut );
-	xmlWndModifySeller->get_widget( "Predajca", m_pWndSeller );
-	xmlWndModifyItem->get_widget( "Tovar", m_pWndItem );
-	loadFileProgressWindow.xmlWindow->get_widget( "LoadFilesProgress", loadFileProgressWindow.window );
 	
 	if (( m_pWndRegister == NULL ) ||
 		( m_pWndCashOut == NULL ) ||
@@ -164,38 +195,45 @@ int BurzaDialogs::SetupDialogs( void )
 		throw;
 	}
 	
-	m_pWndRegister->show();
+	// It's not possible to delete widgets after app->run() has returned.
+	// Delete the dialog with its child widgets before app->run() returns.
+	m_pWndRegister->signal_hide().connect([] () { Log("window main close", InfoMinor); });
+
+	Centrala::GetApp()->add_window(*m_pWndRegister);
+	// m_pWndRegister->set_visible(true);
 	m_pWndRegister->maximize();
 	
-	xmlWndRegister->get_widget_derived( "combobox seller", m_pComboSeller );
-	xmlWndRegister->get_widget( "entry_find_seller", m_pEntryRegistryLookupSeller );
-	xmlWndRegister->get_widget( "button import seller", m_pButtonImportSeller );
-	xmlWndRegister->get_widget( "button import multi seller", m_pButtonImportMultipleSellers );
-	xmlWndRegister->get_widget( "button add seller", m_pButtonAddSeller );
-	xmlWndRegister->get_widget( "button update seller", m_pButtonUpdateSeller );
-	xmlWndRegister->get_widget( "treeview items", m_pTreeViewItems );
-	xmlWndRegister->get_widget( "button add item", m_pButtonAddItem );
-	xmlWndRegister->get_widget( "button modify item", m_pButtonModifyItem );
-	xmlWndRegister->get_widget( "button remove item", m_pButtonRemoveItem );
-	xmlWndRegister->get_widget( "button toggle accepted", m_pButtonAcceptUnaccept );
-	// xmlWndRegister->get_widget( "button calc fee", m_pButtonCalcFee );
-	xmlWndRegister->get_widget( "button calc repayment", m_pButtonCalcRepayment );
-	xmlWndRegister->get_widget( "label seller type", m_pLabelSellerType );
-	xmlWndRegister->get_widget( "label seller note", m_pLabelSellerNote );
-	xmlWndRegister->get_widget( "button cashout", m_pButtonCashout );
-	// xmlWndRegister->get_widget( "button_review_of_sellers", m_pRegisterButtonReviewOfSellers );
-	// xmlWndRegister->get_widget( "button_settings", m_pButtonSettings );
-	xmlWndRegister->get_widget( "button_other_actions", m_pRegisterOtherActions );
-	xmlWndRegister->get_widget( "radiobuttonSellerStateImported", m_pRegisterRadioSellerStatus1NotImported );
-	xmlWndRegister->get_widget( "radiobuttonSellerStateSelling", m_pRegisterRadioSellerStatus2ImportedSelling );
-	xmlWndRegister->get_widget( "radiobuttonSellerStateReturned", m_pRegisterRadioSellerStatus3ReturnedBack );
+	m_pComboSeller = refBuilder->get_widget<Gtk::DropDown>("combobox seller");
+	m_pEntryRegistryLookupSeller = refBuilder->get_widget<Gtk::Entry>("entry_find_seller");
+	m_pButtonImportSeller = refBuilder->get_widget<Gtk::Button>("button import seller");
+	m_pButtonImportMultipleSellers = refBuilder->get_widget<Gtk::Button>("button import multi seller");
+	m_pButtonAddSeller = refBuilder->get_widget<Gtk::Button>("button add seller");
+	m_pButtonUpdateSeller = refBuilder->get_widget<Gtk::Button>("button update seller");
+	m_pTreeViewItems = refBuilder->get_widget<Gtk::TreeView>("treeview items");
+	m_pButtonAddItem = refBuilder->get_widget<Gtk::Button>("button add item");
+	m_pButtonModifyItem = refBuilder->get_widget<Gtk::Button>("button modify item");
+	m_pButtonRemoveItem = refBuilder->get_widget<Gtk::Button>("button remove item");
+	m_pButtonAcceptUnaccept = refBuilder->get_widget<Gtk::Button>("button toggle accepted");
+	// m_pButtonCalcFee = refBuilder->get_widget<Gtk::Button>("button calc fee");
+	m_pButtonCalcRepayment = refBuilder->get_widget<Gtk::Button>("button calc repayment");
+	m_pLabelSellerType = refBuilder->get_widget<Gtk::Label>("label seller type");
+	m_pLabelSellerNote = refBuilder->get_widget<Gtk::Label>("label seller note");
+	m_pButtonCashout = refBuilder->get_widget<Gtk::Button>("button cashout");
+	// m_pRegisterButtonReviewOfSellers = refBuilder->get_widget<Gtk::Button>("button_review_of_sellers");
+	// m_pButtonSettings = refBuilder->get_widget<Gtk::Button>("button_settings");
+	m_pRegisterOtherActions = refBuilder->get_widget<Gtk::Button>("button_other_actions");
+	m_pRegisterRadioSellerStatus1NotImported = refBuilder->get_widget<Gtk::CheckButton>("radiobuttonSellerStateImported");
+	m_pRegisterRadioSellerStatus2ImportedSelling = refBuilder->get_widget<Gtk::CheckButton>("radiobuttonSellerStateSelling");
+	m_pRegisterRadioSellerStatus3ReturnedBack = refBuilder->get_widget<Gtk::CheckButton>("radiobuttonSellerStateReturned");
 	
-	xmlWndRegisterPopupMenu->get_widget( "menuRegisterOtherActions", menuRegisterOtherActions );
-	xmlWndRegisterPopupMenu->get_widget( "menuItemSettings", menuItemSettings );
-	xmlWndRegisterPopupMenu->get_widget( "menuItemSaveSellerOverview", menuItemSaveSellerOverview );
-	xmlWndRegisterPopupMenu->get_widget( "menuitemStats", menuitemStats );
-	xmlWndRegisterPopupMenu->get_widget( "menuitemFixItemCats", menuitemFixItemCats );
-	
+	menuRegisterOtherActions = refBuilder->get_object<Gio::Menu>("menuRegisterOtherActions");
+	/*X
+	menuItemSettings = refBuilder->get_widget<Gtk::Label>("menuItemSettings");
+	menuItemSaveSellerOverview = refBuilder->get_widget<Gtk::Label>("menuItemSaveSellerOverview");
+	menuitemStats = refBuilder->get_widget<Gtk::Label>("menuitemStats");
+	menuitemFixItemCats = refBuilder->get_widget<Gtk::Label>("menuitemFixItemCats");
+	*/
+
 	if (( m_pComboSeller == NULL ) ||
 		( m_pEntryRegistryLookupSeller == NULL ) ||
 		( m_pButtonImportSeller == NULL ) ||
@@ -219,11 +257,13 @@ int BurzaDialogs::SetupDialogs( void )
 		// ( m_pRegisterButtonReviewOfSellers == NULL ) ||
 		// ( m_pButtonSettings == NULL ) ||
 		( m_pRegisterOtherActions == NULL ) ||
-		( menuRegisterOtherActions == NULL ) ||
+		( menuRegisterOtherActions.get() == NULL ) /*X ||
 		( menuItemSettings == NULL ) ||
 		( menuitemFixItemCats == NULL ) ||
 		( menuItemSaveSellerOverview == NULL ) ||
-		( menuitemStats == NULL )) {
+		( menuitemStats == NULL )
+		*/
+		) {
 		error = "Dialog file is corrupt [register 2].";
 		throw;
 	}
@@ -251,20 +291,21 @@ int BurzaDialogs::SetupDialogs( void )
 	// m_pButtonSettings->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonSettings ) );
 	m_pRegisterOtherActions->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonOtherActions ) );
 
+	/*
 	menuItemSettings->signal_button_release_event().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonSettings ) );
 	menuItemSaveSellerOverview->signal_button_release_event().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonSaveSellerOverview ) );
 	menuitemStats->signal_button_release_event().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonStats ) );
 	menuitemFixItemCats->signal_button_release_event().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonFixItemCats ) );
-
-	m_pComboSeller->signal_changed().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterComboChangedSeller ) );
-	m_pEntryRegistryLookupSeller->signal_changed().connect( sigc::mem_fun( this, &BurzaDialogs::RegisterEditLookupSellerChanged ) );
+	*/
+	m_pComboSeller->property_selected().signal_changed().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterComboChangedSeller ) );
+	m_pEntryRegistryLookupSeller->signal_changed().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterEditLookupSellerChanged ) );
 
 	m_pRegisterRadioSellerStatus1NotImported->signal_toggled().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterSellerStatusRadioChanged ) );
 	m_pRegisterRadioSellerStatus2ImportedSelling->signal_toggled().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterSellerStatusRadioChanged ) );
 	m_pRegisterRadioSellerStatus3ReturnedBack->signal_toggled().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterSellerStatusRadioChanged ) );
 
 	m_RegisterItemsSelection = m_pTreeViewItems->get_selection();
-	m_RegisterItemsSelection->set_mode( Gtk::SELECTION_MULTIPLE );
+	m_RegisterItemsSelection->set_mode( Gtk::SelectionMode::MULTIPLE );
 	
 	// setup item list
 	m_RegisterItemsListModel = Gtk::ListStore::create( m_ItemsColumn );
@@ -306,7 +347,7 @@ int BurzaDialogs::SetupDialogs( void )
 		int w = pColumn->get_width();
 		pColumn->set_min_width( 200 );
 		//pColumn->set_fixed_width( 200 );
-		pColumn->set_sizing( Gtk::TREE_VIEW_COLUMN_FIXED );
+		pColumn->set_sizing( Gtk::TreeViewColumn::Sizing::FIXED );
 		//pColumn->set_sizing( Gtk::TREE_VIEW_COLUMN_GROW_ONLY );
 	}
 	
@@ -330,12 +371,14 @@ int BurzaDialogs::SetupDialogs( void )
 		pColumn->set_min_width( 50 );
 		// pColumn->set_clickable();
 
+		/*
 		Gtk::CellRenderer* pCellRenderer = pColumn->get_first_cell_renderer();
 		Gtk::CellRendererToggle* pCellRenderToggle = dynamic_cast<Gtk::CellRendererToggle*>(pCellRenderer);
 		if(pCellRenderToggle) {
 			pCellRenderToggle->signal_toggled().connect( 
 				sigc::mem_fun(*this, &BurzaDialogs::on_column_checkbox_edited) );
 		}
+		*/
 	}
 
 	pColumn = m_pTreeViewItems->get_column( 3 );
@@ -364,20 +407,20 @@ int BurzaDialogs::SetupDialogs( void )
 	
 	m_pWndCashOut->hide();
 
-	xmlWndCashOut->get_widget( "treeview cashout items", m_pCashoutTreeViewList );
-	xmlWndCashOut->get_widget( "entry lookup seller", m_pCashoutEntryLookupSeller );
-	xmlWndCashOut->get_widget_derived( "combo lookup seller", m_pCashoutComboLookupSeller );
-	xmlWndCashOut->get_widget( "entry lookup item", m_pCashoutEntryLookupItem );
-	xmlWndCashOut->get_widget_derived( "combo lookup item", m_pCashoutComboLookupItem );
-	xmlWndCashOut->get_widget( "label item price", m_pCashoutLabelItemPrice );
-	xmlWndCashOut->get_widget( "button cashout add item", m_pCashoutButtonAddItem );
-	xmlWndCashOut->get_widget( "button cashout remove item", m_pCashoutButtonRemoveItem );
-	xmlWndCashOut->get_widget( "label sum", m_pCashoutLabelSum );
-	xmlWndCashOut->get_widget( "label cashout finished", m_pCashoutButtonFinish );
-	xmlWndCashOut->get_widget( "button register", m_pButtonRegister );
-	xmlWndCashOut->get_widget_derived( "comboboxentry_search", m_pCashoutComboSearch );
-	m_pCashoutComboSearchEntry = dynamic_cast<Gtk::Entry*>( m_pCashoutComboSearch->get_child() );
-	xmlWndCashOut->get_widget( "search_found_text", m_pCashoutSearchFoundText );
+	m_pCashoutTreeViewList = refBuilder->get_widget<Gtk::TreeView>("treeview cashout items");
+	m_pCashoutEntryLookupSeller = refBuilder->get_widget<Gtk::Entry>("entry lookup seller");
+	m_pCashoutComboLookupSeller = refBuilder->get_widget<Gtk::DropDown>("combo lookup seller");
+	m_pCashoutEntryLookupItem = refBuilder->get_widget<Gtk::Entry>("entry lookup item");
+	m_pCashoutComboLookupItem = refBuilder->get_widget<Gtk::DropDown>("combo lookup item");
+	m_pCashoutLabelItemPrice = refBuilder->get_widget<Gtk::Label>("label item price");
+	m_pCashoutButtonAddItem = refBuilder->get_widget<Gtk::Button>("button cashout add item");
+	m_pCashoutButtonRemoveItem = refBuilder->get_widget<Gtk::Button>("button cashout remove item");
+	m_pCashoutLabelSum = refBuilder->get_widget<Gtk::Label>("label sum");
+	m_pCashoutButtonFinish = refBuilder->get_widget<Gtk::Button>("label cashout finished");
+	m_pButtonRegister = refBuilder->get_widget<Gtk::Button>("button register");
+	m_pCashoutComboSearch = refBuilder->get_widget<Gtk::DropDown>("comboboxentry_search");
+	// Gtk::EntryCompletion m_pCashoutComboSearchEntry = dynamic_cast<Gtk::Entry*>( m_pCashoutComboSearch->get_child() );
+	m_pCashoutSearchFoundText = refBuilder->get_widget<Gtk::Label>("search_found_text");
 	
 	if (( m_pButtonRegister == NULL ) ||
 		( m_pCashoutTreeViewList == NULL ) ||
@@ -391,7 +434,7 @@ int BurzaDialogs::SetupDialogs( void )
 		( m_pCashoutLabelSum == NULL ) ||
 		( m_pCashoutButtonFinish == NULL ) ||
 	   ( m_pCashoutComboSearch == NULL ) ||
-	   ( m_pCashoutComboSearchEntry == NULL ) ||
+	   // ( m_pCashoutComboSearchEntry == NULL ) ||
 	   ( m_pCashoutSearchFoundText == NULL )) {
 		error = "Dialog file is corrupt [4].";
 		throw;
@@ -403,16 +446,18 @@ int BurzaDialogs::SetupDialogs( void )
 	m_pCashoutButtonFinish->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::CashoutButtonFinished ) );
 	
 	m_CashoutItemsSelection = m_pCashoutTreeViewList->get_selection();
-	m_CashoutItemsSelection->set_mode( Gtk::SELECTION_SINGLE );
-	m_CashoutItemsSelection->signal_changed().connect( sigc::mem_fun( this, &BurzaDialogs::CashoutItemsTreeSelectChanged ) );
+	/*XX
+	m_CashoutItemsSelection->set_mode( Gtk::CellRendererAccel:: SELECTION_SINGLE );
+	m_CashoutItemsSelection->property_selected().signal_changed().connect( sigc::mem_fun( this, &BurzaDialogs::CashoutItemsTreeSelectChanged ) );
 	
-	m_pCashoutEntryLookupSeller->signal_changed().connect( sigc::mem_fun( this, &BurzaDialogs::CashoutEditLookupSellerChanged ) );
-	m_pCashoutEntryLookupItem->signal_changed().connect( sigc::mem_fun( this, &BurzaDialogs::CashoutEditLookupItemChanged ) );
-	m_pCashoutComboLookupSeller->signal_changed().connect( sigc::mem_fun( *this, &BurzaDialogs::CashoutComboLookupSellerChanged ) );
-	m_pCashoutComboLookupItem->signal_changed().connect( sigc::mem_fun( *this, &BurzaDialogs::CashoutComboLookupItemChanged ) );
-	
-	m_pCashoutComboSearch->signal_changed().connect( sigc::mem_fun( this, &BurzaDialogs::CashoutEditSearchChanged ) );
-	m_pCashoutComboSearchEntry->signal_changed().connect( sigc::mem_fun( this, &BurzaDialogs::CashoutEditSearchEntryChanged ) );
+	m_pCashoutComboSearch->property_selected().signal_changed().connect( sigc::mem_fun( this, &BurzaDialogs::CashoutEditSearchChanged ) );
+	m_pCashoutComboSearchEntry->property_selected().signal_changed().connect( sigc::mem_fun( this, &BurzaDialogs::CashoutEditSearchEntryChanged ) );
+	*/
+
+	m_pCashoutEntryLookupSeller->signal_changed().connect( sigc::mem_fun( *this, &BurzaDialogs::CashoutEditLookupSellerChanged ) );
+	m_pCashoutEntryLookupItem->signal_changed().connect( sigc::mem_fun( *this, &BurzaDialogs::CashoutEditLookupItemChanged ) );
+	m_pCashoutComboLookupSeller->property_selected().signal_changed().connect( sigc::mem_fun( *this, &BurzaDialogs::CashoutComboLookupSellerChanged ) );
+	m_pCashoutComboLookupItem->property_selected().signal_changed().connect( sigc::mem_fun( *this, &BurzaDialogs::CashoutComboLookupItemChanged ) );
 	
 	// m_pCashoutComboSearch->set(); xalign = left;
 
@@ -442,7 +487,7 @@ int BurzaDialogs::SetupDialogs( void )
 		int w = pColumn->get_width();
 		pColumn->set_min_width( 200 );
 		//pColumn->set_fixed_width( 200 );
-		pColumn->set_sizing( Gtk::TREE_VIEW_COLUMN_FIXED );
+		pColumn->set_sizing( Gtk::TreeViewColumn::Sizing::FIXED );
 		//pColumn->set_sizing( Gtk::TREE_VIEW_COLUMN_GROW_ONLY );
 	}
 	
@@ -476,14 +521,14 @@ int BurzaDialogs::SetupDialogs( void )
 	}
 	
 	// == item details edit dialog ==
-	xmlWndModifyItem->get_widget( "itemName", m_pItemeditName );
-	xmlWndModifyItem->get_widget( "itemNumber", m_pItemeditNumber );
-	xmlWndModifyItem->get_widget( "itemPrice", m_pItemeditPrice );
-	// xmlWndModifyItem->get_widget( "itemCategory", m_pItemeditCategory );
-	xmlWndModifyItem->get_widget_derived( "itemCategoryCombo", m_pItemeditCategoryCombo );
-	xmlWndModifyItem->get_widget_derived( "itemStatus_combobox", m_pItemeditStatusCombo );
-	xmlWndModifyItem->get_widget( "itemButton_ok", m_pItemeditOk );
-	xmlWndModifyItem->get_widget( "itemButton_cancel", m_pItemeditCancel );
+	m_pItemeditName = refBuilder->get_widget<Gtk::Entry>("itemName");
+	m_pItemeditNumber = refBuilder->get_widget<Gtk::Entry>("itemNumber");
+	m_pItemeditPrice = refBuilder->get_widget<Gtk::Entry>("itemPrice");
+	// m_pItemeditCategory = refBuilder->get_widget<Gtk::Entry>("itemCategory");
+	m_pItemeditCategoryCombo = refBuilder->get_widget<Gtk::DropDown>("itemCategoryCombo");
+	m_pItemeditStatusCombo = refBuilder->get_widget<Gtk::DropDown>("itemStatus_combobox");
+	m_pItemeditOk = refBuilder->get_widget<Gtk::Button>("itemButton_ok");
+	m_pItemeditCancel = refBuilder->get_widget<Gtk::Button>("itemButton_cancel");
 	
 	if (( m_pItemeditName == NULL ) ||
 		( m_pItemeditNumber == NULL ) ||
@@ -498,17 +543,17 @@ int BurzaDialogs::SetupDialogs( void )
 	
 	m_pItemeditOk->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonItemEditOk ) );
 	m_pItemeditCancel->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonItemEditCancel ) );
-	m_pWndItem->signal_delete_event().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonItemEditClose ) );
-	m_pItemeditStatusCombo->signal_changed().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterComboItemEditStatusChanged ) );
+	m_pWndItem->signal_close_request().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonItemEditClose ), false );
+	m_pItemeditStatusCombo->property_selected().signal_changed().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterComboItemEditStatusChanged ) );
 	
 	// == seller details edit dialog == 
 
-	xmlWndModifySeller->get_widget( "sellerName", sellerEdit.editName );
-	xmlWndModifySeller->get_widget( "sellerCode", sellerEdit.editCode );
-	xmlWndModifySeller->get_widget( "sellerNote", sellerEdit.editNote );
-	xmlWndModifySeller->get_widget_derived( "sellerCategory", sellerEdit.comboCategory );
-	xmlWndModifySeller->get_widget( "sellerButton_ok", sellerEdit.buttonOk );
-	xmlWndModifySeller->get_widget( "sellerButton_cancel", sellerEdit.buttonCancel );
+	sellerEdit.editName = refBuilder->get_widget<Gtk::Entry>("sellerName");
+	sellerEdit.editCode = refBuilder->get_widget<Gtk::Entry>("sellerCode");
+	sellerEdit.editNote = refBuilder->get_widget<Gtk::Entry>("sellerNote");
+	sellerEdit.comboCategory = refBuilder->get_widget<Gtk::DropDown>("sellerCategory");
+	sellerEdit.buttonOk = refBuilder->get_widget<Gtk::Button>("sellerButton_ok");
+	sellerEdit.buttonCancel = refBuilder->get_widget<Gtk::Button>("sellerButton_cancel");
 	
 	if (( sellerEdit.editName == NULL ) ||
 		( sellerEdit.editCode == NULL ) ||
@@ -522,21 +567,15 @@ int BurzaDialogs::SetupDialogs( void )
 	
 	sellerEdit.buttonOk->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonSellerEditOk ) );
 	sellerEdit.buttonCancel->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonSellerEditCancel ) );
-	m_pWndSeller->signal_delete_event().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonSellerEditClose ) );
+	m_pWndSeller->signal_close_request().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonSellerEditClose ), false );
 
 	// === --- === --- === edit message box === --- === --- ===
 
-	messageEditBoxWindowControls.xmlWindow = Gnome::Glade::Xml::create( glade_fname.c_str(), "MessageEditBox" );
-	if ( ! messageEditBoxWindowControls.xmlWindow ) {
-		error = "BiturnDialogsGtkmm::Init() error loading glade item from xml. 'MessageEditBox'";
-		throw;
-	}
-
-	messageEditBoxWindowControls.xmlWindow->get_widget( "MessageEditBox", messageEditBoxWindowControls.dialog );
-	messageEditBoxWindowControls.xmlWindow->get_widget( "label_text", messageEditBoxWindowControls.labelText );
-	messageEditBoxWindowControls.xmlWindow->get_widget( "entry_text", messageEditBoxWindowControls.entryText );
-	messageEditBoxWindowControls.xmlWindow->get_widget( "button_ok", messageEditBoxWindowControls.buttonOk );
-	messageEditBoxWindowControls.xmlWindow->get_widget( "button_cancel", messageEditBoxWindowControls.buttonCancel );
+	messageEditBoxWindowControls.dialog = refBuilder->get_widget<Gtk::Window>("MessageEditBox");
+	messageEditBoxWindowControls.labelText = refBuilder->get_widget<Gtk::Label>("msg_label_text");
+	messageEditBoxWindowControls.entryText = refBuilder->get_widget<Gtk::Entry>("entry_text");
+	messageEditBoxWindowControls.buttonOk = refBuilder->get_widget<Gtk::Button>("button_ok");
+	messageEditBoxWindowControls.buttonCancel = refBuilder->get_widget<Gtk::Button>("button_cancel");
 
 	if (( messageEditBoxWindowControls.dialog == NULL ) ||
 		( messageEditBoxWindowControls.labelText == NULL ) ||
@@ -555,26 +594,21 @@ int BurzaDialogs::SetupDialogs( void )
 
 	// === --- === --- === Nastavenia === --- === --- ===
 
-	settingsWindow.xmlWindow = Gnome::Glade::Xml::create( glade_fname.c_str(), "Nastavenia" );
-	if ( ! settingsWindow.xmlWindow ) {
-		error = "BiturnDialogsGtkmm::Init() error loading glade item from xml. 'Nastavenia'";
-		throw;
-	}
+	settingsWindow.dialog = refBuilder->get_widget<Gtk::Window>("Nastavenia");
+	settingsWindow.labelCurrentLicence = refBuilder->get_widget<Gtk::Label>("label_current_licence");
+	settingsWindow.buttonRequestLicence = refBuilder->get_widget<Gtk::Button>("button_request_licence");
+	settingsWindow.buttonInstallLicence = refBuilder->get_widget<Gtk::Button>("button_install_licence");
+	settingsWindow.editBurzaName = refBuilder->get_widget<Gtk::Entry>("entry_name_of_burza");
+	settingsWindow.buttonOk = refBuilder->get_widget<Gtk::Button>("button_ok");
+	settingsWindow.comboFontSize = refBuilder->get_widget<Gtk::DropDown>("combo_font_size");
+	settingsWindow.radio1file = refBuilder->get_widget<Gtk::CheckButton>("radio_1file");
+	settingsWindow.radio2database = refBuilder->get_widget<Gtk::CheckButton>("radio_2db");
+	settingsWindow.editDbAddress = refBuilder->get_widget<Gtk::Entry>("entry_dbaddress");
+	settingsWindow.editDbUser = refBuilder->get_widget<Gtk::Entry>("entry_dbuser");
+	settingsWindow.editDbPassword = refBuilder->get_widget<Gtk::Entry>("entry_dbpassword");
+	settingsWindow.editDbPort = refBuilder->get_widget<Gtk::Entry>("entry_dbport");
 
-	settingsWindow.xmlWindow->get_widget( "Nastavenia", settingsWindow.dialog );
-	settingsWindow.xmlWindow->get_widget( "label_current_licence", settingsWindow.labelCurrentLicence );
-	settingsWindow.xmlWindow->get_widget( "button_request_licence", settingsWindow.buttonRequestLicence );
-	settingsWindow.xmlWindow->get_widget( "button_install_licence", settingsWindow.buttonInstallLicence );
-	settingsWindow.xmlWindow->get_widget( "entry_name_of_burza", settingsWindow.editBurzaName );
-	settingsWindow.xmlWindow->get_widget( "button_ok", settingsWindow.buttonOk );
-	settingsWindow.xmlWindow->get_widget_derived( "combo_font_size", settingsWindow.comboFontSize );
-	settingsWindow.xmlWindow->get_widget( "radio_1file", settingsWindow.radio1file );
-	settingsWindow.xmlWindow->get_widget( "radio_2db", settingsWindow.radio2database );
-	settingsWindow.xmlWindow->get_widget( "entry_dbaddress", settingsWindow.editDbAddress );
-	settingsWindow.xmlWindow->get_widget( "entry_dbuser", settingsWindow.editDbUser );
-	settingsWindow.xmlWindow->get_widget( "entry_dbpassword", settingsWindow.editDbPassword );
-	settingsWindow.xmlWindow->get_widget( "entry_dbport", settingsWindow.editDbPort );
-
+	/*X
 	if (( settingsWindow.dialog == NULL ) ||
 		( settingsWindow.labelCurrentLicence == NULL ) ||
 		( settingsWindow.buttonRequestLicence == NULL ) ||
@@ -599,12 +633,15 @@ int BurzaDialogs::SetupDialogs( void )
 	settingsWindow.buttonRequestLicence->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::SettingsClickedButtonRequestLicence ) );
 	settingsWindow.buttonInstallLicence->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::SettingsClickedButtonInstallLicence ) );
 	settingsWindow.buttonOk->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::SettingsClickedButtonOk ) );
+	*/
 
 	// ============== Load file progress window =================
 	
-	loadFileProgressWindow.xmlWindow->get_widget( "loading_text", loadFileProgressWindow.editLoadingText );
-	loadFileProgressWindow.xmlWindow->get_widget( "buttonFinished", loadFileProgressWindow.buttonOk );
-	loadFileProgressWindow.xmlWindow->get_widget( "buttonInterrupt", loadFileProgressWindow.buttonInterrupt );
+	loadFileProgressWindow.window = refBuilder->get_widget<Gtk::Window>("LoadFilesProgress");
+
+	loadFileProgressWindow.editLoadingText = refBuilder->get_widget<Gtk::TextView>("loading_text");
+	loadFileProgressWindow.buttonOk = refBuilder->get_widget<Gtk::Button>("buttonFinished");
+	loadFileProgressWindow.buttonInterrupt = refBuilder->get_widget<Gtk::Button>("buttonInterrupt");
 
 	if (( loadFileProgressWindow.editLoadingText == NULL ) ||
 		( loadFileProgressWindow.buttonOk == NULL ) ||
@@ -618,7 +655,29 @@ int BurzaDialogs::SetupDialogs( void )
 	// === --- === --- === throw - catch  === --- === --- ===
 	
 	}
-	catch( ... ) {
+	catch(exception& e) {
+		error = "Error loading widgets:";
+		error += e.what();
+
+		/*
+			//auto display = Gdk::Display::get_default();
+			//Gtk::StyleContext::add_provider_for_display(display,
+			//	cssProvider, GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+
+			// build the application menu bar
+			auto refBuilder = Gtk::Builder::create_from_resource(glade_fname);
+			auto gmenubar = refBuilder->get_object<Gio::Menu>("menubar");
+			auto menubar = Gtk::make_managed<Gtk::PopoverMenuBar>(gmenubar);
+			m_container.append(*menubar);
+
+			
+		// Get the GtkBuilder-instantiated button, and connect a signal handler:
+		auto pButton = refBuilder->get_widget<Gtk::Button>("button cashout");
+		if (pButton)
+		pButton->signal_clicked().connect([] () { on_button_clicked(); });
+
+		m_pWndRegister = refBuilder->get_widget<Gtk::Window>( "Register" );
+		*/
 	}
 	
 	if ( ! error.empty() ) {
@@ -735,8 +794,8 @@ void BurzaDialogs::RegisterDisplaySeller(SellerData& seller)
 	if ( idx >= SellersOrdered.size() ) {
 		idx = -1;
 	}
-	m_pComboSeller->set_active( idx );
-	// i = m_pComboSeller->get_active_row_number();
+	m_pComboSeller->set_selected( idx );
+	// i = m_pComboSeller->get_selected();
 
 	RegisterDisplaySellerUpdateSellerStatus( seller.status );
 
@@ -835,9 +894,8 @@ void BurzaDialogs::ReloadSellers( void )
 
 void BurzaDialogs::FillSellerCombos( void )
 {
-	m_pComboSeller->clear();
-	m_pCashoutComboLookupSeller->clear();
-	
+	std::vector<Glib::ustring> sellers;
+
 	std::string		str;
 	for( int i=0; i<SellersOrdered.size(); ++i ) {
 		str = SellersOrdered[ i ].mark;
@@ -845,9 +903,15 @@ void BurzaDialogs::FillSellerCombos( void )
 		str += " - ";
 		str += SellersOrdered[ i ].name;
 
-		m_pComboSeller->append_text( str );
-		m_pCashoutComboLookupSeller->append_text( str );
+		sellers.push_back( str );
 	}
+
+	auto sellerList = Gtk::StringList::create(sellers);
+	m_pComboSeller->set_model(sellerList);
+	m_pComboSeller->set_selected(0);
+
+	m_pCashoutComboLookupSeller->set_model(sellerList);
+	m_pCashoutComboLookupSeller->set_selected(0);
 }
 
 void BurzaDialogs::RegisterEditLookupSellerChanged( void )
@@ -878,46 +942,70 @@ void BurzaDialogs::RegisterButtonImportSeller( void )
 	if (DemoLimitsCanAddSeller() == false)
 		return;
 
-	Gtk::FileChooserDialog dialog("Select importer file", Gtk::FILE_CHOOSER_ACTION_OPEN );
-
+	auto dialog = Gtk::FileDialog::create();
+	dialog->set_title("Select importer file");
+	/*
 	dialog.set_transient_for( *m_pWndRegister );
 	//Add response buttons the the dialog:
-	dialog.add_button( Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL );
-	dialog.add_button( Gtk::Stock::OK, Gtk::RESPONSE_OK );
+	dialog.add_button( "cancel", Gtk::ResponseType::CANCEL);
+	dialog.add_button( "ok", Gtk::ResponseType::OK);
 	dialog.set_filename( Centrala::Settings().m_data_dir_path );
-	
+	*/
+
+	std::string path = "";
 	if ( Centrala::Settings().directoryImport.empty() ) {
-		dialog.set_current_folder( Centrala::Settings().m_data_dir_path );
+		path = Centrala::Settings().m_data_dir_path;
 	} else {
-		dialog.set_current_folder( Centrala::Settings().directoryImport );
+		path = Centrala::Settings().directoryImport;
 	}
 
-	Gtk::FileFilter	xls_filter;
-	xls_filter.set_name( "Sheet files." );
-	xls_filter.add_pattern( "*.ods" );
-	xls_filter.add_pattern( "*.xls" );
-	xls_filter.add_pattern( "*.xlsx" );
-	xls_filter.add_pattern( "*.txt" );
-	dialog.add_filter( xls_filter );
-	
-	int result = dialog.run();
-	//Handle the response:
-	switch(result) {
-	case(Gtk::RESPONSE_OK):
-		break;
-	case(Gtk::RESPONSE_CANCEL):
-	case Gtk::RESPONSE_DELETE_EVENT:
-	default:
-		//DisplayErrorMessageBox( "BiturnDialogsGtkmm::on_clicked_ViewDirs() Unexpected button clicked.\n" );
+	auto ghandle = Gio::File::create_for_path(path);
+	dialog->set_initial_folder( ghandle );
+
+	// Add filters, so that only certain file types can be selected:
+	auto filters = Gio::ListStore<Gtk::FileFilter>::create();
+	auto xls_filter = Gtk::FileFilter::create();
+	xls_filter->set_name("Sheet files.");
+	xls_filter->add_pattern( "*.ods" );
+	xls_filter->add_pattern( "*.xls" );
+	xls_filter->add_pattern( "*.xlsx" );
+	xls_filter->add_pattern( "*.txt" );
+	filters->append(xls_filter);
+	dialog->set_filters(filters);
+
+	/*X 
+  	dialog->select_folder(sigc::bind(
+		sigc::mem_fun(*this, &LoadingMultipleFiles::Finished), dialog));
+	*/
+}
+
+void BurzaDialogs::RegisterButtonImportSeller_ContinueWithFileSelected(
+	const Glib::RefPtr<Gio::AsyncResult>& result, const Glib::RefPtr<Gtk::FileDialog>& dialog )
+{
+	std::string foldername;
+	std::string filename;
+  	try
+  	{
+		auto gfile = dialog->open_finish(result);
+	    foldername = gfile->get_basename();
+	    filename = gfile->get_path();
+	}
+	catch (const Gtk::DialogError& err)
+	{
+		Log("No file selected", InfoError);
+		return;
+	}
+	catch (const Glib::Error& err)
+	{
+		std::string e = "Error selecting file. ";
+		e += err.what();
+		Log(e.c_str(), InfoError);
 		return;
 	}
 	
 	// set back the import directory
-	Centrala::Settings().directoryImport = dialog.get_current_folder();
+	Centrala::Settings().directoryImport = foldername;
 	Centrala::Settings().directoryImport += "/";
-
-	string filename = dialog.get_filename();
-	// s += "data/harok-burza.xls";
 
 	BurzaRegister::LoadSellerSheetFileResult loadedFile = mp_register->LoadSellerSheetFile( filename );
 	switch( loadedFile.status ) {
@@ -1220,12 +1308,13 @@ void BurzaDialogs::RegisterButtonSwitchToCashout( void )
 	m_pWndCashOut->show();
 	m_pWndCashOut->maximize();
 	
-	m_pCashoutComboLookupSeller->clear();
-	m_pCashoutComboLookupItem->clear();
+	auto emptyList = Gtk::StringList::create();
+	m_pCashoutComboLookupSeller->set_model(emptyList);
+	m_pCashoutComboLookupItem->set_model(emptyList);
 	m_pCashoutEntryLookupSeller->set_text( "" );
 	m_pCashoutEntryLookupItem->set_text( "" );
-	m_pCashoutComboSearch->clear();
-	m_pCashoutComboSearchEntry->set_text( "" );
+	//X m_pCashoutComboSearch->clear();
+	//X m_pCashoutComboSearchEntry->set_text( "" );
 
 	ReloadSellers();
 	
@@ -1240,14 +1329,14 @@ void BurzaDialogs::RegisterButtonSwitchToCashout( void )
 	
 	cashoutFocusList.push_back( m_pCashoutComboLookupSeller );
 	cashoutFocusList.push_back( m_pCashoutComboLookupItem );
-	cashoutFocusList.push_back( m_pCashoutComboSearchEntry );
+	//X cashoutFocusList.push_back( m_pCashoutComboSearchEntry );
 	cashoutFocusList.push_back( m_pCashoutComboSearch );
 	
 	cashoutFocusList.push_back( m_pTreeViewItems );
 	cashoutFocusList.push_back( m_pCashoutButtonRemoveItem );
 	cashoutFocusList.push_back( m_pButtonRegister );
 	
-	m_pWndCashOut->set_focus_chain( cashoutFocusList );
+	//X m_pWndCashOut->set_focus_chain( cashoutFocusList );
 
 	Centrala::Search().FetchLatestData();
 
@@ -1284,9 +1373,9 @@ void BurzaDialogs::CashoutButtonSwitchToRegister( void )
 
 void BurzaDialogs::RegisterComboChangedSeller( void )
 {
-	int i = m_pComboSeller->get_active_row_number();
+	int i = m_pComboSeller->get_selected();
 	
-	if ( i == -1 )
+	if ( i == GTK_INVALID_LIST_POSITION )
 		return;
 	
 	if ( i >= SellersOrdered.size() ) {
@@ -1307,12 +1396,11 @@ void BurzaDialogs::GetSelectedItemNumbers( Glib::RefPtr<Gtk::TreeSelection>& sel
 	listOfItems.clear();
 	
 	// count selected items
-	Gtk::TreeSelection::ListHandle_Path	selected_items = selector->get_selected_rows();
+	std::vector<Gtk::TreeModel::Path>	selected_items = selector->get_selected_rows();
 	if ( selected_items.empty() )
 		return;
 	
-	for( Gtk::TreeSelection::ListHandle_Path::iterator it=selected_items.begin();
-			it != selected_items.end(); ++it ) {
+	for( auto it=selected_items.begin(); it != selected_items.end(); ++it ) {
 		assert( (*it).size() == 1 );
 		listOfItems.push_back( (*it)[ 0 ] );
 	}
@@ -1452,9 +1540,9 @@ void BurzaDialogs::CashoutButtonRemoveItem( void )
 	// remove items
 	for(int i=0; i<itemIndexes.size(); ++i ) {
 		
-		Gtk::TreeModel::iterator it = m_CashoutItemsListModel->children()[ itemIndexes[ i ] ];
-		m_CashoutItemsListModel->erase( it );
-		m_shoppingCart.erase( m_shoppingCart.begin() + itemIndexes[ i ] );
+		//X Gtk::TreeModel::iterator it = m_CashoutItemsListModel->children()[ itemIndexes[ i ] ];
+		//X m_CashoutItemsListModel->erase( it );
+		//X m_shoppingCart.erase( m_shoppingCart.begin() + itemIndexes[ i ] );
 	}
 	
 	CheckoutCartChanged();
@@ -1462,9 +1550,9 @@ void BurzaDialogs::CashoutButtonRemoveItem( void )
 
 void BurzaDialogs::CashoutComboLookupSellerChanged( void )
 {
-	int i = m_pCashoutComboLookupSeller->get_active_row_number();
+	int i = m_pCashoutComboLookupSeller->get_selected();
 	
-	if ( i == -1 ) {
+	if ( i == GTK_INVALID_LIST_POSITION ) {
 	  	m_CashoutSelectedSellerId = SELLER_ID_NONE;
 		return;
 	}
@@ -1485,8 +1573,8 @@ void BurzaDialogs::CashoutComboLookupItemChanged( void )
 	if ( ! CashoutAnySelectedSeller() )
 		return;
 	
-	int i = m_pCashoutComboLookupItem->get_active_row_number();
-	if ( i == -1 )
+	int i = m_pCashoutComboLookupItem->get_selected();
+	if ( i == GTK_INVALID_LIST_POSITION )
 		return;
 	
 	if ( i >= m_CashoutDisplayedItems.size() ) {
@@ -1521,7 +1609,8 @@ void BurzaDialogs::CashoutSelectedItemChanged( void )
 
 void BurzaDialogs::CashoutSellerChanged( void )
 {
-	m_pCashoutComboLookupItem->clear();
+	auto emptyList = Gtk::StringList::create();
+	m_pCashoutComboLookupItem->set_model(emptyList);
 	m_CashoutDisplayedItems.clear();
 	
 	if ( ! CashoutAnySelectedSeller() )
@@ -1535,6 +1624,8 @@ void BurzaDialogs::CashoutSellerChanged( void )
 	// so have to cut down.
 	const int maxStrLen = 70;
 	
+	std::vector<Glib::ustring> strings;
+		
 	for( int i = 0; i < items.size(); ++i ) {
 		str = ConvFuncsInstance->FormatCstr( "%i - %s", 
 			items[ i ].number,
@@ -1543,9 +1634,13 @@ void BurzaDialogs::CashoutSellerChanged( void )
 		if (str.size() > maxStrLen )
 			str.erase( str.begin() + maxStrLen, str.end() );
 
-		m_pCashoutComboLookupItem->append_text( str );
+		strings.push_back( str );
 		m_CashoutDisplayedItems.push_back( items[i] );
 	}
+
+	auto stringList = Gtk::StringList::create(strings);
+	m_pCashoutComboLookupItem->set_model(stringList);
+	m_pCashoutComboLookupItem->set_selected(0);
 }
 
 void BurzaDialogs::DisplayErrorMessageBox( string msg1, string msg2 )
@@ -1558,7 +1653,8 @@ void BurzaDialogs::DisplayErrorMessageBox( string msg1, string msg2 )
 		dialog.set_message( msg2 );
 	
 	dialog.set_secondary_text( msg1 );
-	dialog.run();
+	throw runtime_error(msg1);
+	//X Should display it instead
 }
 
 void BurzaDialogs::DisplayErrorMessageBox( const char* msg, const char* msg_title )
@@ -1571,21 +1667,56 @@ void BurzaDialogs::DisplayErrorMessageBox( const char* msg, const char* msg_titl
 
 bool BurzaDialogs::DisplayYesNoMessageBox( string message, string title )
 {
+	/*
 	Gtk::MessageDialog dialog( message, false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO, true );
 	
 	dialog.set_title( title );
 	dialog.set_secondary_text( title );
 	int res = dialog.run();
 	return ( res == Gtk::RESPONSE_YES );
+	*/
+
+	/*X
+	Glib::RefPtr<Gtk::AlertDialog> alert_dialog = Gtk::AlertDialog::create();
+	alert_dialog->set_buttons({"OK"});
+    alert_dialog->set_default_button(2); // OK button or Return key
+    alert_dialog->set_cancel_button(-1);
+	alert_dialog->set_message(title);
+	alert_dialog->set_detail(message);
+	alert_dialog->show(*m_pWndRegister);	
+	*/
+
+	return true;
 }
 
 void BurzaDialogs::DisplayOkMessageBox( string message, string title )
 {
+	/*
 	Gtk::MessageDialog dialog( message, false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_OK, true );
 	
 	dialog.set_title( title );
 	dialog.set_secondary_text( title );
 	int res = dialog.run();
+	*/
+
+	Glib::RefPtr<Gtk::AlertDialog> alert_dialog = Gtk::AlertDialog::create();
+	alert_dialog->set_buttons({"OK"});
+    alert_dialog->set_default_button(2); // OK button or Return key
+    alert_dialog->set_cancel_button(-1);
+	alert_dialog->set_message(title);
+	alert_dialog->set_detail(message);
+	alert_dialog->show(*m_pWndRegister);
+	// alert_dialog->choose(*this, sigc::mem_fun(*this, &ExampleWindow::on_question_dialog_finish));
+
+	/*
+	while (true) {
+		//Gtk::Main::iteration();
+		std::this_thread::sleep_for(200ms);
+
+		if (!alert_dialog->is_visible())
+			break;
+	}
+	*/
 }
 
 void BurzaDialogs::RegisterStartDialogEditProduct( ITEM_ID itemid )
@@ -1611,32 +1742,38 @@ void BurzaDialogs::RegisterStartDialogEditProduct( ITEM_ID itemid )
 	m_pItemeditNumber->set_text( ConvFuncs::FormatCstr( "%i", item.number ) );
 	m_pItemeditPrice->set_text( ConvFuncs::FormatCstr( "%0.2f", item.price ) );
 	
-	m_pItemeditStatusCombo->clear();
+	std::vector<Glib::ustring> states_strings;
 	for( int i = not_in_stock_yet; i < ItemStatusCount; ++i ) {
-		m_pItemeditStatusCombo->append_text( 
-			DataAccessInterface::ItemStatus2String( (ItemStatus)i ) );
+		states_strings.push_back( DataAccessInterface::ItemStatus2String( (ItemStatus)i ) );
 	}
-	m_pItemeditStatusCombo->set_active( item.status );
+	
+	auto listStates = Gtk::StringList::create(states_strings);
+	m_pItemeditStatusCombo->set_model(listStates);
+	m_pItemeditStatusCombo->set_selected( item.status );
 
 	// fill 'category' combo
 	ItemCategoryArray categories = Centrala::Storage().GetItemsCategories();
 
 	int selectedCategoryIndex = -1;
-	m_pItemeditCategoryCombo->clear();
+
+	std::vector<Glib::ustring> category_strings;
 	for( int i = 0; i < categories.size(); ++i ) {
-		m_pItemeditCategoryCombo->append_text( categories[i].name );
+		category_strings.push_back( categories[i].name );
 		
 		if ( categories[i].id == item.category )
 			selectedCategoryIndex = i;
 	}
-	
+
+	auto list = Gtk::StringList::create(category_strings);
+	m_pItemeditCategoryCombo->set_model(list);
+
 	// select a default category, if none selected
 	if ( selectedCategoryIndex == -1 ) {
 		selectedCategoryIndex = 0;
 	}
 	
 	if ( selectedCategoryIndex != -1 )
-		m_pItemeditCategoryCombo->set_active( selectedCategoryIndex );
+		m_pItemeditCategoryCombo->set_selected( selectedCategoryIndex );
 	
 	m_EditedItem = item;
 	try {
@@ -1653,20 +1790,24 @@ void BurzaDialogs::RegisterStartDialogEditProduct( ITEM_ID itemid )
 
 void BurzaDialogs::HighlightWidgetRed( Gtk::Widget& widget )
 {
+	/*X
 	widget.signal_focus_in_event();
 	widget.drag_highlight();
 	Gdk::Color red( "red" );
 	Gdk::Color pink( "pink" );
 	widget.modify_bg(Gtk::STATE_NORMAL, red);
 	widget.modify_base(Gtk::STATE_NORMAL, pink);
+	*/
 }
 
 void BurzaDialogs::HighlightWidgetOff( Gtk::Widget& widget )
 {
+	/*X
 	Gdk::Color white( "white" );
 	Gdk::Color black( "black" );
 	widget.modify_bg(Gtk::STATE_NORMAL, black);
 	widget.modify_base(Gtk::STATE_NORMAL, white);
+	*/
 }
 
 void BurzaDialogs::RegisterButtonItemEditOk( void )
@@ -1743,13 +1884,13 @@ void BurzaDialogs::RegisterButtonItemEditOk( void )
 		m_EditedItem.category = 0;
 	*/
 
-	int i = m_pItemeditStatusCombo->get_active_row_number();
-	if ( i != -1 ) {
+	int i = m_pItemeditStatusCombo->get_selected();
+	if ( i != GTK_INVALID_LIST_POSITION ) {
 		m_EditedItem.status = (ItemStatus) i;
 	}
 
 	// item category
-	int itemCategoryIndex = m_pItemeditCategoryCombo->get_active_row_number();
+	int itemCategoryIndex = m_pItemeditCategoryCombo->get_selected();
 	ItemCategoryArray itemCategories = Centrala::Storage().GetItemsCategories();
 	int itemCategoryId = -1;
 	if (itemCategories.size() > itemCategoryIndex)
@@ -1793,7 +1934,7 @@ void BurzaDialogs::RegisterButtonItemEditCancel( void )
 	m_EditedSeller.id = SELLER_ID_NONE;
 }
 
-bool BurzaDialogs::RegisterButtonItemEditClose( GdkEventAny* )
+bool BurzaDialogs::RegisterButtonItemEditClose( void )
 {
 	RegisterButtonItemEditCancel(); 
 	return true;
@@ -1843,6 +1984,7 @@ void BurzaDialogs::RegisterStartDialogEditSeller( SELLER_ID id )
 		seller.category = categories.empty() ? SELLER_CATEGORY_ID_NONE : categories.begin()->id;
 	}
 	
+	/*X
 	sellerEdit.editName->set_text( seller.name );
 	sellerEdit.editCode->set_text( seller.shortcode );
 	sellerEdit.editNote->set_text( seller.note );
@@ -1856,8 +1998,8 @@ void BurzaDialogs::RegisterStartDialogEditSeller( SELLER_ID id )
 		if ( categories[ i ].id == seller.category )
 			index = i;
 	}
-
-	sellerEdit.comboCategory->set_active( index );
+	sellerEdit.comboCategory->set_selected( index );
+	*/
 
 	HighlightEditSellerOff();
 
@@ -1892,7 +2034,7 @@ void BurzaDialogs::RegisterButtonSellerEditOk( void )
 	m_EditedSeller.shortcode = sellerEdit.editCode->get_text();
 	
 	// get category
-	int categoryIndex = sellerEdit.comboCategory->get_active_row_number();
+	int categoryIndex = sellerEdit.comboCategory->get_selected();
 	assert( categoryIndex < sellerEdit.categories.size() );
 	m_EditedSeller.category = sellerEdit.categories[ categoryIndex ].id;
 
@@ -1923,7 +2065,7 @@ void BurzaDialogs::RegisterButtonSellerEditCancel( void )
 	m_pWndSeller->hide();
 }
 
-bool BurzaDialogs::RegisterButtonSellerEditClose( GdkEventAny* )
+bool BurzaDialogs::RegisterButtonSellerEditClose( void )
 {
 	RegisterButtonSellerEditCancel(); 
 	return true; 
@@ -1949,14 +2091,15 @@ void BurzaDialogs::CashoutDisplaySeller( const char* shortcode )
 		
 	int idx = DataAccessInterface::FindSellerIndexByCode( SellersSearchable, shortcode );
 	
-	m_pCashoutComboLookupItem->clear();
+	auto emptyList = Gtk::StringList::create();
+	m_pCashoutComboLookupItem->set_model(emptyList);
 	m_CashoutDisplayedItems.clear();
-	
+
 	if ( idx == -1 ) {
-		m_pCashoutComboLookupSeller->set_active( -1 );
+		m_pCashoutComboLookupSeller->set_selected( -1 );
 		m_CashoutSelectedSellerId = SELLER_ID_NONE;
 	} else {
-		m_pCashoutComboLookupSeller->set_active( idx );
+		m_pCashoutComboLookupSeller->set_selected( idx );
 		m_CashoutSelectedSellerId = SellersOrdered[ idx ].id;
 	}
 	
@@ -1981,14 +2124,14 @@ void BurzaDialogs::CashoutEditLookupItemChanged( void )
 		idx = -1;
 	}
 	
-	m_pCashoutComboLookupItem->set_active( idx );
+	m_pCashoutComboLookupItem->set_selected( idx );
 	// and let combo to do the work.
 	CashoutComboLookupItemChanged();
 }
 
 void BurzaDialogs::CashoutEditSearchChanged( void )
 {
-	int selectedItemIdx = m_pCashoutComboSearch->property_active();
+	int selectedItemIdx = -1; //X m_pCashoutComboSearch->property_active();
 
 	if ( selectedItemIdx == -1 ) {
 		return;
@@ -2020,9 +2163,11 @@ void BurzaDialogs::CashoutEditSearchEntryChanged( void )
 	ItemSearch& search = Centrala::Search();
 	SellerData sellerOfItem;
 
+	/*X
 	m_pCashoutComboSearch->clear();
 	cashoutComboSearchItemDatas.clear();
 	m_pCashoutSearchFoundText->set_text("");
+	*/
 
 	string text = m_pCashoutComboSearchEntry->get_text();
 	const int itemsLimit = 60;
@@ -2049,17 +2194,17 @@ void BurzaDialogs::CashoutEditSearchEntryChanged( void )
 			foundItems[ i ].price,
 			DataAccessInterface::ItemStatus2String( foundItems[ i ].status ));
 
-		m_pCashoutComboSearch->append_text( str );
+		//X m_pCashoutComboSearch->append_text( str );
 		cashoutComboSearchItemDatas.push_back( foundItems[ i ] );
 	}
 }
 
 void BurzaDialogs::RegisterButtonOtherActions( void )
 {
-	menuRegisterOtherActions->popup( 0, 0 );
+	//X menuRegisterOtherActions->popup( 0, 0 );
 }
 
-bool BurzaDialogs::RegisterButtonStats( GdkEventButton* button )
+bool BurzaDialogs::RegisterButtonStats( GdkButtonEvent* button )
 {
 	string offeredName = BurzaDialogsFileHelper::FormatDateTimeFileName( _("Statistika"), "pdf" );
 	string name = BurzaDialogsFileHelper::AskToSaveDocumentFile( offeredName );
@@ -2081,13 +2226,13 @@ bool BurzaDialogs::RegisterButtonStats( GdkEventButton* button )
 	return true;
 }
 
-bool BurzaDialogs::RegisterButtonSaveSellerOverview( GdkEventButton* button )
+bool BurzaDialogs::RegisterButtonSaveSellerOverview( GdkButtonEvent* button )
 {
 	RegisterButtonReviewOfSellers();
 	return true;
 }
 
-bool BurzaDialogs::RegisterButtonFixItemCats( GdkEventButton* button )
+bool BurzaDialogs::RegisterButtonFixItemCats( GdkButtonEvent* button )
 {
 	RegisterButtonReviewOfSellers();
 	return true;
@@ -2096,7 +2241,7 @@ bool BurzaDialogs::RegisterButtonFixItemCats( GdkEventButton* button )
 // ======================================================
 // ======================================================
 
-bool BurzaDialogs::RegisterButtonSettings( GdkEventButton* button )
+bool BurzaDialogs::RegisterButtonSettings( GdkButtonEvent* button )
 {
 	ProgramSettings* settings = & Centrala::Settings();
 
@@ -2106,8 +2251,9 @@ bool BurzaDialogs::RegisterButtonSettings( GdkEventButton* button )
 	settingsWindow.labelCurrentLicence->set_text( licenseText );
 
 	// setup 'font' combo
-	settingsWindow.comboFontSize->clear();
 	int selectedFontIndex = 0;
+	/*X
+	settingsWindow.comboFontSize->clear();
 
 	for( int i = 0; i < ProgramSettings::predefined.listOfFontSizes.size(); ++i ) 
 	{
@@ -2115,9 +2261,9 @@ bool BurzaDialogs::RegisterButtonSettings( GdkEventButton* button )
 			ProgramSettings::predefined.listOfFontSizes[ i ].text );
 		if ( settings->fontSize == ProgramSettings::predefined.listOfFontSizes[ i ].size )
 			selectedFontIndex = i;
-	}
+	}*/
 
-	settingsWindow.comboFontSize->set_active( selectedFontIndex );
+	settingsWindow.comboFontSize->set_selected( selectedFontIndex );
 
 	// name of "Burza"
 	settingsWindow.editBurzaName->set_text( settings->m_name_of_the_sale );
@@ -2133,7 +2279,7 @@ bool BurzaDialogs::RegisterButtonSettings( GdkEventButton* button )
 	auto passwordPartial = ProgramSettings::HidePartOfPassword( settings->dbPassword );
 	settingsWindow.editDbPassword->set_text( passwordPartial );
 	
-	settingsWindow.dialog->run();
+	//X settingsWindow.dialog->run();
 	return true;
 }
 
@@ -2150,8 +2296,10 @@ void BurzaDialogs::SettingsClickedButtonInstallLicence( void )
 
 void BurzaDialogs::SettingsClickedButtonOk( void )
 {
+	/*X
 	settingsWindow.dialog->response( Gtk::RESPONSE_OK );
 	settingsWindow.dialog->hide();
+	*/
 
 	ProgramSettings	*settings = & Centrala::Settings();
 
@@ -2159,9 +2307,9 @@ void BurzaDialogs::SettingsClickedButtonOk( void )
 	settings->m_name_of_the_sale = settingsWindow.editBurzaName->get_text();
 
 	// font size
-	int fontSizeSelectionIndex = settingsWindow.comboFontSize->get_active_row_number();
+	int fontSizeSelectionIndex = settingsWindow.comboFontSize->get_selected();
 	int newFontSize = -1;
-	if ( fontSizeSelectionIndex != -1 ) {
+	if ( fontSizeSelectionIndex != GTK_INVALID_LIST_POSITION ) {
 		newFontSize = ProgramSettings::predefined.listOfFontSizes[ fontSizeSelectionIndex ].size;
 	}
 
@@ -2212,7 +2360,8 @@ void BurzaDialogs::CreateStatusImages( void )
 
 	for( int i=0; i < ItemStatusCountWithUndefined; ++i ) 
 	{
-		registerColumnStateImages[ i ] = Gdk::Pixbuf::create(Gdk::COLORSPACE_RGB, FALSE, 8, sizex, sizey);
+		registerColumnStateImages[ i ] = Gdk::Pixbuf::create(
+			Gdk::Colorspace::RGB, FALSE, 8, sizex, sizey);
 	}
 
 	registerColumnStateImages[ not_in_stock_yet ]->fill( ColorToPixel( 50, 50, 50 ) );
@@ -2684,7 +2833,7 @@ void BurzaDialogs::RegisterSellerStatusRadioChanged( void )
 	
 	RegisterSellerModified( seller );
 }
-
+/*
 int BurzaDialogs::SortRegisterItemsNumberFunc(const Gtk::TreeIter& a, const Gtk::TreeIter& b)
 {
 	string vala = (*a)[ m_ItemsColumn.m_number ];
@@ -2713,3 +2862,4 @@ int BurzaDialogs::SortRegisterItemsPriceFunc(const Gtk::TreeIter& a, const Gtk::
 	double dif = numa - numb;
 	return (dif == 0 ? 0 : (dif > 0 ? 1 : -1));
 }
+*/

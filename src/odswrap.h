@@ -28,7 +28,7 @@ public:
 	
 private:
 	//! reads up xls file into m_table.
-	void ReadSheetIntoTable( string filename ) throw( runtime_error );
+	void ReadSheetIntoTable( string filename ) throw();
 	
 public:
 	SellerData ReadSeller( string filename ) throw();

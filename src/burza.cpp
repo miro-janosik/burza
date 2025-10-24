@@ -9,12 +9,8 @@
 
 #include <gtkmm.h>
 #include <glib/gthread.h>
-#include <gtkmm.h>
-#include <gtkmm/main.h>
 
 #include <assert.h>
-
-#include <libglademm.h>
 
 #include "convfile.h"
 #include "convfncs.h"
@@ -42,22 +38,52 @@ using namespace Burza;
 using namespace XmlWrapperTool;
 
 Centrala* Centrala::m_instance = NULL;
+Glib::RefPtr<Gtk::Application> Centrala::app;
 
-int main2( int argc, char **argv )
+
+void main_window_closing()
+{
+	std::string exceptionMessage;
+
+	try {
+		Log( InfoMajor, "Finishing application...\n" );
+		ConvFuncs::SingletonInstanceDelete();
+		
+		Log( InfoMajor, "Removing central instance\n" );
+		Centrala::Zmaz();
+		
+		Log( InfoMajor, "Finished.\n" );
+	}
+	catch (const std::exception& ex) {
+		exceptionMessage += "std::exception: ";
+		exceptionMessage += ex.what();
+	}
+	catch(const std::exception* e ) {
+		exceptionMessage += "Wrong format of exception - pointer - std::exception: ";
+		exceptionMessage += e->what();
+	}
+	catch(...)
+	{
+		exceptionMessage += "Unknown exception.";
+	}
+
+	if (!exceptionMessage.empty())
+	{
+		std::string str = "Exception - " + exceptionMessage + "\n";
+		Log( InfoError, str.c_str() );
+	}
+}
+
+int main2(int argc, char **argv )
 {
 	BiturnLogInstance()->SetLogFileName( "burza-log.txt" );
 	BiturnLogInstance()->SetLoggingMood( BiturnLog::LoggingMoodHeavy );
 	Log( InfoMajor, "=== Burza starting ===\n" );
 	
-	if(!Glib::thread_supported()) Glib::thread_init();
-	
 	Log( InfoMajor, "main2 starting\n" );
 
 	Log( InfoMajor, "Call to Glib::init\n" );
 	Glib::init();
-
-	Log( InfoMajor, "Creating central instance\n" );
-	Centrala		*pcentrala = Centrala::Instance();
 
 	//TODO: dispose dataStorage in destructor somehow.
 	//	DataTextfile dataStorage = new DataTextfile( Centrala::Instancia()->Nastavenia()->m_data_dir_path );
@@ -65,9 +91,6 @@ int main2( int argc, char **argv )
 	
 	Log( InfoMajor, "Creating conv funcs\n" );
 	ConvFuncs::SingletonInstanceCreate();
-	
-	Log( InfoMajor, "Gtk::Main\n" );
-	Gtk::Main gtkkit( argc, argv );
 	
 	// do not use local settings, use international. I want '.' as decimal delimiter.
 	// setlocale(LC_ALL,"C");
@@ -78,12 +101,16 @@ int main2( int argc, char **argv )
 	std::string exceptionMessage;
 	
 	try {
+
 		Log( InfoMajor, "Loading and applying settings\n" );
 		Centrala::Settings().LoadSettings();
 		Centrala::Settings().Apply();
 
 		Log( InfoMajor, "SetupDialogs\n" );
-		Centrala::Dialogs().SetupDialogs();
+		if (Centrala::Dialogs().SetupDialogs() != 0) {
+			Log( InfoError, "Error during SetupDialogs\n" );
+			return 1;
+		}
 
 		// Centrala::Register().NacitajVsetkychPredajcov();
 		Centrala::Dialogs().initializing = true;
@@ -94,7 +121,11 @@ int main2( int argc, char **argv )
 		Centrala::Dialogs().initializing = false;
 
 		Log( InfoMajor, "Gtk::Main::run()\n" );
-		Gtk::Main::run( *Centrala::Dialogs().m_pWndRegister );
+		// Gtk::Main::run( *Centrala::Dialogs().m_pWndRegister );
+
+		Centrala::Dialogs().m_pWndRegister->signal_hide().connect( sigc::ptr_fun( main_window_closing ) );
+		Centrala::Dialogs().m_pWndRegister->set_visible();
+
 	}
 	catch (const DataStorageException& ex){
 		exceptionMessage += "DataStorageException: ";
@@ -123,17 +154,9 @@ int main2( int argc, char **argv )
 	// m_timer_connection = Glib::signal_timeout().connect( sigc::ptr_fun( &on_timer ), 100 );
 
 	// --=============================--
-	
-	Log( InfoMajor, "Finishing application...\n" );
-	ConvFuncs::SingletonInstanceDelete();
-	
-	Log( InfoMajor, "Removing central instance\n" );
-	Centrala::Zmaz();
-	
-	Log( InfoMajor, "Finished.\n" );
+
 	return 0;
 }
-
 
 // ==============================================
 // ==============================================

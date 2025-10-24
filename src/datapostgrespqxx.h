@@ -9,17 +9,20 @@
 using namespace std;
 
 // (version 2015+)
-#define pqxx_row_class_name row
+// #define pqxx_row_class_name row
 
 // (version 4.0, still in repos for linux)
-#define pqxx_row_class_name tuple
+// #define pqxx_row_class_name tuple
+
+#define pqxx_row_class_name row
 
 namespace pqxx
 {
 	class connect_direct;
-	template <class T> class basic_connection;
-	
-	using connection = basic_connection<connect_direct>;
+
+	// template <class T> class basic_connection;
+	// using connection = basic_connection<connect_direct>;
+	class connection;
 	
 	class pqxx_row_class_name;
 }

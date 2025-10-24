@@ -10,7 +10,7 @@ MESSAGE("CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
 set(Burza_VERSION_MAJOR 1)
 set(Burza_VERSION_MINOR 03)
 ADD_DEFINITIONS(-D_UNIX)
-ADD_DEFINITIONS(-std=c++11)
+ADD_DEFINITIONS(-std=c++20)
 
 #get source files in the subdirectories instead of writing them all by hand.
 AUX_SOURCE_DIRECTORY(${PROJECT_ROOT}/kdev_src KDEV_SRC_FILES)
@@ -20,12 +20,14 @@ AUX_SOURCE_DIRECTORY(${PROJECT_ROOT}/src/BasicExcelFormat SRC_BasicExcel_FILES)
 
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_ROOT}/run_linux)
 
-ADD_EXECUTABLE(burza ${PROJECT_ROOT}/src/burza.cpp 
+ ADD_EXECUTABLE(burza ${PROJECT_ROOT}/src/burza.cpp 
 ${KDEV_SRC_FILES}
 ${SRC_FILES}
 ${SRC_IRRXML_FILES}
 ${SRC_BasicExcel_FILES}
 )
+
+#ADD_EXECUTABLE(burza ${PROJECT_ROOT}/src/a1.cpp)
 
 include_directories(
   ${PROJECT_ROOT}/src; 
@@ -35,10 +37,10 @@ include_directories(
  )
 
 find_package(PkgConfig)
-PKG_CHECK_MODULES(GTKMM REQUIRED gtkmm-2.4)
+PKG_CHECK_MODULES(GTKMM REQUIRED gtkmm-4.0)
 MESSAGE("gtkmm found? ${GTKMM_FOUND}")
-PKG_CHECK_MODULES(GLADEMM REQUIRED libglademm-2.4)
-MESSAGE("Glade found? ${GLADEMM_FOUND}")
+#PKG_CHECK_MODULES(GLADEMM REQUIRED libglademm-2.4)
+#MESSAGE("Glade found? ${GLADEMM_FOUND}")
 PKG_CHECK_MODULES(ICU REQUIRED icu-io icu-i18n icu-uc)
 MESSAGE("ICU found? ${ICU_FOUND}")
 PKG_CHECK_MODULES(PQXX REQUIRED libpqxx)

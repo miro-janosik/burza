@@ -6828,7 +6828,8 @@ ostream& operator<<(ostream& os, const BasicExcelCell& cell)
 			break;
 
 		case BasicExcelCell::WSTRING:
-			os << cell.GetWString();
+			// os << cell.GetWString();
+			os << "BasicExcel: Unsupported string in unicode, needs conversion method.";
 			break;
 	}
 

@@ -1,0 +1,1230 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Created with Cambalache 0.96.1 -->
+<interface>
+  <!-- interface-name burza4.ui -->
+  <requires lib="gio" version="2.0"/>
+  <requires lib="gtk" version="4.0"/>
+  <object class="GtkWindow" id="LoadFilesProgress">
+    <property name="child">
+      <object class="GtkBox" id="vbox1">
+        <property name="orientation">vertical</property>
+        <property name="spacing">5</property>
+        <child>
+          <object class="GtkLabel" id="label1">
+            <property name="label" translatable="yes">Loading files...</property>
+            <property name="xalign">0.10000000149011612</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkTextView" id="loading_text">
+            <property name="editable">0</property>
+            <property name="focusable">1</property>
+            <property name="vexpand">1</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox" id="hbox1">
+            <child>
+              <object class="GtkButton" id="buttonInterrupt">
+                <property name="focusable">1</property>
+                <property name="hexpand">1</property>
+                <property name="label" translatable="yes">Prerušiť</property>
+                <property name="receives-default">1</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="buttonFinished">
+                <property name="focusable">1</property>
+                <property name="hexpand">1</property>
+                <property name="label" translatable="yes">Hotovo</property>
+                <property name="receives-default">1</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </property>
+    <property name="default-height">480</property>
+    <property name="default-width">640</property>
+    <property name="deletable">0</property>
+    <property name="destroy-with-parent">1</property>
+    <property name="modal">1</property>
+  </object>
+  <object class="GtkDialog" id="MessageEditBox">
+    <property name="modal">1</property>
+    <child internal-child="content_area">
+      <object class="GtkBox" id="dialog-vbox1">
+        <property name="orientation">vertical</property>
+        <property name="spacing">2</property>
+        <child>
+          <object class="GtkLabel" id="label_text">
+            <property name="label" translatable="yes">label</property>
+            <property name="vexpand">1</property>
+          </object>
+        </child>
+        <child internal-child="action_area">
+          <object class="GtkBox" id="dialog-action_area1">
+            <property name="orientation">horizontal</property>
+            <property name="spacing">2</property>
+            <child>
+              <object class="GtkButton" id="button_cancel">
+                <property name="can-focus">True</property>
+                <property name="label">gtk-cancel</property>
+                <property name="receives-default">True</property>
+                <property name="visible">True</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="button_ok">
+                <property name="can-focus">True</property>
+                <property name="label">gtk-apply</property>
+                <property name="receives-default">True</property>
+                <property name="visible">True</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel" id="msg_label_text">
+            <property name="can-focus">False</property>
+            <property name="label" translatable="yes">label</property>
+            <property name="visible">True</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkEntry" id="entry_text">
+            <property name="focusable">1</property>
+            <property name="invisible-char">●</property>
+            <property name="primary-icon-activatable">0</property>
+            <property name="secondary-icon-activatable">0</property>
+            <property name="vexpand">1</property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+  <!-- object class="GtkDialog" id="Nastavenia">
+    <property name="modal">1</property>
+    <property name="resizable">0</property>
+    <property name="title" translatable="yes">Nastavenia</property>
+    <child internal-child="content_area">
+      <object class="GtkBox" id="dialog-vbox2">
+        <property name="orientation">vertical</property>
+        <property name="spacing">2</property>
+        <child>
+          <object class="GtkBox" id="vbox5">
+            <property name="orientation">vertical</property>
+            <property name="vexpand">1</property>
+            <child>
+              <object class="GtkBox" id="hbox13">
+                <child>
+                  <object class="GtkLabel" id="label5">
+                    <property name="label" translatable="yes">Aktuálna licencia:</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="label_current_licence">
+                    <property name="hexpand">1</property>
+                    <property name="label" translatable="yes">label</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkBox" id="hbox14">
+                <child>
+                  <object class="GtkButton" id="button_request_licence">
+                    <property name="focusable">1</property>
+                    <property name="hexpand">1</property>
+                    <property name="label" translatable="yes">Vyžiadať licenciu</property>
+                    <property name="receives-default">1</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkButton" id="button_install_licence">
+                    <property name="focusable">1</property>
+                    <property name="hexpand">1</property>
+                    <property name="label" translatable="yes">Nainštalovať licenciu</property>
+                    <property name="receives-default">1</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkBox" id="vbox1b">
+                <property name="orientation">vertical</property>
+                <property name="vexpand">1</property>
+                <child>
+                  <object class="GtkLabel" id="label3">
+                    <property name="label" translatable="yes">Typ uloženia dát:</property>
+                    <property name="vexpand">1</property>
+                    <property name="xalign">0.10000000149011612</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkCheckButton" id="radio_1file">
+                    <property name="active">1</property>
+                    <property name="focusable">1</property>
+                    <property name="label" translatable="yes">Oddelene v súbore</property>
+                    <property name="vexpand">1</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkCheckButton" id="radio_2db">
+                    <property name="active">1</property>
+                    <property name="focusable">1</property>
+                    <property name="group">radio_1file</property>
+                    <property name="label" translatable="yes">Prepojené cez databázu</property>
+                    <property name="vexpand">1</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            
+            <child>
+              <object class="GtkBox" id="table1">
+                <property name="orientation">vertical</property>
+                <property name="can_focus">False</property>
+                <child>
+                  <object class="GtkLabel" id="label1c">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="xalign">1</property>
+                    <property name="label" translatable="yes">Názov burzy: </property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkEntry" id="entry_name_of_burza">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="invisible_char">●</property>
+                    <property name="primary_icon_activatable">False</property>
+                    <property name="secondary_icon_activatable">False</property>
+                    <property name="primary_icon_sensitive">True</property>
+                    <property name="secondary_icon_sensitive">True</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="label2">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="label" translatable="yes">Veľkosť písma</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkComboBox" id="combo_font_size">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkBox" id="vbox1c">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="orientation">vertical</property>
+                <child>
+                  <object class="GtkLabel" id="label3c">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="xalign">0.10000000149011612</property>
+                    <property name="label" translatable="yes">Typ uloženia dát:</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkRadioButton" id="radio_1file">
+                    <property name="label" translatable="yes">Oddelene v súbore</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">False</property>
+                    <property name="active">True</property>
+                    <property name="draw_indicator">True</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkRadioButton" id="radio_2db">
+                    <property name="label" translatable="yes">Prepojené cez databázu</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">False</property>
+                    <property name="active">True</property>
+                    <property name="draw_indicator">True</property>
+                    <property name="group">radio_1file</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkTable" id="table2">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <child>
+                      <object class="GtkLabel" id="label4">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="xalign">0.80000001192092896</property>
+                        <property name="label" translatable="yes">Adresa:</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="label7">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="xalign">0.80000001192092896</property>
+                        <property name="label" translatable="yes">Heslo:</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="label6">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="xalign">0.80000001192092896</property>
+                        <property name="label" translatable="yes">Konto:</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="label8">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="xalign">0.80000001192092896</property>
+                        <property name="label" translatable="yes">Port:</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkEntry" id="entry_dbaddress">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="invisible_char">●</property>
+                        <property name="primary_icon_activatable">False</property>
+                        <property name="secondary_icon_activatable">False</property>
+                        <property name="primary_icon_sensitive">True</property>
+                        <property name="secondary_icon_sensitive">True</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkEntry" id="entry_dbuser">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="invisible_char">●</property>
+                        <property name="primary_icon_activatable">False</property>
+                        <property name="secondary_icon_activatable">False</property>
+                        <property name="primary_icon_sensitive">True</property>
+                        <property name="secondary_icon_sensitive">True</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkEntry" id="entry_dbpassword">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="invisible_char">●</property>
+                        <property name="primary_icon_activatable">False</property>
+                        <property name="secondary_icon_activatable">False</property>
+                        <property name="primary_icon_sensitive">True</property>
+                        <property name="secondary_icon_sensitive">True</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkEntry" id="entry_dbport">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="invisible_char">●</property>
+                        <property name="primary_icon_activatable">False</property>
+                        <property name="secondary_icon_activatable">False</property>
+                        <property name="primary_icon_sensitive">True</property>
+                        <property name="secondary_icon_sensitive">True</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+                              
+            
+          </object>
+        </child>
+      </object>
+    </child>
+  </object -->
+  <object class="GtkWindow" id="Pokladna">
+    <property name="child">
+      <object class="GtkBox" id="vbox1c">
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkFixed" id="fixed2">
+            <property name="height-request">20</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel" id="a">
+            <property name="label" translatable="yes">Pokladňa</property>
+            <property name="use-underline">1</property>
+            <property name="xalign">0.10000000149011612</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkScrolledWindow" id="scrolledwindow2">
+            <property name="child">
+              <object class="GtkTreeView" id="treeview cashout items">
+                <property name="enable-grid-lines">both</property>
+                <property name="focusable">1</property>
+                <property name="height-request">200</property>
+              </object>
+            </property>
+            <property name="focusable">1</property>
+            <property name="vexpand">1</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel" id="a1">
+            <property name="label" translatable="yes" comments="Seller">Tovar od predajcu:</property>
+            <property name="use-underline">1</property>
+            <property name="xalign">0.10000000149011612</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox" id="hbox predajca">
+            <property name="valign">center</property>
+            <child>
+              <object class="GtkEntry" id="entry lookup seller">
+                <property name="focusable">1</property>
+                <property name="halign">center</property>
+                <property name="primary-icon-activatable">0</property>
+                <property name="secondary-icon-activatable">0</property>
+                <property name="width-request">100</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkDropDown" id="combo lookup seller">
+                <property name="hexpand">1</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel" id="a2">
+            <property name="label" translatable="yes" comments="item name">Názov tovaru:</property>
+            <property name="use-underline">1</property>
+            <property name="xalign">0.10000000149011612</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox" id="hbox tovar">
+            <property name="valign">center</property>
+            <child>
+              <object class="GtkEntry" id="entry lookup item">
+                <property name="focusable">1</property>
+                <property name="halign">center</property>
+                <property name="primary-icon-activatable">0</property>
+                <property name="secondary-icon-activatable">0</property>
+                <property name="width-request">100</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="label item price">
+                <property name="justify">center</property>
+                <property name="label" translatable="yes">cena a stav</property>
+                <property name="selectable">1</property>
+                <property name="single-line-mode">1</property>
+                <property name="width-request">100</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkDropDown" id="combo lookup item">
+                <property name="hexpand">1</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox" id="hbox3">
+            <property name="height-request">40</property>
+            <property name="valign">center</property>
+            <child>
+              <object class="GtkButton" id="button cashout add item">
+                <property name="focusable">1</property>
+                <property name="receives-default">1</property>
+                <child>
+                  <object class="GtkBox" id="hbox21">
+                    <child>
+                      <object class="GtkImage" id="image9">
+                        <property name="hexpand">1</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="label13">
+                        <property name="hexpand">1</property>
+                        <property name="label" translatable="yes">Pridaj do nákupu</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkFixed" id="fixed8">
+                <property name="hexpand">1</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="button cashout remove item">
+                <property name="focusable">1</property>
+                <property name="halign">center</property>
+                <property name="hexpand">1</property>
+                <property name="receives-default">1</property>
+                <child>
+                  <object class="GtkBox" id="hbox22">
+                    <child>
+                      <object class="GtkImage" id="image10">
+                        <property name="hexpand">1</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="label14">
+                        <property name="hexpand">1</property>
+                        <property name="label" translatable="yes">Odober z nákupu</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkFixed" id="fixed7"/>
+            </child>
+            <child>
+              <object class="GtkFixed" id="fixed6">
+                <property name="hexpand">1</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkSeparator" id="hseparator1"/>
+        </child>
+        <child>
+          <object class="GtkLabel" id="label2c">
+            <property name="label" translatable="yes">Nájdi tovar</property>
+            <property name="xalign">0.10000000149011612</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkDropDown" id="comboboxentry_search">
+            <property name="can-focus">True</property>
+            <property name="enable-search">True</property>
+            <property name="visible">True</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel" id="search_found_text">
+            <property name="label" translatable="yes">label</property>
+            <property name="xalign">0</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox" id="hbox2">
+            <property name="height-request">80</property>
+            <property name="valign">center</property>
+            <child>
+              <object class="GtkLabel" id="label sum">
+                <property name="hexpand">1</property>
+                <property name="justify">center</property>
+                <property name="label" translatable="yes">Suma: 0,00 e</property>
+                <property name="single-line-mode">1</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="label cashout finished">
+                <property name="focusable">1</property>
+                <property name="halign">center</property>
+                <property name="height-request">30</property>
+                <property name="receives-default">1</property>
+                <property name="width-request">200</property>
+                <child>
+                  <object class="GtkBox" id="hbox19">
+                    <child>
+                      <object class="GtkImage" id="image7">
+                        <property name="hexpand">1</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="label11">
+                        <property name="hexpand">1</property>
+                        <property name="label" translatable="yes">Dokonči predaj</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox" id="hbox9">
+            <child>
+              <object class="GtkImage" id="image1">
+                <property name="file">logo_mc.gif</property>
+                <property name="halign">center</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="button register">
+                <property name="focusable">1</property>
+                <property name="halign">center</property>
+                <property name="label" translatable="yes">Register</property>
+                <property name="receives-default">1</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </property>
+    <property name="title" translatable="yes" comments="Cash-out">Burza - Pokladňa</property>
+  </object>
+  <object class="GtkWindow" id="Register">
+    <property name="child">
+      <object class="GtkBox" id="vbox2">
+        <property name="margin-bottom">5</property>
+        <property name="margin-end">5</property>
+        <property name="margin-start">5</property>
+        <property name="margin-top">5</property>
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkLabel" id="label1b">
+            <property name="label" translatable="yes" comments="seller">Predajca</property>
+            <property name="xalign">0.10000000149011612</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox" id="hbox5">
+            <property name="height-request">40</property>
+            <child>
+              <object class="GtkEntry" id="entry_find_seller">
+                <property name="focusable">1</property>
+                <property name="invisible-char">●</property>
+                <property name="primary-icon-activatable">0</property>
+                <property name="secondary-icon-activatable">0</property>
+                <property name="width-request">100</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkDropDown" id="combobox seller">
+                <property name="hexpand">1</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox" id="hbox6">
+            <property name="halign">baseline-fill</property>
+            <property name="height-request">50</property>
+            <property name="margin-bottom">5</property>
+            <property name="margin-end">5</property>
+            <property name="margin-start">5</property>
+            <property name="margin-top">5</property>
+            <child>
+              <object class="GtkButton" id="button import seller">
+                <property name="focusable">1</property>
+                <property name="halign">start</property>
+                <property name="hexpand">1</property>
+                <property name="receives-default">1</property>
+                <child>
+                  <object class="GtkBox" id="hbox16">
+                    <property name="halign">baseline</property>
+                    <child>
+                      <object class="GtkImage" id="image4">
+                        <property name="icon-size">large</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="label8">
+                        <property name="ellipsize">end</property>
+                        <property name="halign">start</property>
+                        <property name="hexpand">1</property>
+                        <property name="label" translatable="yes">Načítaj predajcu zo súboru</property>
+                        <property name="valign">baseline</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="button import multi seller">
+                <property name="focusable">1</property>
+                <property name="halign">start</property>
+                <property name="hexpand">1</property>
+                <property name="receives-default">1</property>
+                <child>
+                  <object class="GtkBox" id="hbox2b">
+                    <child>
+                      <object class="GtkImage" id="image3">
+                        <property name="icon-size">large</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="label3b">
+                        <property name="ellipsize">end</property>
+                        <property name="hexpand">1</property>
+                        <property name="label" translatable="yes">Načítaj viacero predajcov</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="button add seller">
+                <property name="focusable">1</property>
+                <property name="halign">start</property>
+                <property name="hexpand">1</property>
+                <property name="receives-default">1</property>
+                <child>
+                  <object class="GtkBox" id="hbox1b">
+                    <child>
+                      <object class="GtkImage" id="image1b">
+                        <property name="icon-size">large</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="label2b">
+                        <property name="ellipsize">end</property>
+                        <property name="hexpand">1</property>
+                        <property name="label" translatable="yes">Pridaj predajcu ručne</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="button update seller">
+                <property name="focusable">1</property>
+                <property name="hexpand">1</property>
+                <property name="receives-default">1</property>
+                <child>
+                  <object class="GtkBox" id="hbox17">
+                    <child>
+                      <object class="GtkImage" id="image5">
+                        <property name="icon-size">large</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="label9">
+                        <property name="ellipsize">end</property>
+                        <property name="hexpand">1</property>
+                        <property name="label" translatable="yes">Uprav údaje predajcu</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkScrolledWindow" id="scrolledwindow1">
+            <property name="child">
+              <object class="GtkTreeView" id="treeview items">
+                <property name="enable-grid-lines">both</property>
+                <property name="enable-search">0</property>
+                <property name="focusable">1</property>
+                <property name="headers-clickable">0</property>
+              </object>
+            </property>
+            <property name="focusable">1</property>
+            <property name="vexpand">1</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox" id="hbox7">
+            <property name="height-request">60</property>
+            <child>
+              <object class="GtkButton" id="button add item">
+                <property name="focusable">1</property>
+                <property name="hexpand">1</property>
+                <property name="label" translatable="yes" comments="add item">Pridaj tovar</property>
+                <property name="receives-default">1</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="button modify item">
+                <property name="focusable">1</property>
+                <property name="hexpand">1</property>
+                <property name="receives-default">1</property>
+                <child>
+                  <object class="GtkBox" id="hbox18">
+                    <child>
+                      <object class="GtkImage" id="image6"/>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="label10">
+                        <property name="ellipsize">end</property>
+                        <property name="hexpand">1</property>
+                        <property name="label" translatable="yes">Uprav tovar</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="button remove item">
+                <property name="focusable">1</property>
+                <property name="hexpand">1</property>
+                <property name="label" translatable="yes" comments="delete item">Zmaž tovar</property>
+                <property name="receives-default">1</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkFixed" id="fixed1">
+                <property name="hexpand">1</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="button toggle accepted">
+                <property name="focusable">1</property>
+                <property name="hexpand">1</property>
+                <property name="receives-default">1</property>
+                <child>
+                  <object class="GtkBox" id="hbox20">
+                    <child>
+                      <object class="GtkImage" id="image8">
+                        <property name="halign">center</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="label12">
+                        <property name="ellipsize">end</property>
+                        <property name="hexpand">1</property>
+                        <property name="label" translatable="yes">Označ/odznač</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox" id="hbox8">
+            <property name="halign">start</property>
+            <property name="height-request">87</property>
+            <property name="valign">start</property>
+            <child>
+              <object class="GtkImage" id="image2">
+                <property name="file">logo_mc.gif</property>
+                <property name="halign">center</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="label seller type">
+                <property name="label" translatable="yes">Dobrovoľník</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkBox" id="vbox1d">
+                <property name="hexpand">1</property>
+                <property name="orientation">vertical</property>
+                <child>
+                  <object class="GtkCheckButton" id="radiobuttonSellerStateImported">
+                    <property name="active">1</property>
+                    <property name="focusable">1</property>
+                    <property name="label" translatable="yes">Neprebraný</property>
+                    <property name="vexpand">1</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkCheckButton" id="radiobuttonSellerStateSelling">
+                    <property name="active">1</property>
+                    <property name="focusable">1</property>
+                    <property name="group">radiobuttonSellerStateImported</property>
+                    <property name="label" translatable="yes">Prebraný, predáva sa</property>
+                    <property name="vexpand">1</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkCheckButton" id="radiobuttonSellerStateReturned">
+                    <property name="active">1</property>
+                    <property name="focusable">1</property>
+                    <property name="group">radiobuttonSellerStateImported</property>
+                    <property name="label" translatable="yes">Vydaný späť</property>
+                    <property name="vexpand">1</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="button calc repayment">
+                <property name="focusable">1</property>
+                <property name="halign">center</property>
+                <property name="label" translatable="yes" comments="calc cash to return">xx Vyrátaj výplatu x</property>
+                <property name="receives-default">1</property>
+                <property name="visible">0</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel" id="label seller note">
+            <property name="height-request">30</property>
+            <property name="label" translatable="yes">Poznamka k predajcovi.</property>
+            <property name="selectable">1</property>
+            <property name="valign">start</property>
+            <property name="xalign">0.05000000074505806</property>
+            <property name="yalign">0.10000000149011612</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox" id="hbox10">
+            <property name="valign">end</property>
+            <child>
+              <object class="GtkButton" id="button cashout">
+                <property name="focusable">1</property>
+                <property name="halign">center</property>
+                <property name="height-request">40</property>
+                <property name="label" translatable="yes">Pokladňa</property>
+                <property name="receives-default">1</property>
+                <property name="width-request">80</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkFixed" id="fixed2b">
+                <property name="hexpand">1</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="button_other_actions">
+                <property name="focusable">1</property>
+                <property name="halign">center</property>
+                <property name="label" translatable="yes">Iné akcie</property>
+                <property name="receives-default">1</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </property>
+    <property name="height-request">300</property>
+    <property name="maximized">True</property>
+    <property name="title" translatable="yes">Burza - Register</property>
+    <property name="width-request">300</property>
+  </object>
+  <object class="GtkWindow" id="Tovar">
+    <child>
+      <object class="GtkGrid" id="table2">
+        <property name="column-spacing">5</property>
+        <property name="row-spacing">5</property>
+        <child>
+          <object class="GtkLabel" id="note1">
+            <property name="can-focus">False</property>
+            <property name="label" translatable="yes">Cena</property>
+            <property name="visible">True</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="column-span">1</property>
+              <property name="row">0</property>
+              <property name="row-span">1</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel" id="code1">
+            <property name="can-focus">False</property>
+            <property name="label" translatable="yes">Číslo</property>
+            <property name="visible">True</property>
+            <property name="xalign">1</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="column-span">1</property>
+              <property name="row">1</property>
+              <property name="row-span">1</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel" id="name1">
+            <property name="can-focus">False</property>
+            <property name="label" translatable="yes">Názov  tovaru</property>
+            <property name="visible">True</property>
+            <property name="xalign">1</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="column-span">1</property>
+              <property name="row">2</property>
+              <property name="row-span">1</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkEntry" id="itemPrice">
+            <property name="can-focus">True</property>
+            <property name="primary-icon-activatable">False</property>
+            <property name="primary-icon-sensitive">True</property>
+            <property name="secondary-icon-activatable">False</property>
+            <property name="secondary-icon-sensitive">True</property>
+            <property name="visible">True</property>
+            <layout>
+              <property name="column">1</property>
+              <property name="column-span">1</property>
+              <property name="row">0</property>
+              <property name="row-span">1</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkEntry" id="itemNumber">
+            <property name="can-focus">True</property>
+            <property name="primary-icon-activatable">False</property>
+            <property name="primary-icon-sensitive">True</property>
+            <property name="secondary-icon-activatable">False</property>
+            <property name="secondary-icon-sensitive">True</property>
+            <property name="visible">True</property>
+            <layout>
+              <property name="column">1</property>
+              <property name="column-span">1</property>
+              <property name="row">1</property>
+              <property name="row-span">1</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkEntry" id="itemName">
+            <property name="can-focus">True</property>
+            <property name="primary-icon-activatable">False</property>
+            <property name="primary-icon-sensitive">True</property>
+            <property name="secondary-icon-activatable">False</property>
+            <property name="secondary-icon-sensitive">True</property>
+            <property name="visible">True</property>
+            <property name="width-chars">30</property>
+            <layout>
+              <property name="column">1</property>
+              <property name="column-span">1</property>
+              <property name="row">2</property>
+              <property name="row-span">1</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel" id="label3c">
+            <property name="can-focus">False</property>
+            <property name="label" translatable="yes">Stav</property>
+            <property name="visible">True</property>
+            <property name="xalign">1</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="column-span">1</property>
+              <property name="row">3</property>
+              <property name="row-span">1</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel" id="label4">
+            <property name="can-focus">False</property>
+            <property name="label" translatable="yes">Kategória</property>
+            <property name="visible">True</property>
+            <property name="xalign">1</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="column-span">1</property>
+              <property name="row">4</property>
+              <property name="row-span">1</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkDropDown" id="itemStatus_combobox">
+            <property name="can-focus">True</property>
+            <property name="visible">True</property>
+            <layout>
+              <property name="column">1</property>
+              <property name="column-span">1</property>
+              <property name="row">3</property>
+              <property name="row-span">1</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkDropDown" id="itemCategoryCombo">
+            <property name="can-focus">False</property>
+            <property name="visible">True</property>
+            <layout>
+              <property name="column">1</property>
+              <property name="column-span">1</property>
+              <property name="row">4</property>
+              <property name="row-span">1</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="itemButton_ok">
+            <property name="can-focus">True</property>
+            <property name="label">gtk-apply</property>
+            <property name="receives-default">True</property>
+            <property name="visible">True</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="column-span">1</property>
+              <property name="row">5</property>
+              <property name="row-span">1</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="itemButton_cancel">
+            <property name="can-focus">True</property>
+            <property name="label">gtk-cancel</property>
+            <property name="receives-default">True</property>
+            <property name="visible">True</property>
+            <layout>
+              <property name="column">1</property>
+              <property name="column-span">1</property>
+              <property name="row">5</property>
+              <property name="row-span">1</property>
+            </layout>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+  <menu id="menuRegisterOtherActions">
+    <section>
+      <item>
+        <attribute name="action">examplepopup.menuItemSettings</attribute>
+        <attribute name="label" translatable="yes">Nastavenia</attribute>
+      </item>
+      <item>
+        <attribute name="action">examplepopup.menuItemSaveSellerOverview</attribute>
+        <attribute name="label" translatable="yes">Ulož PDF predajcovia a tovar</attribute>
+      </item>
+      <item>
+        <attribute name="action">examplepopup.menuitemStats</attribute>
+        <attribute name="label" translatable="yes">Ulož PDF krátka štatistika</attribute>
+      </item>
+      <item>
+        <attribute name="action">examplepopup.menuitemFixItemCats</attribute>
+        <attribute name="label" translatable="yes">Oprav kategórie tovaru</attribute>
+      </item>
+    </section>
+  </menu>
+  <object class="GtkWindow" id="Predajca">
+    <property name="can-focus">False</property>
+    <property name="default-height">400</property>
+    <property name="default-width">400</property>
+    <property name="destroy-with-parent">0</property>
+    <property name="handle-menubar-accel">False</property>
+    <property name="modal">0</property>
+    <property name="title" translatable="yes">Predajca</property>
+    <child>
+      <object class="GtkBox" id="vbox3">
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkBox" id="vbox3l1">
+            <property name="orientation">horizontal</property>
+            <child>
+              <object class="GtkLabel" id="sellerNote1">
+                <property name="can-focus">False</property>
+                <property name="justify">right</property>
+                <property name="label" translatable="yes">Poznámka</property>
+                <property name="visible">True</property>
+                <property name="xalign">0.80000001192092896</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkEntry" id="sellerNote">
+                <property name="can-focus">True</property>
+                <property name="primary-icon-activatable">False</property>
+                <property name="primary-icon-sensitive">True</property>
+                <property name="secondary-icon-activatable">False</property>
+                <property name="secondary-icon-sensitive">True</property>
+                <property name="visible">True</property>
+              </object>
+            </child>
+          </object>
+          <object class="GtkBox" id="vbox3l2">
+            <property name="orientation">horizontal</property>
+            <child>
+              <object class="GtkLabel" id="sellerCode1">
+                <property name="can-focus">False</property>
+                <property name="justify">right</property>
+                <property name="label" translatable="yes">Kód</property>
+                <property name="visible">True</property>
+                <property name="xalign">0.80000001192092896</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="sellerName1">
+                <property name="can-focus">False</property>
+                <property name="label" translatable="yes">Meno</property>
+                <property name="visible">True</property>
+                <property name="xalign">1</property>
+              </object>
+            </child>
+          </object>
+          <object class="GtkBox" id="vbox3l3">
+            <property name="orientation">horizontal</property>
+            <child>
+              <object class="GtkEntry" id="sellerCode">
+                <property name="can-focus">True</property>
+                <property name="primary-icon-activatable">False</property>
+                <property name="primary-icon-sensitive">True</property>
+                <property name="secondary-icon-activatable">False</property>
+                <property name="secondary-icon-sensitive">True</property>
+                <property name="visible">True</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkEntry" id="sellerName">
+                <property name="can-focus">True</property>
+                <property name="primary-icon-activatable">False</property>
+                <property name="primary-icon-sensitive">True</property>
+                <property name="secondary-icon-activatable">False</property>
+                <property name="secondary-icon-sensitive">True</property>
+                <property name="visible">True</property>
+              </object>
+            </child>
+          </object>
+          <object class="GtkBox" id="vbox3l4">
+            <property name="orientation">horizontal</property>
+            <child>
+              <object class="GtkLabel" id="sellerCat">
+                <property name="can-focus">False</property>
+                <property name="justify">right</property>
+                <property name="label" translatable="yes">Kategória</property>
+                <property name="visible">True</property>
+                <property name="xalign">1</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkDropDown" id="sellerCategory">
+                <property name="can-focus">False</property>
+                <property name="visible">True</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox" id="hbox11">
+            <property name="orientation">horizontal</property>
+            <property name="valign">end</property>
+            <child>
+              <object class="GtkButton" id="sellerButton_ok">
+                <property name="can-focus">True</property>
+                <property name="label">gtk-apply</property>
+                <property name="receives-default">True</property>
+                <property name="visible">True</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="sellerButton_cancel">
+                <property name="can-focus">True</property>
+                <property name="label">gtk-cancel</property>
+                <property name="receives-default">True</property>
+                <property name="visible">True</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

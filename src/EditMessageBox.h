@@ -2,15 +2,13 @@
 #define _edit_message_box_h_
 
 #include <gtkmm.h>
-#include <gtkmm/main.h>
-#include <libglademm.h>
 #include <assert.h>
 
 #include "singleton.h"
 
 struct s_messageEditBoxWindowControls {
-	Glib::RefPtr<Gnome::Glade::Xml> xmlWindow;
-	Gtk::Dialog		*dialog;
+	// Glib::RefPtr<Gnome::Glade::Xml> xmlWindow;
+	Gtk::Window		*dialog;
 
 	Gtk::Label		*labelText;
 	Gtk::Entry		*entryText;
@@ -39,23 +37,8 @@ public:
 		Instance().controls = fetchedControls;
 	}
 	
-	static bool ShowDialog( std::string message, std::string& edit )
-	{
-		assert( instance != NULL );
-		assert( instance->initialized );
-
-		instance->controls.labelText->set_text( message );
-		instance->controls.entryText->set_text( edit );
-
-		instance->controls.dialog->run();
-		int res = instance->resultButtonIndex;
-
-		edit = instance->controls.entryText->get_text();
-		instance->controls.dialog->hide();
-
-		return res == 0;
-	}
-
+	static bool ShowDialog( std::string message, std::string& edit );
+	
 	void EditMessageBoxClickedOk( void )
 	{
 		EditMessageBox::Instance().resultButtonIndex = 0;

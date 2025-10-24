@@ -167,7 +167,7 @@ void StringEncoding::UTF8RemoveAccents( std::string& str )
 {
 	/*
 	// plans - using library ICU
-	string from =	"áÁäÄèÈïÏéÉíÍåÅ¾¼òÒóÓôÔàÀøØšŠúÚıİ";
+	string from =	"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Øšï¿½ï¿½ï¿½ï¿½ï¿½ï¿½İï¿½";
 	string to =		"aAaAcCdDeEiIlLlLnNoOoOrRrRsStTuUyYzZ";
 	string::size_type pos;
 

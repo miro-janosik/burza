@@ -43,7 +43,7 @@ void Log( int type, const char *text );
 void LogS( int type, const char *format, ... );
 
 #ifdef _DEBUG
-#define LogDebug( a ) Log( a, InfoMajor )
+#define LogDebug( a ) Log(InfoMajor, a)
 #else
 #define LogDebug( a )
 #endif

@@ -1,9 +1,6 @@
 #include <functional>
 
 #include <gtkmm.h>
-#include <gtkmm/main.h>
-#include <libglademm.h>
-#include <gtkmm-2.4/gtkmm/filechooserdialog.h>
 
 #include "convfncs.h"
 #include "errhandler.h"
@@ -35,41 +32,60 @@ void LoadingMultipleFiles::FinishedClickedOk()
 	window->unset_transient_for();
 }
 
+void LoadingMultipleFiles::Finished(const Glib::RefPtr<Gio::AsyncResult>& result, const Glib::RefPtr<Gtk::FileDialog>& dialog)
+{
+	// Handle the response:
+	try
+	{
+		auto folder = dialog->select_folder_finish(result);
+
+		// Notice that this is a std::string, not a Glib::ustring.
+		auto path = folder->get_path();
+		ImportMultiSellersLog("File selected: ");
+		ImportMultiSellersLog(path.c_str());
+
+		// set back the import directory
+		path += "/";
+		Centrala::Settings().directoryImport = path;
+		sourcePath = Centrala::Settings().directoryImport;
+		
+		ImportMultiSellersLog( "Selected folder: " + sourcePath );
+	}
+	catch (const Gtk::DialogError& err)
+	{
+		// Can be thrown by dialog->open_finish(result).
+		ImportMultiSellersLog("No file selected. ");
+		ImportMultiSellersLog(err.what());
+	}
+	catch (const Glib::Error& err)
+	{
+		ImportMultiSellersLog("Unexpected exception. ");
+		ImportMultiSellersLog(err.what());
+	}
+
+}
+
 bool LoadingMultipleFiles::AskForFolder( Gtk::Window& parentWindow )
 {
 	ImportMultiSellersLog( "Starting" );
 	sourcePath = "";
 
-	Gtk::FileChooserDialog dialog("Select folder with sheets", Gtk::FILE_CHOOSER_ACTION_SELECT_FOLDER );
-	
-	dialog.set_transient_for( parentWindow );
-	//Add response buttons the the dialog:
-	dialog.add_button( Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL );
-	dialog.add_button( Gtk::Stock::OK, Gtk::RESPONSE_OK );
-	dialog.set_filename( Centrala::Settings().m_data_dir_path );
-	
+	auto dialog = Gtk::FileDialog::create();
+
+	std::string initPath = Centrala::Settings().directoryImport;
 	if ( Centrala::Settings().directoryImport.empty() ) {
-		dialog.set_current_folder( Centrala::Settings().m_data_dir_path );
-	} else {
-		dialog.set_current_folder( Centrala::Settings().directoryImport );
+		initPath = Centrala::Settings().m_data_dir_path;
 	}
 
-	int result = dialog.run();
-	//Handle the response:
-	switch(result) {
-	case(Gtk::RESPONSE_OK):
-		break;
-	case(Gtk::RESPONSE_CANCEL):
-	default:
-		return false;
-	}
-	
-	// set back the import directory
-	Centrala::Settings().directoryImport = dialog.get_current_folder();
-	Centrala::Settings().directoryImport += "/";
-	sourcePath = Centrala::Settings().directoryImport;
-	
-	ImportMultiSellersLog( "Selected folder: " + sourcePath );
+	auto ghandle = Gio::File::create_for_path(initPath);
+	dialog->set_initial_folder( ghandle );
+	// dialog->set_initial_name( fileName );
+
+	dialog->set_title("Select folder with sheets");
+	// dialog., Gtk::FileChooser::Action::SELECT_FOLDER
+  	dialog->select_folder(sigc::bind(
+		sigc::mem_fun(*this, &LoadingMultipleFiles::Finished), dialog));
+
 	return true;
 }
 

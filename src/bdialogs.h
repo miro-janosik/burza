@@ -5,11 +5,10 @@
 // -----
 
 #include <string>
+#include <set>
 
 #include <gtkmm.h>
-#include <gtkmm/main.h>
-#include <libglademm.h>
-#include <set>
+#include <gdk/gdk.h>
 
 #include "burza.h"
 #include "dataaccess.h"
@@ -19,13 +18,15 @@
 using namespace std;
 using namespace Burza;
 
+/*
 // ComboBoxText is class derived from ComboBox, I have to provide special constructor
 // so I can load it up from glade
 class ComboBoxTextDer : public Gtk::ComboBoxText {
 public:
-	ComboBoxTextDer( BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade);
+	// ComboBoxTextDer( BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade);
 
 } ;
+*/
 
 	class CellItem_Bug
 	{
@@ -49,7 +50,10 @@ public:
 	
 	// returns 0 on success.
 	int SetupDialogs( void );
-	
+private:
+	int LoadDialogs( Glib::RefPtr<Gtk::Builder>& builder );
+public:
+
 	// vyplni komba v Registri aj Pokladni
 	void FillSellerCombos( void );
 	void ReloadSellers( void );
@@ -98,6 +102,7 @@ public:
 	// "register" dialog functions
 	void RegisterEditLookupSellerChanged( void );
 	void RegisterButtonImportSeller( void );
+	void RegisterButtonImportSeller_ContinueWithFileSelected( const Glib::RefPtr<Gio::AsyncResult>& result, const Glib::RefPtr<Gtk::FileDialog>& dialog );
 	void RegisterButtonImportMultiSellers( void );
 	void RegisterButtonAddSeller( void );
 	void RegisterButtonUpdateSeller( void );
@@ -113,10 +118,10 @@ public:
 	void RegisterButtonReviewOfSellers( void );
 	// void RegisterButtonSettings( void );
 	void RegisterButtonOtherActions( void );
-	bool RegisterButtonStats( GdkEventButton* button );
-	bool RegisterButtonSaveSellerOverview( GdkEventButton* button );
-	bool RegisterButtonSettings( GdkEventButton* button );
-	bool RegisterButtonFixItemCats( GdkEventButton* button );
+	bool RegisterButtonStats( GdkButtonEvent* button );
+	bool RegisterButtonSaveSellerOverview( GdkButtonEvent* button );
+	bool RegisterButtonSettings( GdkButtonEvent* button );
+	bool RegisterButtonFixItemCats( GdkButtonEvent* button );
 	void RegisterSellerStatusRadioChanged( void );
 
 	void CashoutItemsTreeSelectChanged( void );
@@ -170,13 +175,13 @@ public:
 	//! Item editing finished. Fill item back to seller, and notify that seller was modified.
 	void RegisterButtonItemEditOk( void );
 	void RegisterButtonItemEditCancel( void );
-	bool RegisterButtonItemEditClose( GdkEventAny* );
+	bool RegisterButtonItemEditClose( void );
 	void RegisterComboItemEditStatusChanged( void );
 
 	// "seller" edit dialog
 	void RegisterButtonSellerEditOk( void );
 	void RegisterButtonSellerEditCancel( void );
-	bool RegisterButtonSellerEditClose( GdkEventAny* );
+	bool RegisterButtonSellerEditClose( void );
 	
 private:
 	// helper methods:
@@ -189,8 +194,8 @@ private:
 
 	// Sort function that orders row by numeric value of the text
 	// Used for number/price columns
-	int SortRegisterItemsNumberFunc(const Gtk::TreeIter& a, const Gtk::TreeIter& b);
-	int SortRegisterItemsPriceFunc(const Gtk::TreeIter& a, const Gtk::TreeIter& b);
+	//int SortRegisterItemsNumberFunc(const Gtk::TreeIter& a, const Gtk::TreeIter& b);
+	//int SortRegisterItemsPriceFunc(const Gtk::TreeIter& a, const Gtk::TreeIter& b);
 	
 public:
 	Burza::BurzaRegister			*mp_register;
@@ -199,14 +204,16 @@ public:
 	//! (for example checking if seller is already checked in, on change of seller combo.)
 	bool initializing;
 
+	/*
 	Glib::RefPtr<Gnome::Glade::Xml> xmlWndRegister, xmlWndCashOut, 
 		xmlWndModifySeller, xmlWndModifyItem, 
 		xmlWndRegisterPopupMenu;
-		
+	*/
+
 	Gtk::Window		*m_pWndRegister, *m_pWndCashOut, *m_pWndSeller, *m_pWndItem;
 
 	// register dialog
-	ComboBoxTextDer	*m_pComboSeller;
+	Gtk::DropDown	*m_pComboSeller;
 	Gtk::Entry		*m_pEntryRegistryLookupSeller;
 	Gtk::Button		*m_pButtonImportSeller;
 	Gtk::Button		*m_pButtonImportMultipleSellers;
@@ -217,40 +224,40 @@ public:
 	Gtk::Button		*m_pButtonModifyItem;
 	Gtk::Button		*m_pButtonRemoveItem;
 	Gtk::Button		*m_pButtonAcceptUnaccept;
-	// Gtk::Button		*m_pButtonCalcFee;
+	Gtk::Button		*m_pButtonCalcFee;
 	Gtk::Button		*m_pButtonCalcRepayment;
 	Gtk::Label		*m_pLabelSellerType;
 	Gtk::Label		*m_pLabelSellerNote;
 	Gtk::Button		*m_pButtonCashout;
-	// Gtk::Button		*m_pRegisterButtonReviewOfSellers;
-	// Gtk::Button		*m_pButtonSettings;
+	Gtk::Button		*m_pRegisterButtonReviewOfSellers;
+	Gtk::Button		*m_pButtonSettings;
 	Gtk::Button		*m_pRegisterOtherActions;
-	Gtk::RadioButton	*m_pRegisterRadioSellerStatus1NotImported;
-	Gtk::RadioButton	*m_pRegisterRadioSellerStatus2ImportedSelling;
-	Gtk::RadioButton	*m_pRegisterRadioSellerStatus3ReturnedBack;
+	Gtk::CheckButton	*m_pRegisterRadioSellerStatus1NotImported;
+	Gtk::CheckButton	*m_pRegisterRadioSellerStatus2ImportedSelling;
+	Gtk::CheckButton	*m_pRegisterRadioSellerStatus3ReturnedBack;
 	
 	Glib::RefPtr<Gtk::TreeSelection>	m_RegisterItemsSelection;
 	Glib::RefPtr<Gtk::ListStore>	m_RegisterItemsListModel;
 
-	Gtk::Menu		*menuRegisterOtherActions;
-	Gtk::MenuItem	*menuItemSettings;
-	Gtk::MenuItem	*menuItemSaveSellerOverview;
-	Gtk::MenuItem	*menuitemStats;
-	Gtk::MenuItem	*menuitemFixItemCats;
+	Glib::RefPtr<Gio::Menu>		menuRegisterOtherActions;
+	Gtk::Label	*menuItemSettings;
+	Gtk::Label	*menuItemSaveSellerOverview;
+	Gtk::Label	*menuitemStats;
+	Gtk::Label	*menuitemFixItemCats;
 	
 	// cash-out dialog
 	Gtk::Button		*m_pButtonRegister;
 	Gtk::TreeView	*m_pCashoutTreeViewList;
 	Gtk::Entry			*m_pCashoutEntryLookupSeller;
-	ComboBoxTextDer	*m_pCashoutComboLookupSeller;
+	Gtk::DropDown	*m_pCashoutComboLookupSeller;
 	Gtk::Entry			*m_pCashoutEntryLookupItem;
-	ComboBoxTextDer	*m_pCashoutComboLookupItem;
+	Gtk::DropDown	*m_pCashoutComboLookupItem;
 	Gtk::Label			*m_pCashoutLabelItemPrice;
 	Gtk::Button		*m_pCashoutButtonAddItem;
 	Gtk::Button		*m_pCashoutButtonRemoveItem;
 	Gtk::Label			*m_pCashoutLabelSum;
 	Gtk::Button		*m_pCashoutButtonFinish;
-	ComboBoxTextDer	*m_pCashoutComboSearch;
+	Gtk::DropDown	*m_pCashoutComboSearch;
 	Gtk::Entry			*m_pCashoutComboSearchEntry;
 	Gtk::Label			*m_pCashoutSearchFoundText;
 	
@@ -259,8 +266,8 @@ public:
 	Gtk::Entry			*m_pItemeditNumber;
 	Gtk::Entry			*m_pItemeditPrice;
 	// Gtk::Entry			*m_pItemeditCategory;
-	ComboBoxTextDer	*m_pItemeditCategoryCombo;
-	ComboBoxTextDer	*m_pItemeditStatusCombo;
+	Gtk::DropDown	*m_pItemeditCategoryCombo;
+	Gtk::DropDown	*m_pItemeditStatusCombo;
 	Gtk::Button		*m_pItemeditOk;
 	Gtk::Button		*m_pItemeditCancel;
 	
@@ -271,7 +278,7 @@ public:
 		Gtk::Entry		*editNote;
 		Gtk::Button		*buttonOk;
 		Gtk::Button		*buttonCancel;
-		ComboBoxTextDer	*comboCategory;
+		Gtk::DropDown	*comboCategory;
 		SellerCategoryArray categories;
 	} sellerEdit;
 	
@@ -279,18 +286,18 @@ public:
 	s_messageEditBoxWindowControls	messageEditBoxWindowControls;
 
 	struct {
-		Glib::RefPtr<Gnome::Glade::Xml> xmlWindow;
-		Gtk::Dialog		*dialog;
+		// Glib::RefPtr<Gnome::Glade::Xml> xmlWindow;
+		Gtk::Window		*dialog;
 
 		Gtk::Label		*labelCurrentLicence;
 		Gtk::Button		*buttonRequestLicence;
 		Gtk::Button		*buttonInstallLicence;
 		Gtk::Entry		*editBurzaName;
 		Gtk::Button		*buttonOk;
-		ComboBoxTextDer	*comboFontSize;
+		Gtk::DropDown	*comboFontSize;
 
-		Gtk::RadioButton	*radio1file;
-		Gtk::RadioButton	*radio2database;
+		Gtk::CheckButton	*radio1file;
+		Gtk::CheckButton	*radio2database;
 		Gtk::Entry		*editDbAddress;
 		Gtk::Entry		*editDbUser;
 		Gtk::Entry		*editDbPassword;

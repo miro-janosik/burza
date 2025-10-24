@@ -271,6 +271,8 @@ void BiturnLog::Log( const char *_text, int type )
 	#else
 		printf( text );
 	#endif
+#else
+	printf( text );
 #endif
 	
 #ifdef LOG_INTO_GTKMM_CONTROLS

@@ -10,6 +10,8 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <glibmm.h>
+#include <gtkmm.h>
 
 #include "dataaccess.h"
 #include "settings.h"
@@ -144,6 +146,9 @@ private:
 	Centrala( const Centrala& );
 // nech je to aj singleton ziskatelny odvsadial
 	static Centrala	*m_instance;
+
+	static Glib::RefPtr<Gtk::Application> app;
+
 public:
 	// vytvorenie a ziskanie instancie
 	static Centrala* Instance( void );
@@ -156,6 +161,9 @@ public:
 	static BurzaRegister& Register( void ) { return Instance()->m_register; }
 	static DataAccessInterface& Storage( void ) { return * Instance()->m_register.m_storage; }
 	static ItemSearch& Search( void ) { return * Instance()->itemSearch; }
+
+	static void SetApp( Glib::RefPtr<Gtk::Application>& app ) { Instance()->app = app; }
+	static Glib::RefPtr<Gtk::Application> GetApp( void ) { return Instance()->app; }
 	
 	ProgramSettings		m_settings;
 	BurzaDialogs			*mp_dialogs;

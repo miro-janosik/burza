@@ -2,7 +2,8 @@
 #define _BurzaDialogsFileHelper_h_
 
 #include <string>
-#include <exception>
+
+#include <gtkmm.h>
 
 class BurzaDialogsFileHelper
 {
@@ -14,6 +15,12 @@ public:
 	//! Opens "save" dialog in the 'documents' directory, asks user to save.
 	//! Returns selected filename with full path, or string.empty() if cancelled
 	static std::string AskToSaveDocumentFile( std::string fileName );
+
+	static void on_file_dialog_finish(const Glib::RefPtr<Gio::AsyncResult>& result,
+  		const Glib::RefPtr<Gtk::FileDialog>& dialog);
+
+	static std::string m_selected_file;
+
 };
 
 #endif

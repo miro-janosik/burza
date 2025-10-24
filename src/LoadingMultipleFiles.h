@@ -11,8 +11,6 @@
 #include <ostream>
 
 #include <gtkmm.h>
-#include <gtkmm/main.h>
-#include <libglademm.h>
 
 #include "RepeatNotifierWorker.h"
 
@@ -117,11 +115,13 @@ public:
 	// displays 'folder select' dialog, and fills [sourcePath] if folder was selected.
 	bool AskForFolder( Gtk::Window& parentWindow );
 	
+	void Finished(const Glib::RefPtr<Gio::AsyncResult>& result, const Glib::RefPtr<Gtk::FileDialog>& dialog);
+
 	void RunImport( Gtk::Window& parentWindow );
 	
 public:
 	
-	Glib::RefPtr<Gnome::Glade::Xml> xmlWindow; // xmlWndLoadFileProgress
+	// Glib::RefPtr<Gnome::Glade::Xml> xmlWindow; // xmlWndLoadFileProgress
 	Gtk::Window*	window;
 
 	Gtk::TextView		*editLoadingText;
