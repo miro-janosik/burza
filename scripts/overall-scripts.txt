@@ -42,6 +42,9 @@ Týmto prejdacom ponechávame kódy. Ponechávame aj kódy a veci ktoré niekto 
 * Add new codes to web DB (uses local file codes.csv)
 	web-manage/addNewCodesToWebFromCsv.pl
 
+* check if new sellers have 'info' filled in (error in older script), fix by:
+	web-manage/sellersMissingCodeFix.sql
+
 == After sellers filled items on web ==
 
 * See statistics and remove inactive sellers

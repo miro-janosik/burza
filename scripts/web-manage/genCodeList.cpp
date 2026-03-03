@@ -10,6 +10,8 @@
 #include <ctime>
 #include <tuple>
 #include <vector>
+#include <sstream>
+#include <list>
 
 using namespace std;
 
@@ -53,8 +55,8 @@ int main(int argc, char** argv)
 
 		cout << endl;
 	}
-
-	ofstream listFile("codes.csv");
+	
+	list<string> lines;
 
 	for ( char first : validLetters )
 		for ( char second : validLetters )
@@ -90,7 +92,8 @@ int main(int argc, char** argv)
 				codeWithPassword = code + "-" + pwd;
 			}
 
-			listFile << code << ", " << (old ? 1 : 0) << ", " << codeWithPassword << ", " << name << endl;
+			stringstream s; s << code << ", " << (old ? 1 : 0) << ", " << codeWithPassword << ", " << name << endl;
+			lines.push_back(s.str());
 		}
 	
 	// print out remaining sellers that were not written
@@ -101,8 +104,16 @@ int main(int argc, char** argv)
 		string code = std::get<0>(seller);
 		string codeWithPassword = std::get<1>(seller);
 		string name = std::get<2>(seller);
-		listFile << code << ", " << (old ? 1 : 0) << ", " << codeWithPassword << ", " << name << endl;
+		stringstream s; s << code << ", " << (old ? 1 : 0) << ", " << codeWithPassword << ", " << name << endl;
+		lines.push_back(s.str());
 	}
+	
+	// order alphabeticaly including the non-allowed letters sellers
+	lines.sort();
+
+	ofstream listFile("codes.csv");
+	for ( auto s : lines )
+		listFile << s;
 
 	cout << "Generated." << endl;
 	return 0;

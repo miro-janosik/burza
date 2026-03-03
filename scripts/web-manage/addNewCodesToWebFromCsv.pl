@@ -102,7 +102,7 @@ my @existing_seller_codes;
 		
 		$q .= join( ",", @value_arr );
 		
-		say "Insert sentence is ". length($q) ." characters long.";
+		say "Insert sentence is ". length($q) ." characters long: ". $q;
 		my $affected = $dbweb->do($q);
 		say "Affected $affected rows.";
 	}

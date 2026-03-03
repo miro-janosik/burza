@@ -8,6 +8,9 @@ use connections;
 
 say "Starting";
 
+# printing names causes warning, disabled as in https://stackoverflow.com/questions/47940662/how-to-get-rid-of-wide-character-in-print-at
+binmode(STDOUT, ":encoding(UTF-8)");
+
 my $dbh = connections::web_connect();
 
 my $cmd2 = "SELECT COUNT(*) as Poloziek, SUM(p.Cena) as Suma FROM Polozky p";
@@ -15,7 +18,7 @@ my $tbl_suma = $dbh->selectall_arrayref($cmd2);
 my $row1 = @$tbl_suma[0];
 say "Poloziek: " . @$row1[0] . " Suma spolu: " . @$row1[1];
 
-my $cmd1 = "SELECT u.ID, u.info, u.Name, COUNT(i.`UserID`) as itemsCount FROM `Users` u\
+my $cmd1 = "SELECT u.ID, u.info, u.Name, COUNT(i.`UserID`) as itemsCount, u.VariantName, u.VariantActive FROM `Users` u \
 LEFT JOIN Polozky i ON u.`ID` = i.`UserID`\
 GROUP BY u.`ID`\
 ORDER BY u.`LoginStr`";
@@ -63,21 +66,28 @@ foreach my $s (@$tbl_arr_ref)
 	}
 }
 
-say "Sellers count: ". scalar @$tbl_arr_ref;
-say "Sellers ok, count ". scalar @sellersOk;
 foreach my $s (@sellersOk)
 {
 	my $s1 = @$s[1];
 	my $s3 = @$s[3];
-	my $s4 = @$s[4];
+	my $sd = @$s[6];
+	my $sn = @$s[2];
+	my $sv = @$s[4];
+	my $sva = @$s[5];
+	my $sid = @$s[0];
 	if (!defined $s1) { $s1 = ""; }
 	if (!defined $s3) { $s3 = ""; }
-	if (!defined $s4) { $s4 = ""; }
+	if (!defined $sd) { $sd = ""; }
+	if (!defined $sn) { $sn = ""; }
+	if ($sva) { $sv = "> " . $sv; } else { $sv = "  " . $sv; }
 
-	say $s1 . "\t" . $s3 . "\t" . $s4;
+	printf("%s\t%s\t%s\t%-15s\t%s\t%s\n", $s1, $s3, $sd, $sv, $sid, $sn);
 }
 
-say "Sellers without items, count ". scalar @sellersNoItems;
+print "\n";
+say "Sellers count: ". scalar @$tbl_arr_ref;
+say "Sellers ok, count ". scalar @sellersOk;
+say "Sellers with name without items, count ". scalar @sellersNoItems;
 foreach my $s (@sellersNoItems)
 {
 	print @$s[1] . "[" . @$s[0] . "] ";
@@ -93,7 +103,7 @@ foreach my $s (@sellersNotAttending)
 	if (!defined $s0) { $s0 = ""; }
 	if (!defined $s1) { $s1 = ""; }
 
-	print @$s[1] . "[" . @$s[0] . "] ";
+	print $s1 . "[" . $s0 . "] ";
 }
 print "\n";
 
