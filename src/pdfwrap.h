@@ -157,8 +157,8 @@ private:
 	// function to test out size of font and its position on the page.
 	void FontPrintTest( void );
 
-	string		currentPageTitle;
-	unsigned int	currentPageNumber;
+	string		m_currentPageTitle;
+	unsigned int	m_currentPageNumber;
 } ;
 
 }; // namespace

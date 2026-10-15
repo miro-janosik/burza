@@ -50,7 +50,7 @@ HPDFWrapper::HPDFWrapper()
 	m_current_font_size = 10;
 	m_font_height_below_line = m_font_height_above_line = 0;
 	m_current_page = NULL;
-	currentPageNumber = 0;
+	m_currentPageNumber = 0;
 }
 
 HPDFWrapper::~HPDFWrapper()
@@ -98,7 +98,7 @@ int HPDFWrapper::CreatePDF( string filename )
 	m_filename = filename;
 	
 	m_open = true;
-	currentPageNumber = 0;
+	m_currentPageNumber = 0;
 }
 
 void HPDFWrapper::ClosePDF( void )
@@ -118,7 +118,7 @@ void HPDFWrapper::ClosePDF( void )
 	
 	m_open = false;
 	m_current_page = NULL;
-	currentPageNumber = 0;
+	m_currentPageNumber = 0;
 }
 
 void HPDFWrapper::PdfErrorHandler( 
@@ -205,9 +205,9 @@ void HPDFWrapper::NewPage( string name )
 	HPDF_Page_SetWidth( m_current_page, m_default_page_width );
 	HPDF_Page_SetHeight( m_current_page, m_default_page_height );
 
-	currentPageTitle = name;
+	m_currentPageTitle = name;
 	string str = name;
-	++currentPageNumber;
+	++m_currentPageNumber;
 	
 	// ConvertUTF8ToISO8859_2orErrorString( str );
 	StringEncoding::UTF8RemoveAccents( str );
@@ -225,7 +225,7 @@ void HPDFWrapper::NewPage( string name )
 
 unsigned int HPDFWrapper::CurrentPageNumber( void )
 {
-	return currentPageNumber;
+	return m_currentPageNumber;
 }
 
 int HPDFWrapper::PercentToPosX( float percentx )
@@ -474,5 +474,5 @@ void HPDFWrapper::FontPrintTest( void )
 
 string HPDFWrapper::GetCurrentPageTitle( void )
 {
-	return currentPageTitle;
+	return m_currentPageTitle;
 }
