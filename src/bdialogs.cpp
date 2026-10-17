@@ -21,6 +21,7 @@
 #include "errhandler.h"
 #include "EditMessageBox.h"
 #include "stringencoding.h"
+#include "bdhelper.h"
 #include "bdfilehelper.h"
 #include "LoadingMultipleFiles.h"
 
@@ -34,12 +35,6 @@
 using namespace Burza;
 using namespace BurzaExcel;
 using namespace std;
-
-/*
-ComboBoxTextDer::ComboBoxTextDer( BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade)
-	: Gtk::ComboBoxText(cobject)
-{ }
-*/
 
 // ==============================================
 // ==============================================
@@ -101,6 +96,12 @@ SellerData BurzaDialogs::CashoutGetSelectedSeller( void )
 	{
 		ErrorHandling::HandleException(e);
 	}
+
+	// HandleException has already told the user. Callers run inside GTK signal
+	// handlers, so an exception must not escape from here; return an empty
+	// seller instead. Without any return the function falls off its end, which
+	// is undefined behaviour - GCC emits ud2 and the program dies with SIGILL.
+	return SellerData();
 }
 
 ItemData BurzaDialogs::CashoutGetSelectedItem( void )
@@ -112,6 +113,11 @@ ItemData BurzaDialogs::CashoutGetSelectedItem( void )
 	{
 		ErrorHandling::HandleException(e);
 	}
+
+	// See CashoutGetSelectedSeller above. The default ItemData has
+	// status == not_in_stock_yet and id == -1, so callers take their
+	// "not on stock" path rather than selling an unknown item.
+	return ItemData();
 }
 
 int BurzaDialogs::SetupDialogs( void )
@@ -122,13 +128,21 @@ int BurzaDialogs::SetupDialogs( void )
 	
 	std::string		error = "";
 
-	// Load the GtkBuilder file and instantiate its widgets:
-	auto refBuilder = Gtk::Builder::create();
+	// CSS replaces the GTK 2 modify_bg()/modify_base() styling; install it
+	// before the windows exist so the first draw is already styled.
+	BurzaDialogsHelper::InstallAppCss();
+
+	// Load the GtkBuilder file and instantiate its widgets.
+	// The builder is kept in a member, not a local: it owns the objects it
+	// builds, so letting it go out of scope here would finalise every window
+	// except Register (which Application::add_window keeps a reference to) and
+	// turn all the widget pointers fetched below into dangling ones.
+	m_refBuilder = Gtk::Builder::create();
 	try
 	{
-		refBuilder->add_from_file(ui_fname);
+		m_refBuilder->add_from_file(ui_fname);
 
-		LoadDialogs(refBuilder);
+		LoadDialogs(m_refBuilder);
 	}
 	catch(const Glib::FileError& ex)
 	{
@@ -164,27 +178,27 @@ int BurzaDialogs::LoadDialogs( Glib::RefPtr<Gtk::Builder>& refBuilder )
 
 	m_pWndRegister = refBuilder->get_widget<Gtk::Window>( "Register" );
 	if ( ! m_pWndRegister )
-		error = "BiturnDialogsGtkmm::Init() error loading glade item from xml. 'Register'";
+		error = "LoadDialogs: missing widget in UI file: 'Register'";
 	
 	m_pWndCashOut = refBuilder->get_widget<Gtk::Window>( "Pokladna" );
 	if ( ! m_pWndCashOut )
-		error = "BiturnDialogsGtkmm::Init() error loading glade item from xml. 'Pokladna'";
+		error = "LoadDialogs: missing widget in UI file: 'Pokladna'";
 	
 	m_pWndSeller = refBuilder->get_widget<Gtk::Window>( "Predajca" );
 	if ( ! m_pWndSeller )
-		error = "BiturnDialogsGtkmm::Init() error loading glade item from xml. 'Predajca'";
+		error = "LoadDialogs: missing widget in UI file: 'Predajca'";
 	
 	m_pWndItem = refBuilder->get_widget<Gtk::Window>( "Tovar" );
 	if ( ! m_pWndItem )
-		error = "BiturnDialogsGtkmm::Init() error loading glade item from xml. 'Tovar'";
+		error = "LoadDialogs: missing widget in UI file: 'Tovar'";
 	
 	//xmlWndRegisterPopupMenu = refBuilder->get_widget<Gtk::Window>( "menuRegisterOtherActions" );
 	//if ( ! xmlWndRegisterPopupMenu )
-	//	error = "BiturnDialogsGtkmm::Init() error loading glade item from xml. 'menuRegisterOtherActions'";
+	//	error = "LoadDialogs: missing widget in UI file: 'menuRegisterOtherActions'";
 	
 	loadFileProgressWindow.window = refBuilder->get_widget<Gtk::Window>( "LoadFilesProgress" );
 	if ( ! loadFileProgressWindow.window )
-		error = "BiturnDialogsGtkmm::Init() error loading glade item from xml. 'LoadFilesProgress'";
+		error = "LoadDialogs: missing widget in UI file: 'LoadFilesProgress'";
 	
 	if (( m_pWndRegister == NULL ) ||
 		( m_pWndCashOut == NULL ) ||
@@ -192,9 +206,39 @@ int BurzaDialogs::LoadDialogs( Glib::RefPtr<Gtk::Builder>& refBuilder )
 		( m_pWndItem == NULL ) ||
 		( loadFileProgressWindow.window == NULL )) {
 		error = "Dialog file is corrupt [windows].";
-		throw;
+		throw std::runtime_error( error );
 	}
 	
+	// GTK 4 removed window icons set from a file path; icons come from an icon
+	// theme instead. data/icons holds burza.png in hicolor layout, so adding
+	// that directory to the search path makes the name "burza" resolvable.
+	// (The source burza.ico only has a 16x16 frame, so the icon is small - a
+	// larger one should be drawn and dropped into data/icons some day.)
+	{
+		std::string iconPath = Centrala::Settings().m_data_dir_path + "icons";
+		auto iconTheme = Gtk::IconTheme::get_for_display( Gdk::Display::get_default() );
+		if ( iconTheme )
+			iconTheme->add_search_path( iconPath );
+	}
+
+	m_pWndRegister->set_icon_name( "burza" );
+	m_pWndCashOut->set_icon_name( "burza" );
+	m_pWndSeller->set_icon_name( "burza" );
+	m_pWndItem->set_icon_name( "burza" );
+
+	// The .ui references logo_mc.gif relatively, which Cambalache resolves
+	// against the project directory but GTK resolves against the process's
+	// working directory. Set it from the data path so it loads wherever the
+	// program is started from.
+	{
+		std::string logo = Centrala::Settings().m_data_dir_path + "logo_mc.gif";
+		for ( const char* id : { "image1", "image2" } ) {
+			Gtk::Image* pLogo = refBuilder->get_widget<Gtk::Image>( id );
+			if ( pLogo )
+				pLogo->set( logo );
+		}
+	}
+
 	// It's not possible to delete widgets after app->run() has returned.
 	// Delete the dialog with its child widgets before app->run() returns.
 	m_pWndRegister->signal_hide().connect([] () { Log("window main close", InfoMinor); });
@@ -221,18 +265,18 @@ int BurzaDialogs::LoadDialogs( Glib::RefPtr<Gtk::Builder>& refBuilder )
 	m_pButtonCashout = refBuilder->get_widget<Gtk::Button>("button cashout");
 	// m_pRegisterButtonReviewOfSellers = refBuilder->get_widget<Gtk::Button>("button_review_of_sellers");
 	// m_pButtonSettings = refBuilder->get_widget<Gtk::Button>("button_settings");
-	m_pRegisterOtherActions = refBuilder->get_widget<Gtk::Button>("button_other_actions");
+	m_pRegisterOtherActions = refBuilder->get_widget<Gtk::MenuButton>("button_other_actions");
 	m_pRegisterRadioSellerStatus1NotImported = refBuilder->get_widget<Gtk::CheckButton>("radiobuttonSellerStateImported");
 	m_pRegisterRadioSellerStatus2ImportedSelling = refBuilder->get_widget<Gtk::CheckButton>("radiobuttonSellerStateSelling");
 	m_pRegisterRadioSellerStatus3ReturnedBack = refBuilder->get_widget<Gtk::CheckButton>("radiobuttonSellerStateReturned");
+
+	m_pRegisterRadioSellerStatus2ImportedSelling->set_group(*m_pRegisterRadioSellerStatus1NotImported);
+	m_pRegisterRadioSellerStatus3ReturnedBack->set_group(*m_pRegisterRadioSellerStatus1NotImported);
 	
+	// The menu's four entries are GMenu <item>s addressed by action name
+	// ("burza.menuItemSettings" and friends, registered below), not widgets, so
+	// there is nothing to look up for them.
 	menuRegisterOtherActions = refBuilder->get_object<Gio::Menu>("menuRegisterOtherActions");
-	/*X
-	menuItemSettings = refBuilder->get_widget<Gtk::Label>("menuItemSettings");
-	menuItemSaveSellerOverview = refBuilder->get_widget<Gtk::Label>("menuItemSaveSellerOverview");
-	menuitemStats = refBuilder->get_widget<Gtk::Label>("menuitemStats");
-	menuitemFixItemCats = refBuilder->get_widget<Gtk::Label>("menuitemFixItemCats");
-	*/
 
 	if (( m_pComboSeller == NULL ) ||
 		( m_pEntryRegistryLookupSeller == NULL ) ||
@@ -245,7 +289,7 @@ int BurzaDialogs::LoadDialogs( Glib::RefPtr<Gtk::Builder>& refBuilder )
 		( m_pButtonModifyItem == NULL ) ||
 		( m_pButtonRemoveItem == NULL )) {
 		error = "Dialog file is corrupt [register 1].";
-		throw;
+		throw std::runtime_error( error );
 	}
 
 	if (( m_pButtonAcceptUnaccept == NULL ) ||
@@ -257,22 +301,17 @@ int BurzaDialogs::LoadDialogs( Glib::RefPtr<Gtk::Builder>& refBuilder )
 		// ( m_pRegisterButtonReviewOfSellers == NULL ) ||
 		// ( m_pButtonSettings == NULL ) ||
 		( m_pRegisterOtherActions == NULL ) ||
-		( menuRegisterOtherActions.get() == NULL ) /*X ||
-		( menuItemSettings == NULL ) ||
-		( menuitemFixItemCats == NULL ) ||
-		( menuItemSaveSellerOverview == NULL ) ||
-		( menuitemStats == NULL )
-		*/
+		( menuRegisterOtherActions.get() == NULL )
 		) {
 		error = "Dialog file is corrupt [register 2].";
-		throw;
+		throw std::runtime_error( error );
 	}
 
 	if (( m_pRegisterRadioSellerStatus1NotImported == NULL ) ||
 		( m_pRegisterRadioSellerStatus2ImportedSelling == NULL ) ||
 		( m_pRegisterRadioSellerStatus3ReturnedBack == NULL )) {
 		error = "Dialog file is corrupt [register 3].";
-		throw;
+		throw std::runtime_error( error );
 	}
 
 	
@@ -289,14 +328,20 @@ int BurzaDialogs::LoadDialogs( Glib::RefPtr<Gtk::Builder>& refBuilder )
 	m_pButtonCashout->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonSwitchToCashout ) );
 	// m_pRegisterButtonReviewOfSellers->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonReviewOfSellers ) );
 	// m_pButtonSettings->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonSettings ) );
-	m_pRegisterOtherActions->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonOtherActions ) );
-
-	/*
-	menuItemSettings->signal_button_release_event().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonSettings ) );
-	menuItemSaveSellerOverview->signal_button_release_event().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonSaveSellerOverview ) );
-	menuitemStats->signal_button_release_event().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonStats ) );
-	menuitemFixItemCats->signal_button_release_event().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonFixItemCats ) );
-	*/
+	// The "Iné akcie" button is a Gtk::MenuButton and shows menuRegisterOtherActions
+	// by itself (menu-model is set in the .ui), so it needs no clicked handler.
+	// Its items refer to actions "burza.<name>", which have to exist or GTK
+	// renders every entry insensitive.
+	registerActionGroup = Gio::SimpleActionGroup::create();
+	registerActionGroup->add_action( "menuItemSettings",
+		sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonSettings ) );
+	registerActionGroup->add_action( "menuItemSaveSellerOverview",
+		sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonSaveSellerOverview ) );
+	registerActionGroup->add_action( "menuitemStats",
+		sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonStats ) );
+	registerActionGroup->add_action( "menuitemFixItemCats",
+		sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonFixItemCats ) );
+	m_pWndRegister->insert_action_group( "burza", registerActionGroup );
 	m_pComboSeller->property_selected().signal_changed().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterComboChangedSeller ) );
 	m_pEntryRegistryLookupSeller->signal_changed().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterEditLookupSellerChanged ) );
 
@@ -319,7 +364,36 @@ int BurzaDialogs::LoadDialogs( Glib::RefPtr<Gtk::Builder>& refBuilder )
 	registerItemsStatusColumn->pack_start( m_ItemsColumn.m_state );
 	m_pTreeViewItems->append_column( * registerItemsStatusColumn );
 
-	m_pTreeViewItems->append_column_editable( "prebrate", m_ItemsColumn.m_state_checkbox );
+	// Checkbox column with toggling support
+	auto toggle_renderer = Gtk::make_managed<Gtk::CellRendererToggle>();
+	toggle_renderer->set_activatable(true);
+
+	auto registerItemsStatusCheckboxColumn = Gtk::make_managed<Gtk::TreeViewColumn>("prebrate");
+	registerItemsStatusCheckboxColumn->pack_start(*toggle_renderer);
+	registerItemsStatusCheckboxColumn->add_attribute(toggle_renderer->property_active(),
+						m_ItemsColumn.m_state_checkbox);
+
+	m_pTreeViewItems->append_column( *registerItemsStatusCheckboxColumn );
+
+	toggle_renderer->signal_toggled().connect(
+		sigc::mem_fun(*this, &BurzaDialogs::on_column_checkbox_edited));
+
+	/*
+	auto registerItemsStatusCheckboxColumn = Gtk::manage( new Gtk::TreeView::Column( "prebrate" ) );
+
+	registerItemsStatusCheckboxColumn->pack_start( m_ItemsColumn.m_state_checkbox );
+	registerItemsStatusCheckboxColumn->get_cells().front()->signal_editing_started
+
+	
+	m_pTreeViewItems->connect_property_changed
+	registerItemsStatusCheckboxColumn
+	_connect_auto_store_editable_signal_handler<ColumnType>(this, pCellRender, model_column);
+
+	m_pTreeViewItems->append_column( *registerItemsStatusCheckboxColumn );
+	CellRenderer* pCellRender = registerItemsStatusCheckboxColumn->get_first_cell();
+	*/
+
+	// m_pTreeViewItems->append_column_editable( "prebrate", m_ItemsColumn.m_state_checkbox );
 
 	m_pTreeViewItems->append_column( "nazov", m_ItemsColumn.m_name );
 	m_pTreeViewItems->append_column( "cena", m_ItemsColumn.m_price );
@@ -370,15 +444,7 @@ int BurzaDialogs::LoadDialogs( Glib::RefPtr<Gtk::Builder>& refBuilder )
 		//pColumn->set_sort_column( m_ItemsColumn.m_state_checkbox );
 		pColumn->set_min_width( 50 );
 		// pColumn->set_clickable();
-
-		/*
-		Gtk::CellRenderer* pCellRenderer = pColumn->get_first_cell_renderer();
-		Gtk::CellRendererToggle* pCellRenderToggle = dynamic_cast<Gtk::CellRendererToggle*>(pCellRenderer);
-		if(pCellRenderToggle) {
-			pCellRenderToggle->signal_toggled().connect( 
-				sigc::mem_fun(*this, &BurzaDialogs::on_column_checkbox_edited) );
-		}
-		*/
+		// The toggled handler is connected where the column is created, above.
 	}
 
 	pColumn = m_pTreeViewItems->get_column( 3 );
@@ -402,7 +468,7 @@ int BurzaDialogs::LoadDialogs( Glib::RefPtr<Gtk::Builder>& refBuilder )
 	
 	if ( m_pWndCashOut == NULL ) {
 		error = "Dialog file is corrupt [2].";
-		throw;
+		throw std::runtime_error( error );
 	}
 	
 	m_pWndCashOut->hide();
@@ -419,7 +485,12 @@ int BurzaDialogs::LoadDialogs( Glib::RefPtr<Gtk::Builder>& refBuilder )
 	m_pCashoutButtonFinish = refBuilder->get_widget<Gtk::Button>("label cashout finished");
 	m_pButtonRegister = refBuilder->get_widget<Gtk::Button>("button register");
 	m_pCashoutComboSearch = refBuilder->get_widget<Gtk::DropDown>("comboboxentry_search");
-	// Gtk::EntryCompletion m_pCashoutComboSearchEntry = dynamic_cast<Gtk::Entry*>( m_pCashoutComboSearch->get_child() );
+	// The old UI used a GtkComboBoxEntry (dropdown with a built-in entry) and
+	// fetched the inner entry with get_child(). Gtk::DropDown has no entry, so
+	// the .ui now carries a separate "entry_search_item" above the dropdown.
+	// Until this was fetched, m_pCashoutComboSearchEntry stayed uninitialised
+	// and any use of it was undefined behaviour.
+	m_pCashoutComboSearchEntry = refBuilder->get_widget<Gtk::Entry>("entry_search_item");
 	m_pCashoutSearchFoundText = refBuilder->get_widget<Gtk::Label>("search_found_text");
 	
 	if (( m_pButtonRegister == NULL ) ||
@@ -437,7 +508,7 @@ int BurzaDialogs::LoadDialogs( Glib::RefPtr<Gtk::Builder>& refBuilder )
 	   // ( m_pCashoutComboSearchEntry == NULL ) ||
 	   ( m_pCashoutSearchFoundText == NULL )) {
 		error = "Dialog file is corrupt [4].";
-		throw;
+		throw std::runtime_error( error );
 	}
 	
 	m_pButtonRegister->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::CashoutButtonSwitchToRegister ) );
@@ -446,13 +517,21 @@ int BurzaDialogs::LoadDialogs( Glib::RefPtr<Gtk::Builder>& refBuilder )
 	m_pCashoutButtonFinish->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::CashoutButtonFinished ) );
 	
 	m_CashoutItemsSelection = m_pCashoutTreeViewList->get_selection();
-	/*XX
-	m_CashoutItemsSelection->set_mode( Gtk::CellRendererAccel:: SELECTION_SINGLE );
-	m_CashoutItemsSelection->property_selected().signal_changed().connect( sigc::mem_fun( this, &BurzaDialogs::CashoutItemsTreeSelectChanged ) );
-	
-	m_pCashoutComboSearch->property_selected().signal_changed().connect( sigc::mem_fun( this, &BurzaDialogs::CashoutEditSearchChanged ) );
-	m_pCashoutComboSearchEntry->property_selected().signal_changed().connect( sigc::mem_fun( this, &BurzaDialogs::CashoutEditSearchEntryChanged ) );
-	*/
+
+	// These were commented out with a mixture of wrong APIs: the selection mode
+	// enum came from Gtk::CellRendererAccel, Gtk::TreeSelection has
+	// signal_changed() rather than property_selected(), and the search field is
+	// an entry (signal_changed()), not a dropdown. sigc++3 also needs *this.
+	m_CashoutItemsSelection->set_mode( Gtk::SelectionMode::SINGLE );
+	m_CashoutItemsSelection->signal_changed().connect(
+		sigc::mem_fun( *this, &BurzaDialogs::CashoutItemsTreeSelectChanged ) );
+
+	m_pCashoutComboSearch->property_selected().signal_changed().connect(
+		sigc::mem_fun( *this, &BurzaDialogs::CashoutEditSearchChanged ) );
+
+	if ( m_pCashoutComboSearchEntry )
+		m_pCashoutComboSearchEntry->signal_changed().connect(
+			sigc::mem_fun( *this, &BurzaDialogs::CashoutEditSearchEntryChanged ) );
 
 	m_pCashoutEntryLookupSeller->signal_changed().connect( sigc::mem_fun( *this, &BurzaDialogs::CashoutEditLookupSellerChanged ) );
 	m_pCashoutEntryLookupItem->signal_changed().connect( sigc::mem_fun( *this, &BurzaDialogs::CashoutEditLookupItemChanged ) );
@@ -538,7 +617,7 @@ int BurzaDialogs::LoadDialogs( Glib::RefPtr<Gtk::Builder>& refBuilder )
 		( m_pItemeditOk == NULL ) ||
 		( m_pItemeditCancel == NULL )) {
 		error = "Dialog file is corrupt [5].";
-		throw;
+		throw std::runtime_error( error );
 	}
 	
 	m_pItemeditOk->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonItemEditOk ) );
@@ -562,7 +641,7 @@ int BurzaDialogs::LoadDialogs( Glib::RefPtr<Gtk::Builder>& refBuilder )
 		( sellerEdit.buttonOk == NULL ) ||
 		( sellerEdit.buttonCancel == NULL )) {
 		error = "Dialog file is corrupt [6=Seller edit].";
-		throw;
+		throw std::runtime_error( error );
 	}
 	
 	sellerEdit.buttonOk->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonSellerEditOk ) );
@@ -583,7 +662,7 @@ int BurzaDialogs::LoadDialogs( Glib::RefPtr<Gtk::Builder>& refBuilder )
 		( messageEditBoxWindowControls.buttonOk == NULL ) ||
 		( messageEditBoxWindowControls.buttonCancel == NULL )) {
 		error = "Dialog file is corrupt [MessageEditBox].";
-		throw;
+		throw std::runtime_error( error );
 	}
 	
 	EditMessageBox& msgBox = EditMessageBox::Instance();
@@ -599,7 +678,7 @@ int BurzaDialogs::LoadDialogs( Glib::RefPtr<Gtk::Builder>& refBuilder )
 	settingsWindow.buttonRequestLicence = refBuilder->get_widget<Gtk::Button>("button_request_licence");
 	settingsWindow.buttonInstallLicence = refBuilder->get_widget<Gtk::Button>("button_install_licence");
 	settingsWindow.editBurzaName = refBuilder->get_widget<Gtk::Entry>("entry_name_of_burza");
-	settingsWindow.buttonOk = refBuilder->get_widget<Gtk::Button>("button_ok");
+	settingsWindow.buttonOk = refBuilder->get_widget<Gtk::Button>("settingsButton_ok");
 	settingsWindow.comboFontSize = refBuilder->get_widget<Gtk::DropDown>("combo_font_size");
 	settingsWindow.radio1file = refBuilder->get_widget<Gtk::CheckButton>("radio_1file");
 	settingsWindow.radio2database = refBuilder->get_widget<Gtk::CheckButton>("radio_2db");
@@ -608,7 +687,6 @@ int BurzaDialogs::LoadDialogs( Glib::RefPtr<Gtk::Builder>& refBuilder )
 	settingsWindow.editDbPassword = refBuilder->get_widget<Gtk::Entry>("entry_dbpassword");
 	settingsWindow.editDbPort = refBuilder->get_widget<Gtk::Entry>("entry_dbport");
 
-	/*X
 	if (( settingsWindow.dialog == NULL ) ||
 		( settingsWindow.labelCurrentLicence == NULL ) ||
 		( settingsWindow.buttonRequestLicence == NULL ) ||
@@ -617,7 +695,7 @@ int BurzaDialogs::LoadDialogs( Glib::RefPtr<Gtk::Builder>& refBuilder )
 		( settingsWindow.buttonInstallLicence == NULL ) ||
 		( settingsWindow.comboFontSize == NULL )) {
 		error = "Dialog file is corrupt [Nastavenia].";
-		throw;
+		throw std::runtime_error( error );
 	}
 
 	if (( settingsWindow.radio1file == NULL ) ||
@@ -627,13 +705,14 @@ int BurzaDialogs::LoadDialogs( Glib::RefPtr<Gtk::Builder>& refBuilder )
 		( settingsWindow.editDbPassword == NULL ) ||
 		( settingsWindow.editDbPort == NULL )) {
 		error = "Dialog file is corrupt [Nastavenia] part 2.";
-		throw;
+		throw std::runtime_error( error );
 	}
-	
+
+	settingsWindow.radio2database->set_group( *settingsWindow.radio1file );
+
 	settingsWindow.buttonRequestLicence->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::SettingsClickedButtonRequestLicence ) );
 	settingsWindow.buttonInstallLicence->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::SettingsClickedButtonInstallLicence ) );
 	settingsWindow.buttonOk->signal_clicked().connect( sigc::mem_fun( *this, &BurzaDialogs::SettingsClickedButtonOk ) );
-	*/
 
 	// ============== Load file progress window =================
 	
@@ -647,7 +726,7 @@ int BurzaDialogs::LoadDialogs( Glib::RefPtr<Gtk::Builder>& refBuilder )
 		( loadFileProgressWindow.buttonOk == NULL ) ||
 		( loadFileProgressWindow.buttonInterrupt == NULL )) {
 		error = "Dialog file is corrupt [LoadFilesProgress].";
-		throw;
+		throw std::runtime_error( error );
 	}	
 	
 	loadFileProgressWindow.ConnectButtons();
@@ -659,25 +738,6 @@ int BurzaDialogs::LoadDialogs( Glib::RefPtr<Gtk::Builder>& refBuilder )
 		error = "Error loading widgets:";
 		error += e.what();
 
-		/*
-			//auto display = Gdk::Display::get_default();
-			//Gtk::StyleContext::add_provider_for_display(display,
-			//	cssProvider, GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
-
-			// build the application menu bar
-			auto refBuilder = Gtk::Builder::create_from_resource(glade_fname);
-			auto gmenubar = refBuilder->get_object<Gio::Menu>("menubar");
-			auto menubar = Gtk::make_managed<Gtk::PopoverMenuBar>(gmenubar);
-			m_container.append(*menubar);
-
-			
-		// Get the GtkBuilder-instantiated button, and connect a signal handler:
-		auto pButton = refBuilder->get_widget<Gtk::Button>("button cashout");
-		if (pButton)
-		pButton->signal_clicked().connect([] () { on_button_clicked(); });
-
-		m_pWndRegister = refBuilder->get_widget<Gtk::Window>( "Register" );
-		*/
 	}
 	
 	if ( ! error.empty() ) {
@@ -973,10 +1033,9 @@ void BurzaDialogs::RegisterButtonImportSeller( void )
 	filters->append(xls_filter);
 	dialog->set_filters(filters);
 
-	/*X 
-  	dialog->select_folder(sigc::bind(
-		sigc::mem_fun(*this, &LoadingMultipleFiles::Finished), dialog));
-	*/
+	dialog->open( *m_pWndRegister, sigc::bind(
+		sigc::mem_fun( *this, &BurzaDialogs::RegisterButtonImportSeller_ContinueWithFileSelected ),
+		dialog ) );
 }
 
 void BurzaDialogs::RegisterButtonImportSeller_ContinueWithFileSelected(
@@ -1313,30 +1372,16 @@ void BurzaDialogs::RegisterButtonSwitchToCashout( void )
 	m_pCashoutComboLookupItem->set_model(emptyList);
 	m_pCashoutEntryLookupSeller->set_text( "" );
 	m_pCashoutEntryLookupItem->set_text( "" );
-	//X m_pCashoutComboSearch->clear();
-	//X m_pCashoutComboSearchEntry->set_text( "" );
+	m_pCashoutComboSearch->set_model( Gtk::StringList::create( {} ) );
+	if ( m_pCashoutComboSearchEntry )
+		m_pCashoutComboSearchEntry->set_text( "" );
 
 	ReloadSellers();
-	
-	// set focus chaing = set order of tab-stops on items. Weird, but has to be done in the code.
-	// Default tab-order
-	vector<Gtk::Widget*> cashoutFocusList;
-	
-	cashoutFocusList.push_back( m_pCashoutEntryLookupSeller );
-	cashoutFocusList.push_back( m_pCashoutEntryLookupItem );
-	cashoutFocusList.push_back( m_pCashoutButtonAddItem );
-	cashoutFocusList.push_back( m_pCashoutButtonFinish );
-	
-	cashoutFocusList.push_back( m_pCashoutComboLookupSeller );
-	cashoutFocusList.push_back( m_pCashoutComboLookupItem );
-	//X cashoutFocusList.push_back( m_pCashoutComboSearchEntry );
-	cashoutFocusList.push_back( m_pCashoutComboSearch );
-	
-	cashoutFocusList.push_back( m_pTreeViewItems );
-	cashoutFocusList.push_back( m_pCashoutButtonRemoveItem );
-	cashoutFocusList.push_back( m_pButtonRegister );
-	
-	//X m_pWndCashOut->set_focus_chain( cashoutFocusList );
+
+	// GTK 4 removed Gtk::Container::set_focus_chain - tab order now follows the
+	// order widgets appear in the .ui, so the list that used to be built here
+	// has been dropped. Reorder the widgets in Cambalache to change tab order.
+	m_pCashoutEntryLookupSeller->grab_focus();
 
 	Centrala::Search().FetchLatestData();
 
@@ -1537,12 +1582,25 @@ void BurzaDialogs::CashoutButtonRemoveItem( void )
 	std::sort(itemIndexes.begin(), itemIndexes.end());
 	std::reverse(itemIndexes.begin(), itemIndexes.end());
 	
-	// remove items
+	// remove items. Indexes are in descending order (sorted and reversed
+	// above), so erasing one does not shift the ones still to be removed.
 	for(int i=0; i<itemIndexes.size(); ++i ) {
-		
-		//X Gtk::TreeModel::iterator it = m_CashoutItemsListModel->children()[ itemIndexes[ i ] ];
-		//X m_CashoutItemsListModel->erase( it );
-		//X m_shoppingCart.erase( m_shoppingCart.begin() + itemIndexes[ i ] );
+
+		unsigned int index = itemIndexes[ i ];
+
+		// Addressing the row by path is the gtkmm 4 way; children()[index]
+		// is gone, which is why this loop had been emptied out.
+		Gtk::TreeModel::Path path;
+		path.push_back( index );
+		Gtk::TreeModel::iterator it = m_CashoutItemsListModel->get_iter( path );
+		if ( it )
+			m_CashoutItemsListModel->erase( it );
+
+		if ( index < m_shoppingCart.size() )
+			m_shoppingCart.erase( m_shoppingCart.begin() + index );
+		else
+			LogS( InfoWarn, "CashoutButtonRemoveItem: index %u outside cart of %zu\n",
+				index, m_shoppingCart.size() );
 	}
 	
 	CheckoutCartChanged();
@@ -1645,16 +1703,37 @@ void BurzaDialogs::CashoutSellerChanged( void )
 
 void BurzaDialogs::DisplayErrorMessageBox( string msg1, string msg2 )
 {
-	Gtk::MessageDialog dialog( "" );
-	
-	if ( msg2.empty() )
-		dialog.set_message( "error" );
-	else
-		dialog.set_message( msg2 );
-	
-	dialog.set_secondary_text( msg1 );
-	throw runtime_error(msg1);
-	//X Should display it instead
+	// This used to build a Gtk::MessageDialog and then throw instead of
+	// showing it ("//X Should display it instead"), left over from the gtkmm 4
+	// port. Throwing from here was fatal: callers invoke it from inside a catch
+	// handler, so the new exception escaped the handler and then the GTK signal
+	// handler, and glibmm aborts the program on that.
+	//
+	// Gtk::AlertDialog replaces Gtk::MessageDialog in GTK 4 and is shown
+	// asynchronously - there is no run() to block on any more, so this returns
+	// immediately and the dialog closes itself when the user dismisses it.
+	try {
+		auto dialog = Gtk::AlertDialog::create();
+		dialog->set_message( msg2.empty() ? std::string( "error" ) : msg2 );
+		dialog->set_detail( msg1 );
+		dialog->set_modal( false );
+
+		// Parent it on the main window when there is one; during start-up
+		// failures there may not be.
+		Gtk::Window* parent = NULL;
+		if ( Centrala::Instance() && Centrala::Instance()->mp_dialogs )
+			parent = Centrala::Dialogs().m_pWndRegister;
+
+		if ( parent )
+			dialog->show( *parent );
+		else
+			dialog->show();
+	}
+	catch( ... ) {
+		// Never let the error reporter become the error.
+	}
+
+	LogS( InfoError, "MessageBox: '%s' - '%s'\n", msg2.c_str(), msg1.c_str() );
 }
 
 void BurzaDialogs::DisplayErrorMessageBox( const char* msg, const char* msg_title )
@@ -1667,56 +1746,107 @@ void BurzaDialogs::DisplayErrorMessageBox( const char* msg, const char* msg_titl
 
 bool BurzaDialogs::DisplayYesNoMessageBox( string message, string title )
 {
-	/*
-	Gtk::MessageDialog dialog( message, false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO, true );
-	
-	dialog.set_title( title );
-	dialog.set_secondary_text( title );
-	int res = dialog.run();
-	return ( res == Gtk::RESPONSE_YES );
-	*/
+	// This used to be stubbed out and simply "return true", which silently
+	// confirmed every question it was asked - deleting items, selling goods
+	// not marked as on stock, and finishing a purchase - without the user ever
+	// seeing a dialog.
+	//
+	// GTK 4 removed Gtk::Dialog::run(), so there is no blocking dialog any
+	// more: Gtk::AlertDialog::choose() is asynchronous. To keep this function's
+	// synchronous bool contract (five call sites depend on it) a nested
+	// Glib::MainLoop is run until the answer arrives. The dialog is modal, so
+	// the window underneath cannot be operated while it waits.
+	//
+	// Anything other than an explicit "Áno" - closing the dialog, Escape, an
+	// error - counts as "no", so a failure can never silently approve a
+	// destructive action.
 
-	/*X
-	Glib::RefPtr<Gtk::AlertDialog> alert_dialog = Gtk::AlertDialog::create();
-	alert_dialog->set_buttons({"OK"});
-    alert_dialog->set_default_button(2); // OK button or Return key
-    alert_dialog->set_cancel_button(-1);
-	alert_dialog->set_message(title);
-	alert_dialog->set_detail(message);
-	alert_dialog->show(*m_pWndRegister);	
-	*/
+	const int buttonNo = 0;
+	const int buttonYes = 1;
+	int answer = buttonNo;
 
-	return true;
+	try {
+		auto dialog = Gtk::AlertDialog::create();
+
+		// AlertDialog shows 'message' prominently and 'detail' below it.
+		if ( title.empty() ) {
+			dialog->set_message( message );
+		} else {
+			dialog->set_message( title );
+			dialog->set_detail( message );
+		}
+
+		dialog->set_buttons( { _("Nie"), _("Áno") } );
+		dialog->set_default_button( buttonYes );
+		dialog->set_cancel_button( buttonNo );
+		dialog->set_modal( true );
+
+		auto loop = Glib::MainLoop::create( false );
+		bool finished = false;
+
+		auto onAnswer = [ &dialog, &answer, &loop, &finished ]
+			( Glib::RefPtr<Gio::AsyncResult>& result )
+		{
+			try {
+				answer = dialog->choose_finish( result );
+			}
+			catch( const Glib::Error& ) {
+				// dismissed without choosing
+				answer = buttonNo;
+			}
+			finished = true;
+			if ( loop->is_running() )
+				loop->quit();
+		};
+
+		if ( m_pWndRegister )
+			dialog->choose( *m_pWndRegister, onAnswer );
+		else
+			dialog->choose( onAnswer );
+
+		// choose() may already have completed (it can answer synchronously if
+		// it fails immediately); only block when it has not.
+		if ( ! finished )
+			loop->run();
+	}
+	catch( const std::exception& e ) {
+		LogS( InfoError, "DisplayYesNoMessageBox failed: %s\n", e.what() );
+		return false;
+	}
+
+	return ( answer == buttonYes );
 }
 
 void BurzaDialogs::DisplayOkMessageBox( string message, string title )
 {
-	/*
-	Gtk::MessageDialog dialog( message, false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_OK, true );
-	
-	dialog.set_title( title );
-	dialog.set_secondary_text( title );
-	int res = dialog.run();
-	*/
+	// Shown asynchronously - there is no run() in GTK 4. Nothing here needs an
+	// answer, so unlike DisplayYesNoMessageBox this does not wait for one.
+	try {
+		auto dialog = Gtk::AlertDialog::create();
+		dialog->set_buttons( { _("OK") } );
 
-	Glib::RefPtr<Gtk::AlertDialog> alert_dialog = Gtk::AlertDialog::create();
-	alert_dialog->set_buttons({"OK"});
-    alert_dialog->set_default_button(2); // OK button or Return key
-    alert_dialog->set_cancel_button(-1);
-	alert_dialog->set_message(title);
-	alert_dialog->set_detail(message);
-	alert_dialog->show(*m_pWndRegister);
-	// alert_dialog->choose(*this, sigc::mem_fun(*this, &ExampleWindow::on_question_dialog_finish));
+		// Button indices are 0-based: the single OK button is 0. The old code
+		// asked for button 2 of a one-button dialog.
+		dialog->set_default_button( 0 );
+		dialog->set_cancel_button( 0 );
 
-	/*
-	while (true) {
-		//Gtk::Main::iteration();
-		std::this_thread::sleep_for(200ms);
+		if ( title.empty() ) {
+			dialog->set_message( message );
+		} else {
+			dialog->set_message( title );
+			dialog->set_detail( message );
+		}
 
-		if (!alert_dialog->is_visible())
-			break;
+		dialog->set_modal( false );
+
+		if ( m_pWndRegister )
+			dialog->show( *m_pWndRegister );
+		else
+			dialog->show();
 	}
-	*/
+	catch( const std::exception& e ) {
+		LogS( InfoError, "DisplayOkMessageBox failed: %s\n", e.what() );
+	}
 }
 
 void BurzaDialogs::RegisterStartDialogEditProduct( ITEM_ID itemid )
@@ -1784,30 +1914,20 @@ void BurzaDialogs::RegisterStartDialogEditProduct( ITEM_ID itemid )
 		ErrorHandling::HandleException(e);
 	}
 	
+	m_pWndItem->set_transient_for( *m_pWndRegister );
 	m_pWndItem->show();
 	HighlightEditItemOff();
 }
 
 void BurzaDialogs::HighlightWidgetRed( Gtk::Widget& widget )
 {
-	/*X
-	widget.signal_focus_in_event();
-	widget.drag_highlight();
-	Gdk::Color red( "red" );
-	Gdk::Color pink( "pink" );
-	widget.modify_bg(Gtk::STATE_NORMAL, red);
-	widget.modify_base(Gtk::STATE_NORMAL, pink);
-	*/
+	// The rule for this class is in BurzaDialogsHelper::InstallAppCss().
+	widget.add_css_class( BurzaDialogsHelper::cssClassInvalid );
 }
 
 void BurzaDialogs::HighlightWidgetOff( Gtk::Widget& widget )
 {
-	/*X
-	Gdk::Color white( "white" );
-	Gdk::Color black( "black" );
-	widget.modify_bg(Gtk::STATE_NORMAL, black);
-	widget.modify_base(Gtk::STATE_NORMAL, white);
-	*/
+	widget.remove_css_class( BurzaDialogsHelper::cssClassInvalid );
 }
 
 void BurzaDialogs::RegisterButtonItemEditOk( void )
@@ -1984,26 +2104,31 @@ void BurzaDialogs::RegisterStartDialogEditSeller( SELLER_ID id )
 		seller.category = categories.empty() ? SELLER_CATEGORY_ID_NONE : categories.begin()->id;
 	}
 	
-	/*X
 	sellerEdit.editName->set_text( seller.name );
 	sellerEdit.editCode->set_text( seller.shortcode );
 	sellerEdit.editNote->set_text( seller.note );
 
-	sellerEdit.comboCategory->clear();
+	// Gtk::DropDown replaced Gtk::ComboBoxText, so there is no clear() or
+	// append_text() any more - it is driven by a model. Same pattern as
+	// FillSellerCombos().
 	sellerEdit.categories = categories;
+	std::vector<Glib::ustring> categoryNames;
 	int index = 0;
 	for( int i=0; i < categories.size(); ++i ) {
-		sellerEdit.comboCategory->append_text( categories[ i ].name );
+		categoryNames.push_back( categories[ i ].name );
 
 		if ( categories[ i ].id == seller.category )
 			index = i;
 	}
+
+	auto categoryList = Gtk::StringList::create( categoryNames );
+	sellerEdit.comboCategory->set_model( categoryList );
 	sellerEdit.comboCategory->set_selected( index );
-	*/
 
 	HighlightEditSellerOff();
 
 	m_EditedSeller = seller;
+	m_pWndSeller->set_transient_for( *m_pWndRegister );
 	m_pWndSeller->show();
 }
 
@@ -2033,9 +2158,17 @@ void BurzaDialogs::RegisterButtonSellerEditOk( void )
 	m_EditedSeller.note = sellerEdit.editNote->get_text();
 	m_EditedSeller.shortcode = sellerEdit.editCode->get_text();
 	
-	// get category
-	int categoryIndex = sellerEdit.comboCategory->get_selected();
-	assert( categoryIndex < sellerEdit.categories.size() );
+	// get category. Gtk::DropDown::get_selected() returns
+	// GTK_INVALID_LIST_POSITION (not -1) when nothing is selected, which as a
+	// signed int is -1 and would index the array out of range - the assert
+	// below only caught it in debug builds.
+	guint categoryIndex = sellerEdit.comboCategory->get_selected();
+	if (( categoryIndex == GTK_INVALID_LIST_POSITION ) ||
+		( categoryIndex >= sellerEdit.categories.size() )) {
+		HighlightWidgetRed( *sellerEdit.comboCategory );
+		DisplayErrorMessageBox( _("Vyberte kategóriu predajcu."), _("Chýba kategória") );
+		return;
+	}
 	m_EditedSeller.category = sellerEdit.categories[ categoryIndex ].id;
 
 	m_pWndSeller->hide();
@@ -2131,16 +2264,21 @@ void BurzaDialogs::CashoutEditLookupItemChanged( void )
 
 void BurzaDialogs::CashoutEditSearchChanged( void )
 {
-	int selectedItemIdx = -1; //X m_pCashoutComboSearch->property_active();
+	// property_active() was the ComboBox API; a DropDown reports its row with
+	// get_selected(), which yields GTK_INVALID_LIST_POSITION when unset.
+	guint selected = m_pCashoutComboSearch->get_selected();
 
-	if ( selectedItemIdx == -1 ) {
+	if ( selected == GTK_INVALID_LIST_POSITION ) {
 		return;
 	}
 
-	// get the selected item data
-	if (( selectedItemIdx < 0 ) || ( selectedItemIdx >= cashoutComboSearchItemDatas.size() )) {
-		assert( false );
+	if ( selected >= cashoutComboSearchItemDatas.size() ) {
+		LogS( InfoWarn, "CashoutEditSearchChanged: row %u outside %zu results\n",
+			selected, cashoutComboSearchItemDatas.size() );
+		return;
 	}
+
+	int selectedItemIdx = (int) selected;
 
 	ItemData item = cashoutComboSearchItemDatas[ selectedItemIdx ];
 
@@ -2162,12 +2300,16 @@ void BurzaDialogs::CashoutEditSearchEntryChanged( void )
 	string str;
 	ItemSearch& search = Centrala::Search();
 	SellerData sellerOfItem;
+	std::vector<Glib::ustring> searchResultNames;
 
-	/*X
-	m_pCashoutComboSearch->clear();
+	// Reset the result list. A DropDown is cleared by giving it an empty
+	// model, the same way RegisterButtonSwitchToCashout does.
+	m_pCashoutComboSearch->set_model( Gtk::StringList::create( {} ) );
 	cashoutComboSearchItemDatas.clear();
-	m_pCashoutSearchFoundText->set_text("");
-	*/
+	m_pCashoutSearchFoundText->set_text( "" );
+
+	if ( ! m_pCashoutComboSearchEntry )
+		return;
 
 	string text = m_pCashoutComboSearchEntry->get_text();
 	const int itemsLimit = 60;
@@ -2194,22 +2336,21 @@ void BurzaDialogs::CashoutEditSearchEntryChanged( void )
 			foundItems[ i ].price,
 			DataAccessInterface::ItemStatus2String( foundItems[ i ].status ));
 
-		//X m_pCashoutComboSearch->append_text( str );
+		searchResultNames.push_back( str );
 		cashoutComboSearchItemDatas.push_back( foundItems[ i ] );
 	}
+
+	// Fill the DropDown in one go - it is model driven, so there is no
+	// append_text() to call per row.
+	m_pCashoutComboSearch->set_model( Gtk::StringList::create( searchResultNames ) );
 }
 
-void BurzaDialogs::RegisterButtonOtherActions( void )
-{
-	//X menuRegisterOtherActions->popup( 0, 0 );
-}
-
-bool BurzaDialogs::RegisterButtonStats( GdkButtonEvent* button )
+void BurzaDialogs::RegisterButtonStats( void )
 {
 	string offeredName = BurzaDialogsFileHelper::FormatDateTimeFileName( _("Statistika"), "pdf" );
 	string name = BurzaDialogsFileHelper::AskToSaveDocumentFile( offeredName );
 	if ( name.empty() )
-		return false;
+		return;
 
 	try {
 		HPDFWrapper	pdf;
@@ -2222,26 +2363,27 @@ bool BurzaDialogs::RegisterButtonStats( GdkButtonEvent* button )
 	catch( std::exception& e ) {
 		ErrorHandling::HandlePdfExceptions( e );
 	}
-
-	return true;
 }
 
-bool BurzaDialogs::RegisterButtonSaveSellerOverview( GdkButtonEvent* button )
+void BurzaDialogs::RegisterButtonSaveSellerOverview( void )
 {
 	RegisterButtonReviewOfSellers();
-	return true;
 }
 
-bool BurzaDialogs::RegisterButtonFixItemCats( GdkButtonEvent* button )
+void BurzaDialogs::RegisterButtonFixItemCats( void )
 {
+	// NOTE: this calls RegisterButtonReviewOfSellers(), exactly as
+	// RegisterButtonSaveSellerOverview() does. That looks like a copy-paste
+	// left over from before the port - "Oprav kategórie tovaru" presumably
+	// ought to fix item categories, not produce the seller overview. Behaviour
+	// kept as it was; worth deciding separately.
 	RegisterButtonReviewOfSellers();
-	return true;
 }
 
 // ======================================================
 // ======================================================
 
-bool BurzaDialogs::RegisterButtonSettings( GdkButtonEvent* button )
+void BurzaDialogs::RegisterButtonSettings( void )
 {
 	ProgramSettings* settings = & Centrala::Settings();
 
@@ -2250,19 +2392,19 @@ bool BurzaDialogs::RegisterButtonSettings( GdkButtonEvent* button )
 		Licence::Instance().GetLicenseUser();
 	settingsWindow.labelCurrentLicence->set_text( licenseText );
 
-	// setup 'font' combo
+	// setup 'font' combo. Gtk::DropDown has no clear()/append_text() - it takes
+	// a model - so this is built as a Gtk::StringList, like FillSellerCombos().
 	int selectedFontIndex = 0;
-	/*X
-	settingsWindow.comboFontSize->clear();
+	std::vector<Glib::ustring> fontSizeNames;
 
-	for( int i = 0; i < ProgramSettings::predefined.listOfFontSizes.size(); ++i ) 
+	for( int i = 0; i < ProgramSettings::predefined.listOfFontSizes.size(); ++i )
 	{
-		settingsWindow.comboFontSize->append_text( 
-			ProgramSettings::predefined.listOfFontSizes[ i ].text );
+		fontSizeNames.push_back( ProgramSettings::predefined.listOfFontSizes[ i ].text );
 		if ( settings->fontSize == ProgramSettings::predefined.listOfFontSizes[ i ].size )
 			selectedFontIndex = i;
-	}*/
+	}
 
+	settingsWindow.comboFontSize->set_model( Gtk::StringList::create( fontSizeNames ) );
 	settingsWindow.comboFontSize->set_selected( selectedFontIndex );
 
 	// name of "Burza"
@@ -2279,8 +2421,11 @@ bool BurzaDialogs::RegisterButtonSettings( GdkButtonEvent* button )
 	auto passwordPartial = ProgramSettings::HidePartOfPassword( settings->dbPassword );
 	settingsWindow.editDbPassword->set_text( passwordPartial );
 	
-	//X settingsWindow.dialog->run();
-	return true;
+	// Gtk::Dialog::run() no longer exists in GTK 4 - show the window instead.
+	// SettingsClickedButtonOk() hides it again.
+	settingsWindow.dialog->set_transient_for( *m_pWndRegister );
+	settingsWindow.dialog->set_modal( true );
+	settingsWindow.dialog->set_visible( true );
 }
 
 void BurzaDialogs::SettingsClickedButtonRequestLicence( void )
@@ -2296,10 +2441,7 @@ void BurzaDialogs::SettingsClickedButtonInstallLicence( void )
 
 void BurzaDialogs::SettingsClickedButtonOk( void )
 {
-	/*X
-	settingsWindow.dialog->response( Gtk::RESPONSE_OK );
-	settingsWindow.dialog->hide();
-	*/
+	settingsWindow.dialog->set_visible( false );
 
 	ProgramSettings	*settings = & Centrala::Settings();
 
@@ -2378,8 +2520,7 @@ void BurzaDialogs::on_column_checkbox_edited( Glib::ustring rowNumberText )
 	int row = atoi( rowNumberText.c_str() );
 
 	ItemDataArray items = Centrala::Storage().GetSellerItems(m_RegisterSelectedSellerId);
-	if ( row > items.size() ) {
-		string s;
+	if (( row < 0 ) || ( (size_t) row >= items.size() )) {
 		DisplayErrorMessageBox( "chyba" );
 		return;
 	}

@@ -7,7 +7,6 @@
 #include "singleton.h"
 
 struct s_messageEditBoxWindowControls {
-	// Glib::RefPtr<Gnome::Glade::Xml> xmlWindow;
 	Gtk::Window		*dialog;
 
 	Gtk::Label		*labelText;

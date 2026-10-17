@@ -91,14 +91,21 @@ int HPDFWrapper::CreatePDF( string filename )
 		HPDF_Outline_SetOpened ( m_outline_root, HPDF_TRUE);
 		
 	} catch( ... ) {
-		throw runtime_error( "PDF ERROR: error initializing PDF.\n" );
+		// Free before throwing - the old order left HPDF_Free unreachable.
 		HPDF_Free( m_pdf );
+		m_pdf = NULL;
+		throw runtime_error( "PDF ERROR: error initializing PDF.\n" );
 	}
 	
 	m_filename = filename;
 	
 	m_open = true;
 	m_currentPageNumber = 0;
+
+	// Must return: falling off the end of a non-void function is undefined
+	// behaviour and GCC emits a ud2 here, which crashes with SIGILL.
+	// 0 means success, as elsewhere in the project.
+	return 0;
 }
 
 void HPDFWrapper::ClosePDF( void )

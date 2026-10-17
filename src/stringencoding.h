@@ -11,9 +11,16 @@
 #include <vector>
 
 // #include "useicu.h"
-namespace icu_76 {
-	class Transliterator;
-}
+
+// ICU declares its classes in a version-stamped namespace - icu_76, icu_78 and
+// so on - so naming one directly breaks the build on every ICU upgrade.
+// uversion.h gives us U_NAMESPACE_BEGIN/END and U_ICU_NAMESPACE for whichever
+// version is actually installed.
+#include <unicode/uversion.h>
+
+U_NAMESPACE_BEGIN
+class Transliterator;
+U_NAMESPACE_END
 
 using namespace std;
 
@@ -65,7 +72,7 @@ private:
 	
 	static std::string desaxUTF8(const std::string& str);
 	
-	static icu_76::Transliterator *icuAccentsRemover;
+	static U_ICU_NAMESPACE::Transliterator *icuAccentsRemover;
 };
 
 }

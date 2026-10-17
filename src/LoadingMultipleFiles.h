@@ -121,7 +121,6 @@ public:
 	
 public:
 	
-	// Glib::RefPtr<Gnome::Glade::Xml> xmlWindow; // xmlWndLoadFileProgress
 	Gtk::Window*	window;
 
 	Gtk::TextView		*editLoadingText;

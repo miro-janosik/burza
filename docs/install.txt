@@ -1,7 +1,12 @@
 	=== Windows - development ===
 
 Instal packages:
-	* gtkmm-win32-devel-2.16.0-2.exe
+	* gtkmm 4.x development files. The gtkmm-win32-devel-2.16.0-2.exe installer in
+	'external' is for the old gtkmm 2.x build and is no longer usable - since the
+	port to gtkmm 4.0 the supported route is MSYS2:
+	    pacman -S mingw-w64-x86_64-gtkmm-4.0 mingw-w64-x86_64-pkgconf
+	or vcpkg:
+	    vcpkg install gtkmm:x64-windows
 	* pqxx: more complicated. Libraries are present, but in case of problems they
 	have to be recompiled. You need PostgreSql8.3 (or "postgresql-9.1.0-1-windows.exe") 
 	and libpqxx-win32.32368.zip (from lib dir or from http://www.kirit.com/libpqxx-win32) which 
@@ -15,13 +20,46 @@ Instal packages:
 
 Install packages:
 	* pqxx (or pqxx3 or libpqxx3-dev and modify makefiles accordingly)
-	* libgtkmm-2.4-dev and libglademm-2.4-dev (or 3.0 and make respective changes in CMakeLists.txt; but be sure that both are the same version)
-	* cmake
-	* g++
+	* libgtkmm-4.0-dev  (gtkmm 4.0; needs GTK 4, so Ubuntu 22.04 or newer.
+	  libglademm is NOT needed any more - the interface is built with
+	  Cambalache and loaded through Gtk::Builder from a plain .ui file)
+	* cmake  (3.10 or newer)
+	* g++    (with C++20 support; g++ 10 or newer)
 	* libicu-dev
 	
-	Modify CMakeList to point to correct place with libICU
-	If needed compile libHaruPdf from external libs
+	If needed compile libHaruPdf from external libs.
+
+	=== User interface ===
+
+The interface lives in a single GtkBuilder file, resources/burza.ui, and is
+edited with Cambalache (https://gitlab.gnome.org/jpu/cambalache):
+
+	flatpak install flathub ar.xjuan.Cambalache
+	flatpak run ar.xjuan.Cambalache resources/burza.cmb
+
+burza.cmb is the Cambalache project; it saves burza.ui next to itself in
+resources/, which is the version-controlled copy. The program does not read it
+from there: BurzaDialogs::SetupDialogs loads
+
+	<directory of the burza executable>/data/burza.ui
+
+(ProgramSettings derives that from the executable's own path, not from the
+working directory), so run_linux/data/burza.ui is a SYMLINK to the real file:
+
+	ln -s ../../resources/burza.ui run_linux/data/burza.ui
+
+If the program dies at start-up with "FileError" from SetupDialogs, that
+symlink is the first thing to check - run_linux/ is gitignored, so a fresh
+clone or a moved checkout will not have it. The .cmb needs no symlink; it is
+only used at design time.
+
+The data directory must also contain logo_mc.gif and the icons/ tree (window
+icon), both loaded relative to that same path. Widget ids in burza.ui must match the names looked up in
+BurzaDialogs::LoadDialogs - a renamed or missing id is reported as
+"LoadDialogs: missing widget in UI file: '<id>'".
+
+Pre-gtkmm4 interface files are archived under resources/legacy-gtk2 and do not
+load any more.
 	
 	=== PostgreSQL server on Linux ===
 

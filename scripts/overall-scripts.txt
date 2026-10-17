@@ -24,6 +24,8 @@ Týmto prejdacom ponechávame kódy. Ponechávame aj kódy a veci ktoré niekto 
 	
 	zobrazi predajcov a naposledy upravene veci
 	Tie co su starsie ako XX (zorad si to v sheete), tych predajcov zmazat
+	
+	web-manage/webRemoveEmptySellers.pl
 
 * Update web DB - remove items that are sold.
 	web-manage/deleteSoldItems.pl
@@ -42,7 +44,7 @@ Týmto prejdacom ponechávame kódy. Ponechávame aj kódy a veci ktoré niekto 
 * Add new codes to web DB (uses local file codes.csv)
 	web-manage/addNewCodesToWebFromCsv.pl
 
-* check if new sellers have 'info' filled in (error in older script), fix by:
+* check if new sellers have 'info' filled in (error in older script), fix by SQL:
 	web-manage/sellersMissingCodeFix.sql
 
 == After sellers filled items on web ==

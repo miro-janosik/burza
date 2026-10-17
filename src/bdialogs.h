@@ -18,16 +18,6 @@
 using namespace std;
 using namespace Burza;
 
-/*
-// ComboBoxText is class derived from ComboBox, I have to provide special constructor
-// so I can load it up from glade
-class ComboBoxTextDer : public Gtk::ComboBoxText {
-public:
-	// ComboBoxTextDer( BaseObjectType* cobject, const Glib::RefPtr<Gnome::Glade::Xml>& refGlade);
-
-} ;
-*/
-
 	class CellItem_Bug
 	{
 	public:
@@ -116,12 +106,12 @@ public:
 	void RegisterButtonSwitchToCashout( void );
 	void RegisterComboChangedSeller( void );
 	void RegisterButtonReviewOfSellers( void );
-	// void RegisterButtonSettings( void );
-	void RegisterButtonOtherActions( void );
-	bool RegisterButtonStats( GdkButtonEvent* button );
-	bool RegisterButtonSaveSellerOverview( GdkButtonEvent* button );
-	bool RegisterButtonSettings( GdkButtonEvent* button );
-	bool RegisterButtonFixItemCats( GdkButtonEvent* button );
+	//! Actions behind the "Iné akcie" menu. Registered as Gio::SimpleAction in
+	//! the "burza" action group, so they take and return nothing.
+	void RegisterButtonStats( void );
+	void RegisterButtonSaveSellerOverview( void );
+	void RegisterButtonSettings( void );
+	void RegisterButtonFixItemCats( void );
 	void RegisterSellerStatusRadioChanged( void );
 
 	void CashoutItemsTreeSelectChanged( void );
@@ -204,11 +194,12 @@ public:
 	//! (for example checking if seller is already checked in, on change of seller combo.)
 	bool initializing;
 
-	/*
-	Glib::RefPtr<Gnome::Glade::Xml> xmlWndRegister, xmlWndCashOut, 
-		xmlWndModifySeller, xmlWndModifyItem, 
-		xmlWndRegisterPopupMenu;
-	*/
+	//! The Builder OWNS every object it created, and get_widget() hands back a
+	//! borrowed pointer. If the builder dies, everything it built that nothing
+	//! else references is finalised, leaving all the pointers below dangling.
+	//! Only m_pWndRegister gets an extra reference (Application::add_window),
+	//! so this must stay alive for as long as the dialogs are used.
+	Glib::RefPtr<Gtk::Builder>	m_refBuilder;
 
 	Gtk::Window		*m_pWndRegister, *m_pWndCashOut, *m_pWndSeller, *m_pWndItem;
 
@@ -231,7 +222,7 @@ public:
 	Gtk::Button		*m_pButtonCashout;
 	Gtk::Button		*m_pRegisterButtonReviewOfSellers;
 	Gtk::Button		*m_pButtonSettings;
-	Gtk::Button		*m_pRegisterOtherActions;
+	Gtk::MenuButton	*m_pRegisterOtherActions;
 	Gtk::CheckButton	*m_pRegisterRadioSellerStatus1NotImported;
 	Gtk::CheckButton	*m_pRegisterRadioSellerStatus2ImportedSelling;
 	Gtk::CheckButton	*m_pRegisterRadioSellerStatus3ReturnedBack;
@@ -240,10 +231,12 @@ public:
 	Glib::RefPtr<Gtk::ListStore>	m_RegisterItemsListModel;
 
 	Glib::RefPtr<Gio::Menu>		menuRegisterOtherActions;
-	Gtk::Label	*menuItemSettings;
-	Gtk::Label	*menuItemSaveSellerOverview;
-	Gtk::Label	*menuitemStats;
-	Gtk::Label	*menuitemFixItemCats;
+
+	//! Holds the actions the "Iné akcie" menu items refer to ("burza." prefix).
+	//! Must stay alive as long as the Register window does.
+	Glib::RefPtr<Gio::SimpleActionGroup>	registerActionGroup;
+	// The menu's entries are GMenu <item>s driven by actions in
+	// registerActionGroup, not widgets, so there are no pointers to keep here.
 	
 	// cash-out dialog
 	Gtk::Button		*m_pButtonRegister;
@@ -286,7 +279,6 @@ public:
 	s_messageEditBoxWindowControls	messageEditBoxWindowControls;
 
 	struct {
-		// Glib::RefPtr<Gnome::Glade::Xml> xmlWindow;
 		Gtk::Window		*dialog;
 
 		Gtk::Label		*labelCurrentLicence;

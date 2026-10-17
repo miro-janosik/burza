@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<!DOCTYPE cambalache-project SYSTEM "cambalache-project.dtd">
+<!-- Created with Cambalache 0.96.1 -->
+<cambalache-project version="0.96.0" target_tk="gtk-4.0">
+  <ui filename="burza.ui" sha256="d21f647a8896c4b1dd92bc97a24db9ca227edfd9afa5b16e4711825fa0ba8144"/>
+</cambalache-project>
